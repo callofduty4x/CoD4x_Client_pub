@@ -14,3 +14,5 @@ Instructions to build client the first time:
 
 Run ./compiledll-release.cmd
 
+
+Note: You still need the client launcher (mss32.dll) from https://cod4x.me
