@@ -1,0 +1,5 @@
+*.dll -diff
+*.a -diff
+*.o -diff
+*.exe -diff
+*.so -diff

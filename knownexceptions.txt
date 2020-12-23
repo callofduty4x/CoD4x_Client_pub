@@ -1,0 +1,9 @@
+0x54396d --> ui_joingametype = 7 (fixed)
+0x67782e --> sub_57DA20 Com_Printf(19, "Model '%s':\n", *(_DWORD *)v3); v3 bad ptr (Not fixed) (2x)
+0x629fe17b --> playerprofile_cnt > 64 (fixed)
+0x582918 --> sub_582860 DObj anim... (Not fixed)
+0x416d01 --> BG_GetSpreadForWeapon (null weapondef) could be > 128 gun bug
+0x62a03b82 --> DSSoundBufferCreate crash. Bad class handle. (fixed)
+0x630483 --> R_InitRenderTargetImage (Not fixed)
+0x67cc1a --> memcpy can be subfunction of _inflate() for ff-decompression (not fixed)
+0x57DB17 --> DObjCreateDuplicateParts (not fixed)

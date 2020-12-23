@@ -1,0 +1,32 @@
+
+#C file types to ignore
+
+*.o
+
+*.dll
+
+*.so
+*.exe
+
+*.lib
+
+
+
+#Git files
+
+git-pull.sh
+
+git-push.sh
+
+git-status.sh
+
+.vs*
+
+src/discord-rpc-api/src/out
+src/mbedtls/out
+
+build*/
+lib/*.a
+freetype-2.9/**/*.a
+!src/libseh-0.0.4/build
+src/libseh-0.0.4/build/*.a
