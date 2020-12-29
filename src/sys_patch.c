@@ -246,6 +246,7 @@ void FS_ShutdownSearchPathsCoD4( );
 qboolean __cdecl DB_ReadData();
 void REGPARM(1) DB_UnloadXZoneMemory(void *zone);
 qboolean __cdecl R_CreateDevice(struct GfxWindowParms *wndParms);
+void Con_RegisterDvar_Stub();
 
 /*
 void Com_Error_DebugFunction()
@@ -1147,6 +1148,10 @@ void Patch_Other(){
 	SetJump(0x48B0E0, DB_UnloadXZoneMemory);
 	//SetCall(0x5F47F5, R_CreateDevice); //broken, needs fix
 	SetCall(0x452C8E, CG_DrawActive);
+
+	Patch_Memset((char*)0x45E576, NOP, 0x45E5F1 - 0x45E576);
+	SetCall(0x45E57B, Con_RegisterDvar_Stub);
+	
 }
 
 

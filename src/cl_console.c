@@ -293,3 +293,11 @@ void Con_InitClientAssets()
 {
   Con_CheckResize();
 }
+
+
+void Con_RegisterDvar_Stub()
+{
+  cvar_t** con_miniconlines_ptr = (cvar_t**)0x8F141C;
+  *con_miniconlines_ptr = Cvar_RegisterInt("con_miniconlines", 5, 1, 100, 1u, "Number of lines in the minicon message window");
+
+}

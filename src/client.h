@@ -22,6 +22,7 @@
 
 #define cl_nodelta getcvaradr(0x956cfc)
 #define nextmap getcvaradr(0x1435D50)
+#define con_miniconlines getcvaradr(0x08F141C)
 
 #define AUTOUPDATEINSTALLER "cod4update.dl_"
 
