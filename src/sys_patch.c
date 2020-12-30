@@ -1149,8 +1149,8 @@ void Patch_Other(){
 	//SetCall(0x5F47F5, R_CreateDevice); //broken, needs fix
 	SetCall(0x452C8E, CG_DrawActive);
 
-	Patch_Memset((char*)0x45E576, NOP, 0x45E5F1 - 0x45E576);
-	SetCall(0x45E57B, Con_RegisterDvar_Stub);
+	Patch_Memset((char*)0x45E580, NOP, 0x45E5F1 - 0x45E580);
+	SetCall(0x45E5F6, Con_RegisterDvar_Stub);
 	
 }
 
