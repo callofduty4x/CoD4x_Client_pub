@@ -222,6 +222,9 @@ public:
 	bool IsInitialized();
 	void SetAppIDToAuthAppID(bool settoauthappid);
 	InterfaceDesc_t* GetInterface(const char* interfacename, HSteamPipe pipe, HSteamUser user);
+//	bool FindInterfaceOldMethod();
+	bool FindInterfaceNewMethod(void*);
+	bool Steam3MasterFindClientUtils(const char* codeptr, void**);
 private:
 	// Track whether our server is connected to Steam ok (meaning we can restrict who plays based on
 	// ownership and VAC bans, etc...)
@@ -461,15 +464,292 @@ bool SteamAPI_Main::IsInitialized()
 
 
 
+
+
+
+bool SteamAPI_Main::Steam3MasterFindClientUtils(const char* codeptr, void** interfaceconstructors)
+{
+//	InterfaceDesc_t* (*funcstart)(HSteamUser, HSteamPipe) ;
+
+	ud_t ud_obj;
+	const ud_operand_t* operant1;
+	enum ud_mnemonic_code mnemonic;
+	
+	if(textstart == 0 || rdatastart == 0)
+	{
+		return false;
+	}
+
+	ud_init(&ud_obj);
+
+	ud_set_mode(&ud_obj, 32);
+	ud_set_vendor(&ud_obj, UD_VENDOR_ANY);
+	ud_set_syntax(&ud_obj, UD_SYN_INTEL);
+	ud_set_pc(&ud_obj, (uint64_t)codeptr);
+
+	ud_set_input_buffer(&ud_obj, (uint8_t*)codeptr, 1024);
+
+	int state = 0;
+	int gapcounter = 0;
+	int createinterfacefunccnt = 0;
+	while (ud_disassemble(&ud_obj))
+	{
+
+		mnemonic = ud_insn_mnemonic(&ud_obj);
+
+		if (mnemonic == UD_Iret || mnemonic == UD_Iretf || mnemonic == UD_Iint3 || mnemonic == UD_Iinvalid)
+		{
+			break;
+		}
+		if(state == 0)
+		{
+			++state;
+			if(mnemonic == UD_Ipush)
+			{
+				continue;
+			}
+			return false;
+		}
+		if(state == 1)
+		{
+			++state;
+			if(mnemonic == UD_Icall)
+			{
+				continue;
+			}
+			return false;
+		}
+		if(state == 2)
+		{
+			if(mnemonic == UD_Itest)
+			{
+				++state;
+				gapcounter = 0;
+			}
+			if(gapcounter > 10)
+			{ //something seems to be very wrong
+				return false;
+			}
+			++gapcounter;
+		}
+		if(state == 3)
+		{
+			if(mnemonic == UD_Ijnz)
+			{
+				//have to follow jump
+				signed int displacement;
+				operant1 = ud_insn_opr(&ud_obj, 0);
+				if(operant1->size == 32)
+				{
+					displacement = operant1->lval.sdword;
+				}else{
+					displacement = operant1->lval.sbyte;
+				}
+				ud_input_skip(&ud_obj, displacement);
+				++state;
+				gapcounter = 0;
+				continue;
+			}
+			if(mnemonic == UD_Ijz)
+			{
+				++state;
+				gapcounter = 0;
+				continue;
+			}
+			if(gapcounter > 3)
+			{ //something seems to be very wrong
+				return false;
+			}
+			++gapcounter;
+		}
+
+		if(state == 4)
+		{
+			if(createinterfacefunccnt >= 5)
+			{
+				return true;
+			}
+			if(mnemonic == UD_Ipush)
+			{
+				operant1 = ud_insn_opr(&ud_obj, 0);
+				if(operant1->type == UD_OP_IMM)
+				{
+					if(operant1->lval.udword == 0)
+					{
+						++state;
+						gapcounter = 0;
+						continue;
+					}else{
+						return false;
+					}
+				}
+			}
+
+		}
+		if(state == 5)
+		{
+			if(mnemonic == UD_Icall)
+			{
+				operant1 = ud_insn_opr(&ud_obj, 0);
+				if(operant1->type == UD_OP_JIMM && operant1->size == 32)
+				{
+					interfaceconstructors[createinterfacefunccnt] = (void*)(ud_obj.pc + operant1->lval.sdword);
+					++createinterfacefunccnt;
+					state = 4;
+					continue;
+				}
+				
+			}
+		}
+
+
+
+/*
+			if(mnemonic == UD_Imov)
+			{
+				operant1 = ud_insn_opr(&ud_obj, 0);
+				operant2 = ud_insn_opr(&ud_obj, 1);
+
+				//catch mov dword [eax+12], xxx
+				if(operant1->type == UD_OP_MEM && operant1->base == UD_R_EAX && operant1->size == 32 && operant1->lval.udword == 12)
+				{
+					checkflags |= 8;
+				}
+
+				//catch mov dword [eax+8], xxx
+				if(operant1->type == UD_OP_MEM && operant1->base == UD_R_EAX && operant1->size == 32 && operant1->lval.udword == 8)
+				{
+					checkflags |= 4;
+				}
+
+				//catch mov dword [eax+4], imm32
+				if(operant1->type == UD_OP_MEM && operant1->base == UD_R_EAX && operant1->size == 32 && operant1->lval.udword == 4
+					&& operant2->type == UD_OP_IMM && operant2->size == 32)
+				{
+					checkflags |= 2;
+					detectname = (const char*)operant2->lval.udword; //check
+				}
+				//catch mov dword [eax], imm32
+				if(operant1->type == UD_OP_MEM && operant1->base == UD_R_EAX && operant1->size == 32 && operant1->lval.udword == 0
+					&& operant2->type == UD_OP_IMM && operant2->size == 32)
+				{
+					checkflags |= 1;
+					detectvtable = (void*)operant2->lval.udword;//check
+				}
+
+			}
+			if(checkflags == 15) //passed the basic test
+			{
+				if((uint32_t)detectname >= rdatastart && (uint32_t)detectname < rdatastart + rdatasize)
+				{
+					if((uint32_t)detectvtable >= rdatastart && (uint32_t)detectvtable < rdatastart + rdatasize)
+					{
+						if(strcmp(interfacename, detectname) == 0)
+						{
+							return funcstart(user, pipe);
+						}
+						break;
+					}
+				}
+			}
+*/
+	}
+
+
+
+	return false;
+}
+
+
+bool SteamAPI_Main::FindInterfaceNewMethod(void* engineInterface)
+{
+	void* interfacefuncs[10];
+	unsigned int i;
+	const char* base = (char*)rdatastart;
+
+	for( i = 0; i < rdatasize -13; ++i, ++base)
+	{
+		if(strcmp(base, "Steam3Master") == 0)
+		{
+			break;
+		}
+	}
+	if(i == rdatasize -13)
+	{
+		return false;
+	}
+	DWORD stringaddress = (DWORD)base;
+	base = (char*)textstart;
+	char findsignature[6];
+	findsignature[0] = 0x68; //push constant
+	*(DWORD*)(findsignature +1) = stringaddress;
+	findsignature[5] = 0xe8; //call
+	memset(interfacefuncs, 0, sizeof(interfacefuncs));
+	for(i = 0; i < textsize; ++i, ++base)
+	{
+		if(memcmp(base, findsignature, sizeof(findsignature)) == 0)
+		{
+			if(Steam3MasterFindClientUtils(base, interfacefuncs) == true)
+			{
+				break;
+			}
+		}
+	}
+	for(i = 0; i < 6 && interfacefuncs[i]; ++i)
+	{
+		interfacefuncs[i] = ((void* (*)(HSteamUser, HSteamPipe))interfacefuncs[i])(hSteamUser, hSteamPipe);
+		Com_PrintError(CON_CHANNEL_SYSTEM, "Grabbed interface!\n");
+	}
+	InterfaceDesc_t* ClientUtils_class;
+
+	for(i = 0; i < 6 && interfacefuncs[i]; ++i)
+	{
+		ClientUtils_class = (InterfaceDesc_t*)interfacefuncs[i];
+		if(ParseVtable(ClientUtils_class, iClientUtilsFields, (uint32_t*)&iClientUtils))
+		{
+			break;
+		}
+	}
+	if(i == 6 || interfacefuncs[i] == NULL)
+	{
+		ShutdownAPI();
+		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (no IClientUtils)\n");
+		return false;
+	}
+	return true;
+
+}
+/*
+bool SteamAPI_Main::FindInterfaceOldMethod()
+{
+	InterfaceDesc_t* ClientUtils_class = GetInterface("IClientUtils", hSteamPipe, 0);
+	
+	if(!ParseVtable(ClientUtils_class, iClientUtilsFields, (uint32_t*)&iClientUtils))
+	{
+		ShutdownAPI();
+		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (no IClientUtils)\n");
+		return false;
+	}
+
+
+	InterfaceDesc_t* ClientUser_class = GetInterface("IClientUser", hSteamPipe, hSteamUser);
+
+	if(!ParseVtable(ClientUser_class, iClientUserFields, (uint32_t*)&iClientUser))
+	{
+		ShutdownAPI();
+		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (no IClientUser)\n");
+		return false;
+	}
+	return true;
+}
+*/
+
+
 SteamAPI_Main::SteamAPI_Main(  const wchar_t* dllpath, AppId_t parentAppID, AppId_t gameId, const char* productName, bool overlayrenderer)
 {
-	char envValue[1024];
 	wchar_t dllfilepath[2048];
 	wchar_t steamClientDllPath[2048];
 	int retval;
-	byte backupbyte;
-	byte* patchaddr;
-	DWORD oldProtect;
 	createInterface_t CreateInterfaceFunction;
 
 	m_bConnectedToSteam = false;
@@ -511,14 +791,25 @@ SteamAPI_Main::SteamAPI_Main(  const wchar_t* dllpath, AppId_t parentAppID, AppI
 	/* Get some of the interfaces */
 	/* Official */
 	iSteamClient = (ISteamClient*)CreateInterfaceFunction("SteamClient016", &retval);
-
-
-	/* Unofficial */
 	if(iSteamClient == nullptr)
 	{
 		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (Interface missing)\n");
 		return;
 	}
+
+#if 0
+	/* Unofficial */
+	engineInterface = (void*)CreateInterfaceFunction("CLIENTENGINE_INTERFACE_VERSION005", &retval);
+	if(engineInterface == NULL)
+	{
+		engineInterface = (void*)CreateInterfaceFunction("CLIENTENGINE_INTERFACE_VERSION006", &retval);
+	}
+	if(engineInterface == NULL)
+	{
+		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (Interface missing)\n");
+		return;
+	}
+#endif
 
 	ImportImageSectionInfo();
 
@@ -531,15 +822,6 @@ SteamAPI_Main::SteamAPI_Main(  const wchar_t* dllpath, AppId_t parentAppID, AppI
 		return;
 	}
 
-	InterfaceDesc_t* ClientUtils_class = GetInterface("IClientUtils", hSteamPipe, 0);
-	
-	if(!ParseVtable(ClientUtils_class, iClientUtilsFields, (uint32_t*)&iClientUtils))
-	{
-		ShutdownAPI();
-		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (no IClientUtils)\n");
-		return;
-	}
-
 	hSteamUser = iSteamClient->ConnectToGlobalUser(hSteamPipe);
 
 	if ( !hSteamUser )
@@ -549,16 +831,13 @@ SteamAPI_Main::SteamAPI_Main(  const wchar_t* dllpath, AppId_t parentAppID, AppI
 		return;
 	}
 
-
-	InterfaceDesc_t* ClientUser_class = GetInterface("IClientUser", hSteamPipe, hSteamUser);
-
-
-	if(!ParseVtable(ClientUser_class, iClientUserFields, (uint32_t*)&iClientUser))
+	if(FindInterfaceNewMethod(NULL) == false)
 	{
+		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (bad Interface)\n");
 		ShutdownAPI();
-		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (no IClientUser)\n");
 		return;
 	}
+
 
     iSteamUserlocal = iSteamClient->GetISteamUser(hSteamPipe, hSteamUser, "SteamUser017");
 	iSteamUtils = iSteamClient->GetISteamUtils(hSteamPipe, "SteamUtils007");
@@ -600,7 +879,7 @@ SteamAPI_Main::SteamAPI_Main(  const wchar_t* dllpath, AppId_t parentAppID, AppI
 
 	if(returnedappid != parentAppID)
 	{
-		iClientUser.SpawnProcess(iClientUser.pclass, exefile, exefile, ourDirectory, cgameid, productName, 0, 0, 0);
+//		iClientUser.SpawnProcess(iClientUser.pclass, exefile, exefile, ourDirectory, cgameid, productName, 0, 0, 0);
 		returnedappid = iClientUtils.SetAppIDForCurrentPipe(iClientUtils.pclass, fakeappid, 1 ) ; //reserve appid for unlicensed cod4
 	}
 	if(returnedappid == 0)
@@ -963,7 +1242,16 @@ const char* SteamAPI_Main::GetVtableImportAddress(uint32_t entrypoint)
 			{
 				if(operant->lval.udword >= rdatastart && operant->lval.udword < rdatastart + rdatasize && IsValidFunctionName((const char*)operant->lval.udword))
 				{
-					return (const char*)operant->lval.udword;
+					const char* value1 = (const char*)operant->lval.udword;
+					ud_disassemble(&ud_obj);
+					mnemonic = ud_insn_mnemonic(&ud_obj);
+					if(operant->lval.udword >= rdatastart && operant->lval.udword < rdatastart + rdatasize && IsValidFunctionName((const char*)operant->lval.udword))
+					{
+						if(strncmp((const char*)operant->lval.udword, "IClient", 7) == 0)
+						{
+							return value1;
+						}
+					}
 				}
 			}
 		}
