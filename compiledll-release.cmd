@@ -1,5 +1,7 @@
 @echo off
 
+SET "AUTOCOMPILE=TRUE"
+
 if not exist lib\libsteam_integration.a (
 	echo Compiling Steam API
 	cd src/steam_api
@@ -49,6 +51,7 @@ if not exist lib\libfreetype.a (
 	echo FreeType Compiled!
 	cd ../
 )
+
 
 
 SET FLAGS=-s -Wall -O0 -DNDEBUG
