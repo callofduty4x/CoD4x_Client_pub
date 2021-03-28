@@ -3371,7 +3371,6 @@ const char *__cdecl FS_ReferencedPakChecksums(char *info6, int maxsize)
 
 void FS_ValidateIwdFiles()
 {
-#if 0
   struct searchpath_s *search;
   int i;
 
@@ -3421,5 +3420,5 @@ void FS_ValidateIwdFiles()
 	errormsg[1023] = 0;
 	Com_SetErrorMessage(errormsg);
   }
-#endif
+
 }

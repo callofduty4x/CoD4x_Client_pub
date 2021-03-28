@@ -10,8 +10,10 @@ cvar_t* cl_ranktablename;
 
 void __cdecl CL_InitRanktableVars()
 {
-    cl_ranktablename = Cvar_RegisterString("g_ranktablename", "", CVAR_CHEAT, "Changes name of ranktable when set by server");
+    cl_ranktablename = Cvar_RegisterString("g_ranktablename", "", CVAR_INIT, "Changes name of ranktable when set by server");
 }
+
+
 
 void __cdecl CL_GetRankIcon(int rank, int prestige, Material **handle)
 {

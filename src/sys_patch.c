@@ -745,6 +745,7 @@ void Patch_CoD4XXZone()
   Patch_Memset((char*)0x48AA43, NOP, 0x48AA6D - 0x48AA43);
 }
 
+float cgfov90 = 90.0f;
 
 void Patch_Other(){
 	SetJump(0x576cd0, Com_QueueEvent);
@@ -1151,7 +1152,7 @@ void Patch_Other(){
 
 	Patch_Memset((char*)0x45E580, NOP, 0x45E5F1 - 0x45E580);
 	SetCall(0x45E5F6, Con_RegisterDvar_Stub);
-	
+	WriteSymbol(0x43ad8d, &cgfov90);
 }
 
 

@@ -225,6 +225,7 @@ public:
 //	bool FindInterfaceOldMethod();
 	bool FindInterfaceNewMethod(void*);
 	bool Steam3MasterFindClientUtils(const char* codeptr, void**);
+	int BasicInitialization(wchar_t *dllfilepath, AppId_t parentAppID, AppId_t gameId);
 private:
 	// Track whether our server is connected to Steam ok (meaning we can restrict who plays based on
 	// ownership and VAC bans, etc...)
@@ -745,18 +746,77 @@ bool SteamAPI_Main::FindInterfaceOldMethod()
 */
 
 
+int SteamAPI_Main::BasicInitialization(wchar_t *steamClientDllPath, AppId_t parentAppID, AppId_t gameId)
+{
+	int retval;
+	char envValue[128];
+	createInterface_t CreateInterfaceFunction;
+
+	sprintf(envValue, "%u", parentAppID);
+	SetEnvironmentVariableA("SteamAppId", envValue);
+	sprintf(envValue, "%u", gameId & 0xFFFFFF);
+	SetEnvironmentVariableA("SteamGameId", envValue);
+
+	if ( !hSteamClientGlob)
+	{
+		hSteamClientGlob = LoadLibraryExW(steamClientDllPath, 0, 8);
+	}
+	if ( !hSteamClientGlob )
+	{
+		Com_Printf(CON_CHANNEL_SYSTEM, "[S_API FAIL] SteamAPI_Init() failed. Steam is either not running or installed\n");
+		return 0;
+	}
+
+	CreateInterfaceFunction = (void*  (__cdecl *)(const char *, int *))GetProcAddress(hSteamClientGlob, "CreateInterface");
+
+	if ( !CreateInterfaceFunction )
+	{
+		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (No CreateInterface function)\n");
+		return 0;
+	}
+
+
+	/* Get some of the interfaces */
+	/* Official */
+	iSteamClient = (ISteamClient*)CreateInterfaceFunction("SteamClient016", &retval);
+	if(iSteamClient == nullptr)
+	{
+		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (Interface missing)\n");
+		return 0;
+	}
+
+	hSteamPipe =  iSteamClient->CreateSteamPipe();
+
+	if ( !hSteamPipe )
+	{
+		ShutdownAPI();
+		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (no hSteamPipe)\n");
+		return 0;
+	}
+
+	hSteamUser = iSteamClient->ConnectToGlobalUser(hSteamPipe);
+
+	if ( !hSteamUser )
+	{
+		ShutdownAPI();
+		return -1;
+	}
+	return 1;
+}
+
+
+
 SteamAPI_Main::SteamAPI_Main(  const wchar_t* dllpath, AppId_t parentAppID, AppId_t gameId, const char* productName, bool overlayrenderer)
 {
 	wchar_t dllfilepath[2048];
 	wchar_t steamClientDllPath[2048];
-	int retval;
-	createInterface_t CreateInterfaceFunction;
 
 	m_bConnectedToSteam = false;
 	initialized = false;
 	appId = 0;
 	hSteamPipe = 0;
 	hSteamUser = 0;
+	signed int rstatus;
 
 	iSteamClient = nullptr;
 	memset(&iClientUtils, 0, sizeof(iClientUtils));
@@ -767,35 +827,34 @@ SteamAPI_Main::SteamAPI_Main(  const wchar_t* dllpath, AppId_t parentAppID, AppI
 
 	hSteamClientGlob = nullptr;
 
-
-	if ( !hSteamClientGlob && SteamAPI_GetSteamClientDLLPath(dllfilepath, sizeof(dllfilepath) / 2))
-	{
+	if ( !hSteamClientGlob){
+		if(!SteamAPI_GetSteamClientDLLPath(dllfilepath, sizeof(dllfilepath) / 2))
+		{
+			Com_Printf(CON_CHANNEL_SYSTEM, "[S_API FAIL] SteamAPI_Init() failed. Steam appears to be not installed\n");
+			return;
+		}
 		Com_sprintfUni(steamClientDllPath, sizeof(steamClientDllPath), L"%s\\%s", dllfilepath, L"steamclient.dll");
-		hSteamClientGlob = LoadLibraryExW(steamClientDllPath, 0, 8);
-	}
-	if ( !hSteamClientGlob )
+	} 
+
+
+	switch(BasicInitialization(steamClientDllPath, parentAppID, gameId))
 	{
-		Com_Printf(CON_CHANNEL_SYSTEM, "[S_API FAIL] SteamAPI_Init() failed. Steam is either not running or installed\n");
-		return;
+		case 1:
+			break;
+		case 0:
+			return;
+		case -1:
+			rstatus = BasicInitialization(steamClientDllPath, 42750, gameId);
+			if(rstatus != 1)
+			{
+				if(rstatus == -1){
+					Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (bad hSteamUser)\n");
+				}
+				return;
+			}
+			break;
 	}
 
-	CreateInterfaceFunction = (void*  (__cdecl *)(const char *, int *))GetProcAddress(hSteamClientGlob, "CreateInterface");
-
-	if ( !CreateInterfaceFunction )
-	{
-		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (No CreateInterface function)\n");
-		return;
-	}
-
-
-	/* Get some of the interfaces */
-	/* Official */
-	iSteamClient = (ISteamClient*)CreateInterfaceFunction("SteamClient016", &retval);
-	if(iSteamClient == nullptr)
-	{
-		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (Interface missing)\n");
-		return;
-	}
 
 #if 0
 	/* Unofficial */
@@ -811,26 +870,11 @@ SteamAPI_Main::SteamAPI_Main(  const wchar_t* dllpath, AppId_t parentAppID, AppI
 	}
 #endif
 
-	ImportImageSectionInfo();
+//	ImportImageSectionInfo();
 
-	hSteamPipe =  iSteamClient->CreateSteamPipe();
 
-	if ( !hSteamPipe )
-	{
-		ShutdownAPI();
-		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (no hSteamPipe)\n");
-		return;
-	}
 
-	hSteamUser = iSteamClient->ConnectToGlobalUser(hSteamPipe);
-
-	if ( !hSteamUser )
-	{
-		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (bad hSteamUser)\n");
-		ShutdownAPI();
-		return;
-	}
-
+/*
 	if(FindInterfaceNewMethod(NULL) == false)
 	{
 		Com_PrintError(CON_CHANNEL_SYSTEM, "Steam: SteamAPI_Init() failed (bad Interface)\n");
@@ -838,7 +882,7 @@ SteamAPI_Main::SteamAPI_Main(  const wchar_t* dllpath, AppId_t parentAppID, AppI
 		return;
 	}
 
-
+*/
     iSteamUserlocal = iSteamClient->GetISteamUser(hSteamPipe, hSteamUser, "SteamUser017");
 	iSteamUtils = iSteamClient->GetISteamUtils(hSteamPipe, "SteamUtils007");
 
@@ -855,8 +899,8 @@ SteamAPI_Main::SteamAPI_Main(  const wchar_t* dllpath, AppId_t parentAppID, AppI
 	char ourDirectory[1024];
 	char cmdline[1024];
 	const char* exefile;
-
-	//if(Sys_IsTempInstall())
+/*
+	if(Sys_IsTempInstall())
 	{
 		ourDirectory[0] = '\0';
 		GetSystemDirectoryA(ourDirectory, sizeof(ourDirectory));
@@ -868,6 +912,7 @@ SteamAPI_Main::SteamAPI_Main(  const wchar_t* dllpath, AppId_t parentAppID, AppI
 		Com_sprintf(cmdline, sizeof(cmdline), "%s\\%s", ourDirectory, "rundll32.exe");
 		exefile = cmdline;
 	}
+
 	AppId_t fakeappid = 42750;
 	// create a fake app to hold our gameid
 	uint64_t gameID = 0xACCF2DAB01000000 | fakeappid; // crc32 for 'kekking' + mod
@@ -888,7 +933,7 @@ SteamAPI_Main::SteamAPI_Main(  const wchar_t* dllpath, AppId_t parentAppID, AppI
 		ShutdownAPI();
 		return;
 	}
-
+*/
 	/* End init for OpenSteamWorks */
 
 #if 0

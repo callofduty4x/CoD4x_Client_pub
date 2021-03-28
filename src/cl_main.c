@@ -2947,11 +2947,11 @@ void CL_CheckForResend( int dummy ) {
 			// the most current userinfo has been sent, so watch for any
 			// newer changes to userinfo variables
 			cvar_modifiedFlags &= ~CVAR_USERINFO;
+			Cvar_SetFromStringByNameFromSource("g_ranktablename", "", 0);
 			break;
 
 		case CA_STATSSYNC:
 		case CA_CONNECTED:
-
 			if(Com_IsLegacyServer())
 			{
 				clientUIActives.state = CA_STATSSYNC;
@@ -4370,7 +4370,6 @@ void CL_WritePacket( void ) {
 
 	if(!Com_IsLegacyServer())
 	{
-		//Com_Printf("Sequence: %d\n", clc.serverConfigDataSequence);
 		MSG_WriteLong( &buf, clc.serverConfigDataSequence );
 	}
 
@@ -7603,17 +7602,19 @@ void CL_ParseConfigClientData( msg_t* msg )
 	unsigned int clientnum, sequence;
 
 	sequence = MSG_ReadLong( msg );
-
 	if(sequence != clc.serverConfigDataSequence +1)
 	{
-		Com_DPrintf(CON_CHANNEL_CLIENT, "CL_ParseConfigClientData(): sequence != clc.serverConfigDataSequence +1\n");
+		if(sequence > clc.serverConfigDataSequence)
+		{
+			Com_DPrintf(CON_CHANNEL_CLIENT, "CL_ParseConfigClientData(): sequence != clc.serverConfigDataSequence +1\n");
+		}
 		MSG_ReadByte(msg);
 		MSG_ReadString(msg, name, sizeof(name));
 		MSG_ReadString(msg, clantag, sizeof(clantag));
 		return;
 	}
 
-	Com_Printf(CON_CHANNEL_CLIENT, "^1Parse Config client data\n");
+	//Com_Printf(CON_CHANNEL_CLIENT, "^1Parse Config client data\n");
 
 	clc.serverConfigDataSequence = sequence;
 	clientnum = MSG_ReadByte(msg);

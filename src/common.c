@@ -754,7 +754,6 @@ static void InitConsoleLines(char *CommandLine_)
     }
 }
 
-
 void __cdecl Com_Init_Try_Block(char* commandLine){
 
 	int msec;
@@ -834,7 +833,6 @@ void __cdecl Com_Init_Try_Block(char* commandLine){
 	Cmd_AddCommand ("writeconfig", Com_WriteConfig_f);
 	Cmd_AddCommand ("writedefaults", Com_WriteDefaults_f);
 	Cmd_AddCommand ("openurl", Com_ParseURLCommand_f);
-
 	s = va("%s %s %s", Q3_VERSION, PLATFORM_STRING, __DATE__ );
 	com_version = Cvar_RegisterString("version", s, CVAR_ROM|CVAR_SERVERINFO, "Game version");
 	com_shortversion = Cvar_RegisterString("shortversion", "1.7", CVAR_ROM|CVAR_SERVERINFO, "Short game version");

@@ -499,6 +499,11 @@ void __cdecl DB_LoadXZoneFromGfxConfig()
   zoneinfo[index].freeFlags = 0;
   ++index;
 
+  zoneinfo[index].name = "cod4x_ambfix";
+  zoneinfo[index].allocFlags = 4;
+  zoneinfo[index].freeFlags = 0;
+  ++index;
+
   if ( gfxCfg.localizedCommonFastFileName )
   {
     zoneinfo[index].name = gfxCfg.localizedCommonFastFileName;

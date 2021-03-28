@@ -1064,7 +1064,7 @@ void CG_DrawActive()
   cl.cgameUserCmdWeapon = cg.weaponSelect;
   cl.cgameUserCmdOffHandIndex = cg.equippedOffHand;
   cg.extraButtons = 0;
-  
+  CG_UpdateViewAngles();
   cls.debugRenderPos[0] = cg.refdef.vieworg[0];
   cls.debugRenderPos[1] = cg.refdef.vieworg[1];
   cls.debugRenderPos[2] = cg.refdef.vieworg[2];

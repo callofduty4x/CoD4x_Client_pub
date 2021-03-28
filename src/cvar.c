@@ -1488,3 +1488,4 @@ cvar_t* Cvar_FindVar(const char *dvarName)
   }
   return NULL;
 }
+
