@@ -1048,13 +1048,14 @@ void __cdecl CG_GameMessage(int localClientNum, const char *msg)
 void CG_DrawActive()
 {
 
-  float FOVSensitivityScale;
-  if(cg_zoom_sensitivity_ratio->floatval < 0.001)
+  float FOVSensitivityScale = cg.zoomSensitivity;
+  
+  if(cg.playerEntity.bPositionToADS == 0)
   {
-    FOVSensitivityScale = 1.0;
-  }else{
-    FOVSensitivityScale = cg.zoomSensitivity * cg_zoom_sensitivity_ratio->floatval;
+    FOVSensitivityScale *= cg_zoom_sensitivity_ratio->floatval;
   }
+  
+
   if ( cg.shellshock.sensitivity != 0.0 )
   {
 	  FOVSensitivityScale *= cg.shellshock.sensitivity;
