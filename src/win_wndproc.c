@@ -250,6 +250,7 @@ LONG WINAPI MainWndProc(
 		}
 		r_autopriority = Cvar_RegisterBool("r_autopriority", qtrue, 0, "Automatically set the priority of the windows process when the game is minimized");
 		MSH_MOUSEWHEEL = RegisterWindowMessage( "MSWHEEL_ROLLMSG" );
+		IN_RawMouseInit();
 		break;
 
 
@@ -431,7 +432,8 @@ LONG WINAPI MainWndProc(
 		break;
 
 	case WM_INPUT:
-		//IN_RawEvent( lParam );
+		IN_RawEvent( lParam );
+		break;
 
 
 	case WM_POWERBROADCAST:

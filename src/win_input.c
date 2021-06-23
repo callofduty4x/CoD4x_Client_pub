@@ -42,6 +42,8 @@ If you have questions concerning this license or the applicable additional terms
 
 cvar_t * in_mouse;
 cvar_t* raw_input;
+bool g_showCursor;
+
 
 typedef struct {
 	int oldButtonState;
@@ -62,8 +64,7 @@ WIN32 MOUSE CONTROL
 
 ============================================================
 */
-void IN_RawMouseInit();
-
+void IN_MouseMove();
 /*
 ================
 IN_RecenterMouse
@@ -190,21 +191,16 @@ void IN_ActivateMouse( qboolean force ) {
 
 void IN_ShowSystemCursor(int show)
 {
-/*	
+	
   int actualShow; // [esp+0h] [ebp-8h]
   int desiredShow; // [esp+4h] [ebp-4h]
 
-//  g_showCursor = show;
+  g_showCursor = show;
   desiredShow = (show != 0) - 1;
   for ( actualShow = ShowCursor(show); actualShow != desiredShow; actualShow = ShowCursor(actualShow < desiredShow) )
   {
     ;
-  }*/
-  	int bShow;
-
-	bShow = ShowCursor( TRUE );
-	while ( bShow )
-		bShow = ShowCursor( bShow < 0 );
+  }
 }
 
 void IN_DeactivateWin32Mouse()
@@ -275,16 +271,23 @@ void IN_MouseEvent( int mstate ) {
 =========================================================================
 */
 
-
 void IN_StartupMouse()
 {
 	s_wmv.mouseInitialized = 0;
 	if ( in_mouse->boolean )
 	{
+		
 		if(raw_input->boolean)
 		{
-			IN_RawMouseInit();
-		}		
+			//IN_RawMouseInit(); //window creation has to do it as it has the window handle
+		}
+		
+		//Call it so mouse pointer gets drawn properly even in RAW input mode
+		IN_RecenterMouse();
+        s_wmv.oldPos.x = window_center_x;
+        s_wmv.oldPos.y = window_center_y;
+		UI_MouseEvent(window_center_x, window_center_y);
+		
 		s_wmv.mouseInitialized = 1;
 
 	}
@@ -301,6 +304,7 @@ void IN_Startup()
   IN_StartupMouse();
   //IN_StartupGamepads();
   Cvar_ClearModified(in_mouse);
+
 }
 
 /*
@@ -354,7 +358,6 @@ void __cdecl IN_Activate(qboolean active)
 }
 
 
-
 void IN_ClampMouseMove(struct tagPOINT *curPos)
 {
   bool isClamped; 
@@ -401,6 +404,7 @@ void IN_MouseMove()
   struct tagPOINT curPos;
   int dy;
 
+
   assert(s_wmv.mouseInitialized);
   assert(r_fullscreen);
 
@@ -436,12 +440,18 @@ void __cdecl IN_Frame()
   {
     PostMessageA(g_wv.hWnd, 0x201u, 1u, 0);
   }
+
   if ( s_wmv.mouseInitialized )
   {
     if ( in_appactive )
     {
+
       IN_ActivateMouse(0);
-      IN_MouseMove();
+	  if(!raw_input->boolean)
+  	  {
+	    IN_MouseMove();
+	  }
+
       if ( IN_IsForegroundWindow() )
       {
        // IN_GamepadsMove();
@@ -467,38 +477,73 @@ void IN_SetCursorPos(int x, int y)
 
 
 
-#define MAX_RAWDEVICES 1
 #define HID_USAGE_PAGE_GENERIC 1
 #define HID_USAGE_GENERIC_MOUSE 2
 
-static RAWINPUTDEVICE rimouse[MAX_RAWDEVICES];
 static RAWINPUT rawinput;
 
 void IN_RawMouseInit()
 {
-	int i;
-	for(i = 0; i < MAX_RAWDEVICES; ++i)
+	RAWINPUTDEVICE rimouse[1];
+
+	rimouse[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
+	rimouse[0].usUsage = HID_USAGE_GENERIC_MOUSE;
+	rimouse[0].dwFlags = RIDEV_INPUTSINK;
+	rimouse[0].hwndTarget = g_wv.hWnd;
+
+	if(!RegisterRawInputDevices(rimouse, 1, sizeof(RAWINPUTDEVICE)))
 	{
-		rimouse[i].usUsagePage = HID_USAGE_PAGE_GENERIC;
-		rimouse[i].usUsage = HID_USAGE_GENERIC_MOUSE;
-		rimouse[i].dwFlags = RIDEV_INPUTSINK;
-		rimouse[i].hwndTarget = g_wv.hWnd;
+		Com_PrintError(CON_CHANNEL_SYSTEM,"Raw input initialization failed. Will use Win32 mouse. Error code 0x%x\n", (unsigned int)GetLastError());
+		Cvar_SetBool(raw_input, qfalse);
 	}
-	RegisterRawInputDevices(rimouse, MAX_RAWDEVICES, sizeof(rimouse));
 
 	memset(&rawinput, 0, sizeof(RAWINPUT));
 }
-/*
+
 void IN_RawEvent(LPARAM lParam)
 {
-	const UINT size = sizeof(RAWINPUT);
+	int dx;
+	struct tagPOINT curPos;
+	int dy;
 
-	GetRawInputData((HRAWINPUT)lParam, RID_INPUT, &rawinput, &size, sizeof(RAWINPUTHEADER));
-    if (rawinput.header.dwType == RIM_TYPEMOUSE) {
-        *x = rawinput.data.mouse.lLastX;
-        *y = rawinput.data.mouse.lLastY);
-    }
+	if ( raw_input->boolean && IN_IsForegroundWindow() )
+	{
+
+		assert(s_wmv.mouseInitialized);
+		assert(r_fullscreen);
+
+		UINT size = sizeof(RAWINPUT);
+		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, &rawinput, &size, sizeof(RAWINPUTHEADER));
+		
+		if (rawinput.header.dwType != RIM_TYPEMOUSE) {
+			return;
+		}
+
+		dx = rawinput.data.mouse.lLastX;
+		dy = rawinput.data.mouse.lLastY;
+
+		if ( r_fullscreen->boolean )
+		{
+			curPos.x = s_wmv.oldPos.x + dx;
+			curPos.y = s_wmv.oldPos.y + dy;
+			IN_ClampMouseMove(&curPos);
+		}else{
+			GetCursorPos(&curPos);
+		}
+
+		s_wmv.oldPos = curPos;
+		ScreenToClient(g_wv.hWnd, &curPos);
+		g_wv.recenterMouse = CL_MouseEvent(curPos.x, curPos.y, dx, dy);
+		if ( g_wv.recenterMouse )
+		{
+			if ( dx || dy )
+			{
+				IN_RecenterMouse();
+				s_wmv.oldPos.x = window_center_x;
+				s_wmv.oldPos.y = window_center_y;
+			}
+		}
+	}
+
 }
-*/
-
 

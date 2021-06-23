@@ -867,13 +867,14 @@ void __cdecl Com_Init_Try_Block(char* commandLine){
 	Com_StartupVariable(0);
 
 	if(!com_dedicated->integer){
-		IN_Init();
-
 		SND_InitDriver();
 
 		R_InitOnce();
 		CL_InitRenderer();
 		*(int*)0x956e8c = 1;
+
+		IN_Init();
+
 		SND_Init();
 		//Sys_ShowConsole(0 , qfalse);
 	}
@@ -901,7 +902,6 @@ void __cdecl Com_Init_Try_Block(char* commandLine){
 	//CL_KevinosResetInfection();
 
 //	Cvar_Dump();  //Stop this unnecessary console spam
-
 }
 
 qboolean Com_IsLegacyServer()
@@ -962,7 +962,6 @@ void __cdecl Com_Init(char* cmdLine)
 
 
 	R_SyncRenderThread();
-
 
 }
 

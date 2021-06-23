@@ -1210,6 +1210,8 @@ __declspec( dllexport ) int CALLBACK WinMain( HINSTANCE hInstance, HINSTANCE hPr
 	Sys_Milliseconds();
 
 	Com_Init( cmdline );
+
+
 	Sys_FixUpThirdPartyModules();
 	if(!com_dedicated || !com_dedicated->integer)
 		Cbuf_AddText("readStats\n");
@@ -1249,6 +1251,7 @@ __declspec( dllexport ) int CALLBACK WinMain( HINSTANCE hInstance, HINSTANCE hPr
 	CleanKernel32Funcs();
 
 	FS_ValidateIwdFiles();
+
 
 	while(qtrue)
 	{
