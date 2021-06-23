@@ -765,8 +765,8 @@ Restart the input subsystem
 =================
 */
 void Sys_In_Restart_f( void ) {
-//	IN_Shutdown();
-//	IN_Init();
+	IN_Shutdown();
+	IN_Init();
 }
 
 
@@ -815,22 +815,22 @@ are initialized
 */
 
 void Sys_Init( void ) {
-
+	OSVERSIONINFOA osversion;
 	// make sure the timer is high precision, otherwise
 	// NT gets 18ms resolution
 	timeBeginPeriod( 1 );
 
 	Cmd_AddCommand( "in_restart", Sys_In_Restart_f );
-	g_wv.osversion.dwOSVersionInfoSize = sizeof( g_wv.osversion );
+	osversion.dwOSVersionInfoSize = sizeof( osversion );
 
-	if ( !GetVersionEx( &g_wv.osversion ) ) {
+	if ( !GetVersionEx( &osversion ) ) {
 		Sys_Error( "Couldn't get OS info" );
 	}
 
-	if ( g_wv.osversion.dwMajorVersion < 4 ) {
+	if ( osversion.dwMajorVersion < 4 ) {
 		Sys_Error( va("%s requires Windows version 4 or greater", LONG_PRODUCT_NAME));
 	}
-	if ( g_wv.osversion.dwPlatformId == VER_PLATFORM_WIN32s ) {
+	if ( osversion.dwPlatformId == VER_PLATFORM_WIN32s ) {
 		Sys_Error( va("%s doesn't run on Win32s", LONG_PRODUCT_NAME));
 	}
 	//

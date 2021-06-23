@@ -1153,6 +1153,10 @@ void Patch_Other(){
 	Patch_Memset((char*)0x45E580, NOP, 0x45E5F1 - 0x45E580);
 	SetCall(0x45E5F6, Con_RegisterDvar_Stub);
 	WriteSymbol(0x43ad8d, &cgfov90);
+
+	SetCall(0x5417F9, UI_SetSystemCursorPos);
+	SetCall(0x54B298, UI_SetSystemCursorPos);
+	SetCall(0x452A44, IN_Frame);
 }
 
 

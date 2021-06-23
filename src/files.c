@@ -3317,7 +3317,7 @@ void __cdecl FS_DebugPakChecksums_f()
 
 
 //FS_ReferencedIwdPureChecksums()
-const char *__cdecl FS_ReferencedPakChecksums(char *info6, int maxsize)
+const char *__cdecl FS_ReferencedPakChecksums(char *info6, int maxsize, int server_id)
 {
   int checksum; 
   struct searchpath_s *search;
@@ -3338,7 +3338,7 @@ const char *__cdecl FS_ReferencedPakChecksums(char *info6, int maxsize)
   info6[strlen(info6)] = ' ';
   if(!Com_IsLegacyServer())
   {
-    Q_strcat(info6, maxsize, va("L%i ", SEH_GetCurrentLanguage()));
+    Q_strcat(info6, maxsize, va("L%i %i ", SEH_GetCurrentLanguage(), server_id));
   }
 
   for ( search = fs_searchpaths; search; search = search->next )

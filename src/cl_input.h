@@ -83,11 +83,14 @@ typedef enum {
 
 void IN_Activate( qboolean active );
 //void IN_MouseEvent( int mstate );
-void IN_ActivateWin32Mouse( void );
-void IN_ActivateMouse( void );
+void IN_RecenterMouse( void ) ;
+void IN_ActivateMouse( qboolean );
 void IN_DeactivateMouse( void );
 void IN_MouseEvent( int mstate );
-
+void IN_RawEvent(LPARAM lParam);
+void IN_ShowSystemCursor(int show);
+qboolean CL_MouseEvent(int x, int y, int dx, int dy);
+void IN_SetCursorPos(int x, int y);
 
 typedef struct 
 {

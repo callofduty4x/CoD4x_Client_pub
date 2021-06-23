@@ -67,7 +67,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <wincrypt.h>
 
 #define g_wv (*((WinVars_t*)(g_wv_ADDR)))
-#define in_appactive *((qboolean*)(in_appactive_ADDR))
 
 typedef struct{
 	HINSTANCE reflib_library;           // Handle to refresh DLL
@@ -76,7 +75,7 @@ typedef struct{
 	HINSTANCE hInstance;				//0xcc1b700
 	qboolean activeApp;
 	qboolean isMinimized;				//0xcc1b708
-	OSVERSIONINFO osversion;
+	qboolean recenterMouse;
 	// when we get a windows message, we store the time off so keyboard processing
 	// can know the exact time of an event
 	unsigned sysMsgTime;				//0xcc1b710

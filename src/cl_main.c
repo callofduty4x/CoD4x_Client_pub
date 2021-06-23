@@ -1,6 +1,7 @@
 #include "q_shared.h"
 #include "qcommon.h"
 #include "client.h"
+#include "cl_input.h"
 #include "ui_shared.h"
 #include "win_sys.h"
 #include "snd_system.h"
@@ -7286,7 +7287,7 @@ void CL_SendPureChecksums()
   char buf[MAX_STRING_CHARS];
 
   Com_sprintf(buf, sizeof(buf), "Va ");
-  Q_strcat(buf, sizeof(buf), FS_ReferencedPakChecksums(intbuf, sizeof(intbuf)));
+  Q_strcat(buf, sizeof(buf), FS_ReferencedPakChecksums(intbuf, sizeof(intbuf), cl.serverId));
   buf[0] += 13;
   buf[1] += 15;
   CL_AddReliableCommand( buf );
@@ -9736,4 +9737,40 @@ void CL_RestartAndReconnect()
 	Sys_SetRestartParams(cmdline);
 
 	Cbuf_AddText("disconnect;wait 5;quit\n");
+}
+
+void CL_ShowSystemCursor(int show)
+{
+  IN_ShowSystemCursor(show);
+}
+
+qboolean CL_MouseEvent(int x, int y, int dx, int dy)
+{
+	clientActive_t *clLoc;
+/*
+	if ( DevGui_IsActive() )
+	{
+		DevGui_MouseEvent(dx, dy);
+		return qtrue;
+	}
+	*/
+    clLoc = &cl;
+    if ( clLoc )
+    {
+      if ( !(clientUIActives.keyCatchers & 0x10) || UI_KeysBypassMenu(0) )
+      {
+        CL_ShowSystemCursor(0);
+        clLoc->mouseDx[clLoc->mouseIndex] += dx;
+        clLoc->mouseDy[clLoc->mouseIndex] += dy;
+        return qtrue;
+      }
+      UI_MouseEvent(x, y);
+    }
+    return qfalse;
+
+}
+
+void CL_SetCursorPos(int x, int y)
+{
+  IN_SetCursorPos(x, y);
 }

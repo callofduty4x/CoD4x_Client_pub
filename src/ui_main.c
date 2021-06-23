@@ -2077,3 +2077,33 @@ bool __cdecl ValidGamePadButtonIcon(unsigned int letter)
   return letter == 189;
 }
 
+bool __cdecl UI_KeysBypassMenu(const int localClientNum)
+{
+    if ( cl_bypassMouseInput && cl_bypassMouseInput->boolean )
+    {
+      return qtrue;
+    }
+    return UI_GetActiveMenu(localClientNum) == UIMENU_SCOREBOARD;
+}
+
+double ScrPlace_HiResGetScale()
+{
+  /*
+  if ( rg.renderHiResShot )
+  {
+    return = (double)rg.hiResShotTiles;
+  }*/
+  return 1.0;
+}
+
+void __cdecl UI_SetSystemCursorPos(float x, float y)
+{
+  float xs;
+  float ys;
+
+  xs = ScrPlace_HiResGetScale() * x * scrPlaceFull.scaleVirtualToFull[0];
+
+  ys = ScrPlace_HiResGetScale() * y * scrPlaceFull.scaleVirtualToFull[1];
+ 
+  CL_SetCursorPos((signed int)floor(xs + 0.5), (signed int)floor(ys + 0.5));
+}

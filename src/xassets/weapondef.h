@@ -396,7 +396,7 @@ typedef struct
   float fHipReticleSidePos;
   int iAdsTransInTime;
   int iAdsTransOutTime;
-  float fAdsIdleAmount;
+  float fAdsIdleAmount; //putting to 0 removes sway
   float fHipIdleAmount;
   float adsIdleSpeed;
   float hipIdleSpeed;

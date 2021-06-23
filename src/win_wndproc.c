@@ -74,15 +74,7 @@ static void VID_AppActivate( BOOL fActive, BOOL minimize ) {
 	}
 
 	// minimize/restore mouse-capture on demand
-	if ( !g_wv.activeApp ) {
-		in_appactive = qfalse;
-		IN_DeactivateMouse();
-
-
-	} else
-	{
-		IN_Activate( qtrue );
-	}
+	IN_Activate(g_wv.activeApp);
 }
 
 //==========================================================================
@@ -288,7 +280,7 @@ LONG WINAPI MainWndProc(
 				IN_Activate( qtrue );
 			}
 		}else{
-			IN_ActivateMouse();
+			IN_ActivateMouse(0);
 		}
 	break;
 
@@ -336,7 +328,7 @@ LONG WINAPI MainWndProc(
 			MoveWindow( hWnd, xPos, yPos, nWidth, nHeight, qtrue);
 		}
 
-		IN_ActivateWin32Mouse();
+		IN_RecenterMouse();
 
 
 	break;
@@ -437,6 +429,9 @@ LONG WINAPI MainWndProc(
 			Com_QueueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, qfalse, 0, NULL );
 		}
 		break;
+
+	case WM_INPUT:
+		//IN_RawEvent( lParam );
 
 
 	case WM_POWERBROADCAST:

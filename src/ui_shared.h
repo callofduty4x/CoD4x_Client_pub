@@ -118,12 +118,15 @@ typedef enum
   UIMENU_POSTGAME = 0x4,
   UIMENU_WM_QUICKMESSAGE = 0x5,
   UIMENU_SCRIPT_POPUP = 0x6,
-  UIMENU_SCOREBOARD = 0x7,
-  UIMENU_SPLITSCREENGAMESETUP = 0x8,
-  UIMENU_SYSTEMLINKJOINGAME = 0x9,
-  UIMENU_PARTY = 0xA,
-  UIMENU_GAMELOBBY = 0xB,
-  UIMENU_PRIVATELOBBY = 0xC,
+  UIMENU_UNK1 = 7,
+  UIMENU_UNK2 = 8,
+  UIMENU_UNK3 = 9,  
+  UIMENU_SCOREBOARD,
+  UIMENU_SPLITSCREENGAMESETUP,
+  UIMENU_SYSTEMLINKJOINGAME,
+  UIMENU_PARTY,
+  UIMENU_GAMELOBBY,
+  UIMENU_PRIVATELOBBY
 }uiMenuCommand_t;
 
 
@@ -335,6 +338,8 @@ void UI_TTFTextHeightWidth(const char *text, int maxChars, Font_t *font, float s
 void UI_SetActiveMenuByName(const char* menuname);
 uiMenuCommand_t UI_GetActiveMenu();
 void Menu_Open(menuDef_t *menu);
-
+bool UI_KeysBypassMenu(const int localClientNum);
+void __cdecl UI_MouseEvent(int x, int y);
+void __cdecl UI_SetSystemCursorPos(float x, float y);
 
 #endif

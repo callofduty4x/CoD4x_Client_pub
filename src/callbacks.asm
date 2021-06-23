@@ -349,7 +349,7 @@ bin_import RBCmd_6134B0, 0x6134B0
 bin_import RBCmd_613680, 0x613680
 bin_import RBCmd_6150C0, 0x6150C0
 bin_import RB_EndTessSurface, 0x61A2F0
-bin_import IN_Frame, 0x576100
+;bin_import IN_Frame, 0x576100
 bin_import R_SyncGpuPF, 0x5F5170
 bin_import CreateDebugStringsIfNeeded, 0x461EC0
 bin_import CreateDebugLinesIfNeeded, 0x462080
@@ -367,7 +367,7 @@ bin_import FS_InitCvars, 0x55e390
 bin_import FS_AddCommands, 0x503c70
 bin_import FS_DisplayPath, 0x55d510
 bin_import FS_AddGameDirectory_real, 0x55dd80
-
+bin_import UI_MouseEvent, 0x549470 
 ;bin_import DrawText2D, 0x613EA0
 bin_import sub_4ECF20, 0x4ecf20
 bin_import CG_ConfigStringModified, 0x44AF10

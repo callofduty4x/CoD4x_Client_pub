@@ -349,6 +349,7 @@ sysEvent_t Com_GetEvent( void )
 
 
 	Sys_EventLoop();
+	//Calls MainWndProc()
 
 	// check for console commands
 	s = Sys_ConsoleInput();
@@ -377,6 +378,7 @@ sysEvent_t Com_GetEvent( void )
 	Sys_LeaveCriticalSection(9);
 	return ev;
 }
+
 /*
 ====================
 NET_Event

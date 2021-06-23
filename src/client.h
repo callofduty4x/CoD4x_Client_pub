@@ -23,7 +23,7 @@
 #define cl_nodelta getcvaradr(0x956cfc)
 #define nextmap getcvaradr(0x1435D50)
 #define con_miniconlines getcvaradr(0x08F141C)
-
+extern cvar_t *cl_bypassMouseInput;
 #define AUTOUPDATEINSTALLER "cod4update.dl_"
 
 extern char autoupdateFilename[MAX_STRING_CHARS];
@@ -721,7 +721,8 @@ void Sys_RunAnticheatNetDataCallback(msg_t* msg);
 void Con_InitClientAssets();
 qboolean CL_IsConnected();
 void CL_RestartAndReconnect();
-
+void CL_ShowSystemCursor(int show);
+void CL_SetCursorPos(int x, int y);
 #define CS_BASICANTICHEATCFG 4860
 
 #endif

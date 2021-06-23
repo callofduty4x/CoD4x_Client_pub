@@ -2184,6 +2184,10 @@ typedef struct
   byte pad0[3];
 }vidConfig_t;
 
+
+
+
+
 #ifdef __cplusplus
 #define ASSERT_HALT() (std::abort())
 #else
