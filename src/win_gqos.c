@@ -5,8 +5,8 @@
 #define _WIN32_WINNT 0x0600
 
 #include <winsock2.h>
-#include <Ws2tcpip.h>
-#include "Qos2.h"
+#include <ws2tcpip.h>
+#include "qos2.h"
 
 
 #define	QOSCLOSEHANDLE(aname) WINBOOL WINAPI (*aname)(HANDLE QOSHandle)

@@ -4185,7 +4185,7 @@ CL_Connect_f
 ================
 */
 
-#include <D3dx9core.h>
+#include <d3dx9core.h>
 
 void CL_Connect_f( void ) {
 	const char *server;
@@ -8832,7 +8832,7 @@ void CL_SystemInfoChanged( void ) {
 }
 
 
-#include <D3dx9core.h>
+#include <d3dx9core.h>
 
 extern IDirect3DTexture9* fonttexture;
 void RunImageChecks();

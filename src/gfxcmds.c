@@ -7,7 +7,7 @@
 #include "xassets/material.h"
 #include "xzone.h"
 #include <stdbool.h>
-#include <D3dx9core.h>
+#include <d3dx9core.h>
 #define s_cmdList (*((GfxCmdArray**)(0xCC9F4A4)))
 #define s_renderCmdBufferSize (*(int*)(0xCC9F49C))
 

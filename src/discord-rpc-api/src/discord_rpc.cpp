@@ -8,11 +8,21 @@
 
 #include <atomic>
 #include <chrono>
+#ifdef LINUX_COMPILE
+#include <mutex>
+#elif
 #include "../../mingw.mutex.h"
+#endif
 
 #ifndef DISCORD_DISABLE_IO_THREAD
+#ifdef LINUX_COMPILE
+#include <thread>
+#elif
 #include "../../mingw.thread.h"
 #endif
+#endif
+
+#include <windows.h>
 
 constexpr size_t MaxMessageSize{16 * 1024};
 constexpr size_t MessageQueueSize{8};

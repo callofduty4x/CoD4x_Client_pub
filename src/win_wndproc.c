@@ -35,7 +35,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "win_sys.h"
 #include "snd_system.h"
 #include <windows.h>
-#include <Windowsx.h>
+#include <windowsx.h>
 
 #ifndef WM_MOUSEWHEEL
 #define WM_MOUSEWHEEL ( WM_MOUSELAST + 1 )  // message that will be supported by the OS

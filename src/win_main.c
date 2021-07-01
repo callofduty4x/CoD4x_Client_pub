@@ -6,11 +6,11 @@
 #include "crashrpt/TinyCrashRpt.h"
 
 #include <stdlib.h>
-#include <Mmsystem.h>
+#include <mmsystem.h>
 #include <windows.h>
-#include <WinBase.h>
+#include <winbase.h>
 #include <direct.h>
-#include <Shellapi.h>
+#include <shellapi.h>
 #include <shlobj.h>
 #include <psapi.h>
 #include <stdbool.h>
