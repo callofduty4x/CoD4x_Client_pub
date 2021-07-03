@@ -100,6 +100,7 @@ typedef struct searchpath_s {	//Verified
 	int language;
 } searchpath_t;
 
+void FS_AddExtraGameIWDFiles(const char* game);
 
 fileHandleData_t *fsh = (fileHandleData_t*)(0xCB1DCC8);
 
@@ -1569,29 +1570,17 @@ signed int FS_CompareFiles(char *downloadlist, int len, qboolean dlstring)
 void FS_AddUserMapDirIWD(const char *file)
 {
   searchpath_t *s;
-  char ospath[MAX_OSPATH];
 
   for( s = fs_searchpaths ; s ; s = s->next)
   {
     if ( s->pack && !Q_stricmp(s->pack->pakGamename, file) )
 	{
-		return;
+		return; //already loaded
 	}
   }
-  
-  FS_BuildOSPathForThread(fs_homepath->string, file, "", ospath, 0);
-  if(FS_FileExistsOSPath( ospath ))
-  {
-	FS_AddIwdFilesForGameDirectory(fs_homepath->string, file);
-	return;
-  }
-  FS_BuildOSPathForThread(fs_basepath->string, file, "", ospath, 0);
-  if(FS_FileExistsOSPath( ospath ))
-  {
-	FS_AddIwdFilesForGameDirectory(fs_basepath->string, file);
-	return;
-  }
-  FS_AddIwdFilesForGameDirectory(fs_homepath->string, file);
+
+  FS_AddExtraGameIWDFiles(file);
+
 }
 
 
@@ -2192,7 +2181,7 @@ void DB_AddUserMapDir(const char *usermapDir)
   
     if ( DB_FileExists(usermapDir, 2) )
     {
-		FS_AddUserMapDirIWD(va("%s/%s", "usermaps", usermapDir));
+		FS_AddUserMapDirIWD(va("usermaps/%s", usermapDir));
     }
 }
 
@@ -2387,6 +2376,38 @@ struct file_in_zip_read_info_s
 };
 
 
+bool FS_AddSingleIwdFileForGameDirectory(const char *pakfile, const char* basename, const char* gamename)
+{
+
+  searchpath_t *search, *prev, *sp;
+
+  pack_t* pak;
+
+
+	pak = FS_LoadZipFile( pakfile, basename);
+	if(pak == NULL)
+	{
+		return false;
+	}
+
+	Q_strncpyz(pak->pakGamename, gamename, sizeof(pak->pakGamename));
+
+	search = (searchpath_t *)Z_Malloc(sizeof(searchpath_t));
+	search->pack = pak;
+	search->bLocalized = 0;
+	search->language = 0;
+
+	prev = (searchpath_t*)&fs_searchpaths;
+	sp = fs_searchpaths;
+
+	search->next = sp;
+	prev->next = search;
+	return true;
+}
+
+
+
+
 void FS_AddIwdFilesForGameDirectory_SafePath(const char *dir);
 
 FILE* _fopen_savepathhelper(const char* filepath, const char* method)
@@ -2405,6 +2426,37 @@ FILE* _fopen_savepathhelper(const char* filepath, const char* method)
 
 	return fopen(filepath, method);
 }
+
+
+void FS_AddExtraGameIWDFiles( const char* game)
+{
+	int i;
+	char pakfile[MAX_OSPATH];
+	char iwdfilebasename[MAX_QPATH];
+
+	for(i = 0; i < fs_numServerReferencedIwds; ++i)
+	{
+		const char* file = fs_serverReferencedIwdNames[i];
+		
+		if(Q_stricmpn(game, file, strlen(game)) != 0)
+		{
+			continue; //not equal
+		}
+
+		Q_strncpyz(iwdfilebasename, file, sizeof(iwdfilebasename));
+		Q_strcat(iwdfilebasename, sizeof(iwdfilebasename), ".iwd");
+		
+		FS_BuildOSPathForThread(fs_homepath->string, iwdfilebasename, "", pakfile, 0);
+		if(FS_AddSingleIwdFileForGameDirectory(pakfile, iwdfilebasename, game) == true)
+		{
+			continue;
+		}
+		FS_BuildOSPathForThread(fs_basepath->string, iwdfilebasename, "", pakfile, 0);
+		FS_AddSingleIwdFileForGameDirectory(pakfile, iwdfilebasename, game);
+
+	}
+}
+
 
 
 void FS_AddGameDirectory(const char* path, const char *dir) //FS_AddLocalizedGameDirectory
@@ -2486,12 +2538,18 @@ void FS_Startup(const char *gameName)
 
     if (fs_gameDirVar->string[0] && !Q_stricmp(gameName, BASEGAME) && Q_stricmp(fs_gameDirVar->string, gameName))
     {
-        if (fs_cdpath->string[0])
-            FS_AddGameDirectory(fs_cdpath->string, fs_gameDirVar->string);
-        if (fs_basepath->string[0])
-            FS_AddGameDirectory(fs_basepath->string, fs_gameDirVar->string);
-        if (fs_homepath->string[0] && Q_stricmp(fs_homepath->string, fs_basepath->string))
-            FS_AddGameDirectory(fs_homepath->string, fs_gameDirVar->string);
+		const char* serveraddr = CL_GetServerIPAddress();
+		if(serveraddr ==NULL || !serveraddr[0] || Q_stricmp(serveraddr, "loopback") == 0)
+		{
+			if (fs_cdpath->string[0])
+				FS_AddGameDirectory(fs_cdpath->string, fs_gameDirVar->string);
+			if (fs_basepath->string[0])
+				FS_AddGameDirectory(fs_basepath->string, fs_gameDirVar->string);
+			if (fs_homepath->string[0] && Q_stricmp(fs_homepath->string, fs_basepath->string))
+				FS_AddGameDirectory(fs_homepath->string, fs_gameDirVar->string);
+		}else{
+			FS_AddExtraGameIWDFiles(fs_gameDirVar->string);
+		}
     }
 
     Com_ReadCDKey();
@@ -2554,14 +2612,14 @@ static signed int iwdsort(const void *cmp1_arg, const void *cmp2_arg)
   return FS_PathCmp(cmp1, cmp2);
 }
 
+
+
+
 #define MAX_PAKFILES 1024
 void FS_AddIwdFilesForGameDirectory_SafePath(const char *dir)
 {
-
-  searchpath_t *search, *prev, *sp;
   int numfiles;
   int i;
-  pack_t* pak;
   wchar_t** pakfiles;
   wchar_t pakdir[MAX_OSPATH];
   char pakfile[MAX_OSPATH];
@@ -2588,8 +2646,6 @@ void FS_AddIwdFilesForGameDirectory_SafePath(const char *dir)
   }
   Sys_FreeFileListW(pakfiles);
 
-
-
   qsort(sorted, numfiles, 4, iwdsort);
 
   for(i = 0; i < numfiles; i++)
@@ -2599,28 +2655,15 @@ void FS_AddIwdFilesForGameDirectory_SafePath(const char *dir)
 		Com_PrintWarning(CON_CHANNEL_FILES,"Invalid IWD %s in \\main.\n", sorted[i]);
 		continue;
 	}
-
 	FS_BuildOSPathForThread("\\fs_savepath", dir, sorted[i], pakfile, 0);
-	pak = FS_LoadZipFile( pakfile, sorted[i]);
-	if(pak == NULL)
-	{
-		continue;
-	}
 
-	Q_strncpyz(pak->pakGamename, dir, sizeof(pak->pakGamename));
-
-	search = (searchpath_t *)Z_Malloc(sizeof(searchpath_t));
-	search->pack = pak;
-	search->bLocalized = 0;
-	search->language = 0;
-
-	prev = (searchpath_t*)&fs_searchpaths;
-	sp = fs_searchpaths;
-
-	search->next = sp;
-	prev->next = search;
+	FS_AddSingleIwdFileForGameDirectory(pakfile, sorted[i], dir);
   }
 }
+
+
+
+
 
 /*
 ================
@@ -3339,6 +3382,7 @@ const char *__cdecl FS_ReferencedPakChecksums(char *info6, int maxsize, int serv
   if(!Com_IsLegacyServer())
   {
     Q_strcat(info6, maxsize, va("L%i %i ", SEH_GetCurrentLanguage(), server_id));
+  
   }
 
   for ( search = fs_searchpaths; search; search = search->next )

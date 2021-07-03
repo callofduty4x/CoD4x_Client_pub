@@ -92,6 +92,7 @@ void IN_ShowSystemCursor(int show);
 qboolean CL_MouseEvent(int x, int y, int dx, int dy);
 void IN_SetCursorPos(int x, int y);
 void IN_RawMouseInit();
+void IN_MenuResetMouse();
 
 typedef struct 
 {

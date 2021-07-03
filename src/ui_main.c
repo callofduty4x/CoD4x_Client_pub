@@ -4,6 +4,7 @@
 #include "client.h"
 #include "snd_system.h"
 #include "r_shared.h"
+#include "cl_input.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -1254,7 +1255,7 @@ void Menus_Open(UiContext_t *dc, menuDef_t *menu)
 
   if(ui_debug->boolean)
   {
-	Com_Printf(CON_CHANNEL_UI,  "^5Opening menu: %s\n", menu->window.name);
+	  Com_Printf(CON_CHANNEL_UI,  "^5Opening menu: %s\n", menu->window.name);
   }
 /*
 	if(!Q_stricmp(menu->window.name, "auconfirm"))
@@ -1264,7 +1265,7 @@ void Menus_Open(UiContext_t *dc, menuDef_t *menu)
 */
   for(i = dc->openMenuCount -1; i >= 0; --i)
   {
-	Menu_LoseFocusDueToOpen(dc, dc->menuStack[i]);
+	  Menu_LoseFocusDueToOpen(dc, dc->menuStack[i]);
   }
 
 
@@ -1290,6 +1291,8 @@ void Menus_Open(UiContext_t *dc, menuDef_t *menu)
   }
   if ( menu->soundLoop )
     SND_PlayLocalSoundAliasByName(dc->localClientNum, menu->soundLoop);
+
+  IN_MenuResetMouse();
 }
 
 

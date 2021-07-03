@@ -50,6 +50,7 @@ typedef struct {
 	struct tagPOINT oldPos;
 	byte mouseActive;
 	byte mouseInitialized;
+	byte rawmouseinitialized;
 } WinMouseVars_t;
 
 static int window_center_x;
@@ -274,19 +275,18 @@ void IN_MouseEvent( int mstate ) {
 void IN_StartupMouse()
 {
 	s_wmv.mouseInitialized = 0;
+	if(s_wmv.rawmouseinitialized == false)
+	{
+		Cvar_SetBool(raw_input, false);
+		Cvar_ClearModified(raw_input);
+	}
 	if ( in_mouse->boolean )
 	{
-		
-		if(raw_input->boolean)
-		{
-			//IN_RawMouseInit(); //window creation has to do it as it has the window handle
-		}
-		
 		//Call it so mouse pointer gets drawn properly even in RAW input mode
+		
 		IN_RecenterMouse();
         s_wmv.oldPos.x = window_center_x;
         s_wmv.oldPos.y = window_center_y;
-		UI_MouseEvent(window_center_x, window_center_y);
 		
 		s_wmv.mouseInitialized = 1;
 
@@ -452,10 +452,11 @@ void __cdecl IN_Frame()
 	    IN_MouseMove();
 	  }
 
-      if ( IN_IsForegroundWindow() )
+      /*
+	  if ( IN_IsForegroundWindow() )
       {
-       // IN_GamepadsMove();
-      }
+        IN_GamepadsMove();
+      }*/
     }
     else
     {
@@ -494,10 +495,13 @@ void IN_RawMouseInit()
 	if(!RegisterRawInputDevices(rimouse, 1, sizeof(RAWINPUTDEVICE)))
 	{
 		Com_PrintError(CON_CHANNEL_SYSTEM,"Raw input initialization failed. Will use Win32 mouse. Error code 0x%x\n", (unsigned int)GetLastError());
-		Cvar_SetBool(raw_input, qfalse);
+		s_wmv.rawmouseinitialized = false;
+	}else{
+		s_wmv.rawmouseinitialized = true;
 	}
 
 	memset(&rawinput, 0, sizeof(RAWINPUT));
+
 }
 
 void IN_RawEvent(LPARAM lParam)
@@ -547,3 +551,13 @@ void IN_RawEvent(LPARAM lParam)
 
 }
 
+void IN_MenuResetMouse()
+{
+	g_wv.recenterMouse = CL_MouseEvent(s_wmv.oldPos.x, s_wmv.oldPos.y, 0, 0);
+	if ( g_wv.recenterMouse )
+	{
+		IN_RecenterMouse();
+		s_wmv.oldPos.x = window_center_x;
+		s_wmv.oldPos.y = window_center_y;
+	}
+}

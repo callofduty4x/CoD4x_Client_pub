@@ -8609,7 +8609,9 @@ void CL_ParseGamestateX( msg_t *msg ) {
 	char name[33];
 	char clantag[13];
 	unsigned int clientnum;
+#ifdef FALLBACK_SIGNALING
 	const char* cs;
+#endif
 //	int serverver;
 	gameState_t* newGs;
 	//Con_Close(0);
@@ -8874,6 +8876,7 @@ void CL_SystemInfoChanged( void ) {
 
 
 	systemInfo = CL_GetConfigString(CS_SYSTEMINFO);
+	Com_Printf(CON_CHANNEL_SYSTEM, "Sysinfo: %s\n", systemInfo);
 	// NOTE TTimo:
 	// when the serverId changes, any further messages we send to the server will use this new serverId
 	// show_bug.cgi?id=475

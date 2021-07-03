@@ -871,9 +871,10 @@ void __cdecl Com_Init_Try_Block(char* commandLine){
 
 		R_InitOnce();
 		CL_InitRenderer();
+		IN_Init();
+
 		*(int*)0x956e8c = 1;
 
-		IN_Init();
 
 		SND_Init();
 		//Sys_ShowConsole(0 , qfalse);
