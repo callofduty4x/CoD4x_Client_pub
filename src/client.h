@@ -323,7 +323,7 @@ typedef struct {
   Font_t *consoleFont;
 
 	// DHM - Nerve :: Auto-update Info
-	char 		updateServerNames[MAX_UPDATE_SERVERS][MAX_QPATH];
+	char 		emptydata[5*64];
 	netadr_t 	updateServer;
 
 	vidConfig_t vidConfig;

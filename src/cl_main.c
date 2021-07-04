@@ -114,6 +114,7 @@ cvar_t *g_gametype;
 cvar_t *cl_replacementDlList;
 cvar_t *sv_masterservers;
 cvar_t *cl_password;
+cvar_t *cl_updateservers;
 
 typedef struct{
 	byte state;
@@ -1056,13 +1057,7 @@ void CL_InitOnceForAllClients(){
   cl_updatefiles = Cvar_RegisterString("cl_updatefiles", "", CVAR_ROM, "The file that is being updated");
   cl_updateoldversion = Cvar_RegisterString("cl_updateoldversion", "", CVAR_ROM, "The version before update");
   cl_updateversion = Cvar_RegisterString("cl_updateversion", "", CVAR_ROM, "The updated version");
-
-  Q_strncpyz( cls.updateServerNames[0], UPDATE_SERVER_NAME, sizeof(cls.updateServerNames[0]) );
-  Q_strncpyz( cls.updateServerNames[1], "", sizeof(cls.updateServerNames[1]) );
-  Q_strncpyz( cls.updateServerNames[2], "", sizeof(cls.updateServerNames[2]) );
-  Q_strncpyz( cls.updateServerNames[3], "", sizeof(cls.updateServerNames[3]) );
-  Q_strncpyz( cls.updateServerNames[4], "", sizeof(cls.updateServerNames[4]) );
-
+  cl_updateservers = Cvar_RegisterString("cl_updateservers", "", 0, "Update server list.");
 
   motd = Cvar_RegisterString("motd", "", 0, "Message of the day");
   cl_vehDriverViewHeightMin = Cvar_RegisterFloat("vehDriverViewHeightMin", 15.0, -80.0, 80.0, 1, "Min orbit altitude for driver's view");
@@ -4945,13 +4940,14 @@ void CL_GetUpdateInfo()
 	// Find out how many update servers have valid DNS listings
 	rnd = rand();
 
-	for ( i = 0; i < MAX_UPDATE_SERVERS; i++ )
+	Cmd_TokenizeString(cl_updateservers->string);
+	unsigned int numupdateserver = Cmd_Argc();
+	for ( i = 0; i < numupdateserver; i++ )
 	{
-		index = (i + rnd) % MAX_UPDATE_SERVERS;
-		if(cls.updateServerNames[index][0] == '\0')
-			continue;
+		index = (i + rnd) % numupdateserver;
 
-		Com_sprintf(url, sizeof(url), "%s?mode=0", cls.updateServerNames[index]);
+
+		Com_sprintf(url, sizeof(url), "%s?mode=0", Cmd_Argv(index));
 
 		if(CL_ReceiveContentFromServerInBuffer(url, (byte*)updateinfodata, sizeof(updateinfodata)) > 0)
 		{
@@ -4959,6 +4955,8 @@ void CL_GetUpdateInfo()
 			break;
 		}
 	}
+
+	Cmd_EndTokenizedString();
 
 	if(!validServerNum)
 	{
@@ -5129,10 +5127,12 @@ qboolean CL_ServerInFilter(netadr_t* adr, int type)
 void CL_DownloadLatestConfigurations()
 {
 	srand( Sys_Milliseconds() );
+	
+	CL_TryDownloadAndExecGlobalConfig();
 
 	CL_GetUpdateInfo();
 	CL_GetFilterList();
-	CL_TryDownloadAndExecGlobalConfig();
+
 }
 
 
