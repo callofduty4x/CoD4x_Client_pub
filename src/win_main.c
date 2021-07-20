@@ -1441,7 +1441,7 @@ void Sys_RestartProcessOnExit()
 	{
 		method = "runas";
 
-		MessageBoxA(HWND, "Note: Installation of this update for Call of Duty 4 will require extended permissions" , "Call of Duty 4 - Autoupdate", MB_OK | MB_ICONEXCLAMATION);
+		//MessageBoxA(HWND, "Note: Installation of this update for Call of Duty 4 will require extended permissions" , "Call of Duty 4 - Autoupdate", MB_OK | MB_ICONEXCLAMATION);
 
 	}else{
 		method = "open";

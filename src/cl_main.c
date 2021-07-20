@@ -115,6 +115,8 @@ cvar_t *cl_replacementDlList;
 cvar_t *sv_masterservers;
 cvar_t *cl_password;
 cvar_t *cl_updateservers;
+cvar_t *cl_cod4xsitedom;
+cvar_t *cl_filterlisturl;
 
 typedef struct{
 	byte state;
@@ -1058,7 +1060,9 @@ void CL_InitOnceForAllClients(){
   cl_updateoldversion = Cvar_RegisterString("cl_updateoldversion", "", CVAR_ROM, "The version before update");
   cl_updateversion = Cvar_RegisterString("cl_updateversion", "", CVAR_ROM, "The updated version");
   cl_updateservers = Cvar_RegisterString("cl_updateservers", "", 0, "Update server list.");
-
+  cl_cod4xsitedom = Cvar_RegisterString("cl_cod4xsitedom", "none", 0, "name of website");
+  cl_filterlisturl = Cvar_RegisterString("cl_filterlisturl", "", 0, "name of filterlist");
+  
   motd = Cvar_RegisterString("motd", "", 0, "Message of the day");
   cl_vehDriverViewHeightMin = Cvar_RegisterFloat("vehDriverViewHeightMin", 15.0, -80.0, 80.0, 1, "Min orbit altitude for driver's view");
   cl_vehDriverViewHeightMax = Cvar_RegisterFloat("vehDriverViewHeightMax", 50.0, -80.0, 80.0, 1, "Max orbit altitude for driver's view");
@@ -1241,12 +1245,13 @@ void CL_MasterServerInit()
     const char* name;
     int i;
     char line[1024];
+	char* savept;
 
     sv_masterservers = Cvar_RegisterString("sv_masterservers", "", 0, "Official used masterservers separated by ;");
 
     Q_strncpyz(svlist, sv_masterservers->string, sizeof(svlist));
 
-    tok = strtok(svlist, ";");
+    tok = strtok_r(svlist, ";", &savept);
     for(i = 0; tok && i < sizeof(masterservers.servers)/sizeof(masterservers.servers[0]); )
     {
         Q_strncpyz(line, tok, sizeof(line));
@@ -1265,7 +1270,7 @@ void CL_MasterServerInit()
 		}
 		Cmd_EndTokenizedString();
 
-        tok = strtok(NULL, ";");
+        tok = strtok_r(NULL, ";", &savept);
     }
     masterservers.count = i;
 }
@@ -4922,7 +4927,7 @@ int CL_ReceiveContentFromServerInBuffer(const char* url, byte* updateinfodata, i
 void CL_GetUpdateInfo()
 {
 	int validServerNum = 0;
-	int i = 0, rnd = 0, index = 0;
+	int i = 0;
 	char url[1024];
 	char updateHash[1024];
 	char updateFiles[1024];
@@ -4931,6 +4936,8 @@ void CL_GetUpdateInfo()
 	float remoteVersion, localVersion;
 	char updateVersionStr[1024];
 	char infobuf[BIG_INFO_STRING];
+	char tokenbuffer[1024];
+	char *savept;
 
 	updateinfodata[0] = 0;
 
@@ -4938,16 +4945,19 @@ void CL_GetUpdateInfo()
 	Com_DPrintf(CON_CHANNEL_SYSTEM, "Resolving AutoUpdate Server... \n");
 
 	// Find out how many update servers have valid DNS listings
-	rnd = rand();
 
-	Cmd_TokenizeString(cl_updateservers->string);
-	unsigned int numupdateserver = Cmd_Argc();
-	for ( i = 0; i < numupdateserver; i++ )
+	Q_strncpyz(tokenbuffer, cl_updateservers->string, sizeof(tokenbuffer));
+
+	char* tokstart;
+
+	unsigned int numupdateserver;
+
+	for(tokstart = tokenbuffer, numupdateserver = 0; strtok_r(tokstart, " ", &savept); tokstart = NULL, ++numupdateserver);
+
+	for (i = 0, tokstart = tokenbuffer; i < numupdateserver; i++, tokstart = NULL )
 	{
-		index = (i + rnd) % numupdateserver;
 
-
-		Com_sprintf(url, sizeof(url), "%s?mode=0", Cmd_Argv(index));
+		Com_sprintf(url, sizeof(url), "%s?mode=0", strtok_r(tokstart, " ", &savept));
 
 		if(CL_ReceiveContentFromServerInBuffer(url, (byte*)updateinfodata, sizeof(updateinfodata)) > 0)
 		{
@@ -4955,8 +4965,6 @@ void CL_GetUpdateInfo()
 			break;
 		}
 	}
-
-	Cmd_EndTokenizedString();
 
 	if(!validServerNum)
 	{
@@ -4997,7 +5005,6 @@ void CL_GetUpdateInfo()
 
 #define MAX_FILTER_SERVERS 4
 #define MAX_FILTER_ENTRIES 1024
-#define MASTER_FILTER_SERVER_NAME "http://filter.cod4x.me/filter/"
 
 
 typedef struct
@@ -5025,13 +5032,14 @@ void CL_GetFilterList()
 	char type[4];
 	int i;
 	filterServerEngine_t fi;
+	char* savept;
 
 	memset(&fi, 0, sizeof(fi));
 
 	Com_DPrintf(CON_CHANNEL_CLIENT, "Resolving Filter Server... \n");
 
 	filterdata[0] = '\0';
-	recvcnt = CL_ReceiveContentFromServerInBuffer(MASTER_FILTER_SERVER_NAME, (byte*)filterdata, sizeof(filterdata));
+	recvcnt = CL_ReceiveContentFromServerInBuffer(cl_filterlisturl->string, (byte*)filterdata, sizeof(filterdata));
 
 
 	Sys_EnterGlobalCriticalSection();
@@ -5059,7 +5067,7 @@ void CL_GetFilterList()
 
 	//Parse it
 
-	tok = strtok( filterdata, "\n");
+	tok = strtok_r( filterdata, "\n", &savept);
 
 
 	for(i = 0; i < MAX_FILTER_ENTRIES && tok != NULL; ++i)
@@ -5077,7 +5085,7 @@ void CL_GetFilterList()
 
 		fi.list[i].type = atoi(type);
 
-		tok = strtok( NULL, "\n");
+		tok = strtok_r( NULL, "\n", &savept);
 	}
 
 	fi.numServers = i;
@@ -5132,6 +5140,10 @@ void CL_DownloadLatestConfigurations()
 
 	CL_GetUpdateInfo();
 	CL_GetFilterList();
+
+	Cvar_AddFlags(cl_cod4xsitedom, CVAR_ROM);
+	Cvar_AddFlags(cl_updateservers, CVAR_ROM);
+	Cvar_AddFlags(cl_filterlisturl, CVAR_ROM);
 
 }
 
@@ -5845,7 +5857,7 @@ void CL_DownloadsComplete( void ) {
         }
         //if ( !g_waitingForServer || xassetlimitchanged)
 		{
-			LoadMapLoadScreen( mapname );
+			LoadMapLoadscreen( mapname );
 		}
 
 		UI_SetMap(mapname, gametype);
@@ -8876,7 +8888,7 @@ void CL_SystemInfoChanged( void ) {
 
 
 	systemInfo = CL_GetConfigString(CS_SYSTEMINFO);
-	Com_Printf(CON_CHANNEL_SYSTEM, "Sysinfo: %s\n", systemInfo);
+//	Com_Printf(CON_CHANNEL_SYSTEM, "Sysinfo: %s\n", systemInfo);
 	// NOTE TTimo:
 	// when the serverId changes, any further messages we send to the server will use this new serverId
 	// show_bug.cgi?id=475
@@ -9599,7 +9611,9 @@ void __cdecl CL_DrawText(ScreenPlacement *scrPlace, const char *text, int maxCha
 }
 
 
-void REGPARM(1) LoadMapLoadScreen(const char* name)
+
+
+void REGPARM(1) LoadMapLoadscreen(const char* name)
 {
 	if(DB_FileExistsLoadscreen( name ))
 	{
@@ -9777,3 +9791,26 @@ void CL_SetCursorPos(int x, int y)
 {
   IN_SetCursorPos(x, y);
 }
+
+
+void __cdecl CL_SetupForNewServerMap(const char *pszMapName, const char *pszGametype)
+{
+
+  Com_Printf(CON_CHANNEL_CLIENT, "Server changing map %s, gametype %s\n", pszMapName, pszGametype);
+  
+  assert(pszMapName[0] && pszGametype[0]);
+  cl_serverLoadingMap = 1;
+  cl_waitingOnServerToLoadMap = 0;
+
+  if ( !com_sv_running->boolean )
+  {
+    com_expectedHunkUsage = 0;
+    g_waitingForServer = 1;
+    FS_DisablePureCheck(1);
+    UI_SetMap("", "");
+    //LoadMapLoadscreen(pszMapName);
+    //UI_SetMap(pszMapName, pszGametype);
+  }
+  SCR_UpdateScreen();
+}
+

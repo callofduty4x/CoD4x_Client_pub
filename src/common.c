@@ -33,7 +33,7 @@ static qboolean com_fullyInitialized;
 #define hunk_high (*((struct hunkUsed_t*)(0xCBA24F4)))
 #define g_mem (*((struct PhysicalMemory*)(0x0CBF98A0)))
 #define dword_CBF99B8 (*(DWORD*)(0x0CBF99B8))
-
+#define s_cpuCount *((int*)(0x14E89A0))
 cvar_t	*com_version;
 cvar_t	*com_shortversion;
 #define com_recommendedSet (*(cvar_t**)0x1476f00)
@@ -1058,9 +1058,9 @@ void Com_Frame_Try_Block()
 		minMsec = 1;
 	}
 
-	if ( *(qboolean*)0x14E89A0 != 1 )
+	if ( s_cpuCount != 1 )
 	{
-		if ( !sys_lockThreads->integer && *(int*)0xCC9D058 == 1 )
+		if ( !sys_lockThreads->integer && r_dx.multigpu == 1 )
 		{
 			Win_UpdateThreadLock( 1 );
 
@@ -1328,7 +1328,7 @@ qboolean __cdecl Com_CheckPlayerProfile( )
 void Com_Quit_f()
 {
     Com_Printf(CON_CHANNEL_DONT_FILTER, "quitting...\n");
-    while ( *(int*)0xCC9D148 )
+    while ( r_glob.remoteScreenUpdateNesting )
 	{
 		R_SyncRenderThread();
 	}

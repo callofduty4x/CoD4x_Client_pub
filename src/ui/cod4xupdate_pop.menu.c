@@ -751,7 +751,7 @@ menuDef_t* UI_InstallMenu(const char* connectadr)
 			cod4xupdate_pop_item9_textExp[0].data.op = 16;
 			cod4xupdate_pop_item9_textExp[1].type = 1;
 			cod4xupdate_pop_item9_textExp[1].data.operand.dataType = 2;
-			cod4xupdate_pop_item9_textExp[1].data.operand.internals.string = "Start automatic installation of CoD4 X and connect to server (This takes only a few seconds)";
+			cod4xupdate_pop_item9_textExp[1].data.operand.internals.string = "Start automatic installation of CoD4 X and connect to server (This can require admin permissions)";
 			cod4xupdate_pop_items[9].textExp.numEntries = 2;
 		}
 		/* itemDef:cod4xupdate_pop_items[10] */
@@ -1586,13 +1586,16 @@ menuDef_t* UI_InstallMenu(const char* connectadr)
 				cod4xupdate_pop_item_textExp_ptr[i] = &cod4xupdate_pop_item_textExp[i];
 			}
 
+			static char visithint[64];
+			Com_sprintf(visithint, sizeof(visithint), "Visit http://%s for further information", UI_GetSiteDomain());
+
 			memset(cod4xupdate_pop_item_textExp, 0, sizeof(cod4xupdate_pop_item_textExp));
 			cod4xupdate_pop_items[k].textExp.entries = cod4xupdate_pop_item_textExp_ptr;
 			cod4xupdate_pop_item_textExp[0].type = 0;
 			cod4xupdate_pop_item_textExp[0].data.op = 16;
 			cod4xupdate_pop_item_textExp[1].type = 1;
 			cod4xupdate_pop_item_textExp[1].data.operand.dataType = 2;
-			cod4xupdate_pop_item_textExp[1].data.operand.internals.string = "Visit http://cod4x.me for further information";
+			cod4xupdate_pop_item_textExp[1].data.operand.internals.string = visithint;
 			cod4xupdate_pop_items[k].textExp.numEntries = 2;
 		}
 		return &cod4xupdate_pop;

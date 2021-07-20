@@ -818,7 +818,10 @@ void UI_DrawBuildString( )
   float advwidth;
   float buildstringwidth;
   char buildString[128];
-  const char *advstring = "Visit the official CoD4X website: www.cod4x.me";
+  char advstring[256];
+  char notaffiliatedstring[256];
+  Com_sprintf(advstring, sizeof(advstring), "Visit the official CoD4X website: www.%s", UI_GetSiteDomain());
+  Com_sprintf(notaffiliatedstring, sizeof(notaffiliatedstring), "%s(Call of Duty 4 X) is not affiliated with Activision Publishing", UI_GetSiteDomain());
 
   if(uiMem.uiInfo.uiDC.openMenuCount > 2)
   {
@@ -860,11 +863,11 @@ void UI_DrawBuildString( )
   advwidth = (float)UI_TextWidth(advstring, 0, font, fontscale);
   buildstringwidth = (float)UI_TextWidth(buildString, 0, font, fontscale);
 
-  UI_DrawText(&scrPlaceView[ctx], advstring, 64, font, xpos + buildstringwidth - advwidth, ypos, 3, 0, fontscale, colorLtGrey, 0);
+  UI_DrawText(&scrPlaceView[ctx], advstring, 80, font, xpos + buildstringwidth - advwidth, ypos, 3, 0, fontscale, colorLtGrey, 0);
 
   ypos += UI_TextHeight(font, fontscale) - 5;
 
-  UI_DrawText(&scrPlaceView[ctx], "cod4x.me(Call of Duty 4 X) is not affiliated with Activision Publishing", 74, font, xpos + buildstringwidth - advwidth, ypos, 3, 0, fontscale * 0.75, colorLtGrey, 0);
+  UI_DrawText(&scrPlaceView[ctx], notaffiliatedstring, 80, font, xpos + buildstringwidth - advwidth, ypos, 3, 0, fontscale * 0.75, colorLtGrey, 0);
 
 }
 
@@ -2109,4 +2112,13 @@ void __cdecl UI_SetSystemCursorPos(float x, float y)
   ys = ScrPlace_HiResGetScale() * y * scrPlaceFull.scaleVirtualToFull[1];
  
   CL_SetCursorPos((signed int)floor(xs + 0.5), (signed int)floor(ys + 0.5));
+}
+
+const char* UI_GetSiteDomain()
+{
+  if(cl_cod4xsitedom == NULL)
+  {
+    return "NULL";
+  }
+  return cl_cod4xsitedom->string;
 }

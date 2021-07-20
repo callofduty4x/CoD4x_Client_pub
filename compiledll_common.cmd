@@ -1,5 +1,5 @@
 @echo off
-@set binfilename=cod4x_019
+@set binfilename=cod4x_020
 
 set bindir=%LOCALAPPDATA%\CallofDuty4MW
 if not exist %bindir% (

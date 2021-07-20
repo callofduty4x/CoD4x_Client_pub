@@ -274,3 +274,10 @@ qboolean Material_IsDefault(Material *);
 const char *__cdecl Material_GetName(Material *a1);
 
 #endif
+
+/*
+3: DB_PostLoadXZone
+2: DB_LinkXAssetEntry
+1: DB_CloneXAssetEntry
+0: memcpy
+*/

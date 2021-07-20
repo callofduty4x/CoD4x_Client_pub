@@ -247,7 +247,9 @@ qboolean __cdecl DB_ReadData();
 void REGPARM(1) DB_UnloadXZoneMemory(void *zone);
 qboolean __cdecl R_CreateDevice(struct GfxWindowParms *wndParms);
 void Con_RegisterDvar_Stub();
-
+void Material_SortHook();
+void Load_MaterialHook();
+void DB_AddXAsset_Material_Hook();
 /*
 void Com_Error_DebugFunction()
 {
@@ -1124,7 +1126,7 @@ void Patch_Other(){
 	SetCall(0x42B189, CG_InitConsoleCommandsPatched);
 	SetCall(0x614382, RB_DrawHudIcon_Stub);
 
-	SetCall(0x47060C, LoadMapLoadScreen);
+	SetCall(0x47060C, LoadMapLoadscreen);
 	SetCall(0x467073, CompleteDvarArgument);
 	SetCall(0x5F4838, R_StoreWindowSettings);
 	WriteSymbol(0x62D35E, s_aspectRatioNames);
@@ -1157,6 +1159,10 @@ void Patch_Other(){
 	SetCall(0x5417F9, UI_SetSystemCursorPos);
 	SetCall(0x54B298, UI_SetSystemCursorPos);
 	SetCall(0x452A44, IN_Frame);
+	SetCall(0x6029F6, Material_SortHook);
+	SetCall(0x621740, Material_SortHook);
+	SetCall(0x47BD09, Load_MaterialHook);
+	SetCall(0x47BD1D, DB_AddXAsset_Material_Hook);
 }
 
 

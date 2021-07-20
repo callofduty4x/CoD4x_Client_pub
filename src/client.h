@@ -24,6 +24,7 @@
 #define nextmap getcvaradr(0x1435D50)
 #define con_miniconlines getcvaradr(0x08F141C)
 extern cvar_t *cl_bypassMouseInput;
+extern cvar_t *cl_cod4xsitedom;
 #define AUTOUPDATEINSTALLER "cod4update.dl_"
 
 extern char autoupdateFilename[MAX_STRING_CHARS];
@@ -636,7 +637,7 @@ void CL_AddReliableCommand( const char *cmd );
 const char* CL_GetConfigString( int index );
 void CL_InitCGame( netsrc_t src );
 void CL_SendPureChecksums();
-void REGPARM(1) LoadMapLoadScreen(const char* mapname);
+void REGPARM(1) LoadMapLoadscreen(const char* mapname);
 void CL_ShutdownAll();
 void REGPARM(1) CL_ParseDownload( msg_t *msg );
 void CL_ParseWWWDownload( msg_t *msg);

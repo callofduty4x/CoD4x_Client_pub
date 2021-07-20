@@ -9,7 +9,7 @@
 #define NUM_ASSETTYPES 33
 #define g_assetNames_ADDR 0x726840
 #define DB_FreeXAssetHeaderHandler_ADDR 0x0
-#define DB_DynamicCloneXAssetHandler_ADDR 0x0
+#define DB_DynamicCloneXAssetHandler_ADDR 0x7267A8
 #define DB_GetXAssetSizeHandler_ADDR 0x726a10
 #define DB_InitPoolHeaderHandler_ADDR 0x726448
 #define g_zoneInitialized (*(byte*)0xd5ec42c)

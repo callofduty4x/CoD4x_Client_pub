@@ -175,7 +175,7 @@ void DB_LoadXZoneFromGfxConfig();
 byte __cdecl DB_IsXAssetDefault(XAssetType assettype, const char *name);
 XAssetHeader __cdecl DB_FindXAssetHeader(XAssetType a2, const char *name);
 XAssetHeader Com_FindXAsset(XAssetType type, const char *name);
-
+XAssetHeader __cdecl DB_AddXAsset(XAssetType type, XAssetHeader header);
 
 #define db_hashTable ((uint16_t*)0xe62a80)
 

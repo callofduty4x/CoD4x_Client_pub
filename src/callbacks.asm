@@ -373,6 +373,7 @@ bin_import sub_4ECF20, 0x4ecf20
 bin_import CG_ConfigStringModified, 0x44AF10
 bin_import LoadMapLoadScreenInternal, 0x46A800
 bin_import StringTable_LookupRowNumForValue, 0x569AA0
+bin_import Load_Material, 0x047B9C0
 ;SECTION .text
 ;global MSG_WriteEntityIndex
 ;MSG_WriteEntityIndex:
@@ -750,22 +751,6 @@ CL_DisconnectError:
 
 SECTION .rodata
 oCL_DisconnectError dd 0x46b4e0
-
-SECTION .text
-global CL_SetupForNewServerMap
-CL_SetupForNewServerMap:
-
-	push edi
-	mov edi, [esp+8]
-	mov edx, [esp+12]
-	push edx
-	call dword [oCL_SetupForNewServerMap]
-	pop edx
-	pop edi
-	ret
-
-SECTION .rodata
-oCL_SetupForNewServerMap dd 0x470580
 
 SECTION .text
 global Con_Close
@@ -2119,3 +2104,17 @@ DB_FreeXZoneMemory:
 
 SECTION .rodata
 oDB_FreeXZoneMemory dd 0x488A40
+
+
+SECTION .text
+global DB_AddXAsset
+DB_AddXAsset:
+	mov eax, [esp+4]
+	mov edx, [esp+8]
+	push edx
+	call dword [oDB_AddXAsset]
+	add esp, 4
+	ret
+
+SECTION .rodata
+oDB_AddXAsset dd 0x489E50

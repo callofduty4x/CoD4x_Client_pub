@@ -438,6 +438,7 @@ extern cvar_t *com_version;
 extern cvar_t *com_legacyProtocol;
 extern cvar_t *com_ui_debug;
 #define com_dedicated (*(cvar_t**)(0xCB224EC))
+#define com_expectedHunkUsage *((int*)(0x1435D38))
 extern cvar_t *com_demoplayer;
 extern char UPDATE_VERSION[64];
 #define com_useFastFiles getcvaradr(0x1435d78)
