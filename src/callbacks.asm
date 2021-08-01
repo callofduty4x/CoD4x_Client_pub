@@ -391,6 +391,7 @@ bin_import Load_Material, 0x047B9C0
 ;oMSG_WriteEntityIndex dd 0x5094f0
 
 bin_import Cvar_Init, 0x56d2b0
+bin_import R_CheckDxCaps, 0x6349E0
 
 SECTION .text
 global Cbuf_AddText

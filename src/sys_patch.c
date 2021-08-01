@@ -253,6 +253,7 @@ void DB_AddXAsset_Material_Hook();
 void DB_AddXAsset_Techset_Hook();
 void DB_CloneXAssetEntry_Stub();
 void __cdecl _Load_MaterialTechniqueSetAsset( );
+void R_PickRenderer(D3DCAPS9 *caps);
 /*
 void Com_Error_DebugFunction()
 {
@@ -1171,6 +1172,7 @@ void Patch_Other(){
 	SetCall(0x489DCF, DB_CloneXAssetEntry_Stub);
 
 	SetCall(0x47B96E, _Load_MaterialTechniqueSetAsset);
+	SetCall(0x5F39D6, R_PickRenderer);
 }
 
 

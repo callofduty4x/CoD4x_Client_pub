@@ -37,7 +37,7 @@
 #define r_wideScreen getcvaradr(0x1476F14)
 #define r_vsync getcvaradr(0xD5695DC)
 #define r_preloadShaders getcvaradr(0xD569744)
-
+#define r_rendererInUse getcvaradr(0xD5696C0)
 #pragma pack(push, 2)
 struct GfxGlobals
 {
@@ -677,7 +677,7 @@ void __cdecl ScrPlace_SetupViewport(ScreenPlacement *scrPlace, int viewportX, in
 void R_BeginRegistration( );
 struct Font_s *__cdecl R_RegisterFont_FastFile(const char *fontName);
 qboolean R_GetMonitorDimensions(int *width, int *heigth, int *x, int *y);
-
+int R_CheckDxCaps(D3DCAPS9*);
 #define CONTXTCMD_TYPE_HUDICON_FLIP 2
 #define TEXT_RENDERFLAG_FX_DECODE 0x40
 

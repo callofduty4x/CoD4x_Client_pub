@@ -1058,3 +1058,44 @@ struct Font_s *__cdecl R_RegisterFont_FastFile(const char *fontName)
 {
   return DB_FindXAssetHeader(ASSET_TYPE_FONT, fontName).font;
 }
+
+
+void REGPARM(1) R_PickRenderer(D3DCAPS9 *caps)
+{
+  signed int capbits;
+  int ipaths;
+  int i;
+  const char *savailpath;
+
+  Com_Printf(CON_CHANNEL_GFX, "Pixel shader version is %i.%i\n", (caps->PixelShaderVersion & 0xFF00) >> 8, caps->PixelShaderVersion & 0xFF);
+  Com_Printf(CON_CHANNEL_GFX, "Vertex shader version is %i.%i\n", (caps->VertexShaderVersion & 0xFF00) >> 8, caps->VertexShaderVersion & 0xFF);
+  capbits = R_CheckDxCaps(caps);
+  ipaths = 2;
+  for(i = 0; i < 2; ++i)
+  {
+    if ( (1 << i) & capbits )
+    {
+      ipaths = i;
+      savailpath = "Shader model 3.0";
+      if ( i != 1 ){
+        savailpath = "Shader model 2.0";
+      }
+      Com_Printf(CON_CHANNEL_GFX, "%s code path is available.\n", savailpath);
+    }
+  }
+  switch(ipaths)
+  {
+    case 2:
+      Com_Error(CON_CHANNEL_DONT_FILTER, "No valid rendering code path detected.\n");
+      return;
+    case 1:
+      savailpath = "Shader model 3.0";
+      break;
+    case 0:
+      savailpath = "Shader model 2.0";
+      break;
+  }
+  Com_Printf(CON_CHANNEL_GFX, "Using %s code path because it is the best available path on this hardware.\n", savailpath);
+
+  Cvar_SetInt(r_rendererInUse, ipaths);
+}

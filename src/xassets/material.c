@@ -194,7 +194,8 @@ void __cdecl DB_CloneXAssetPostPass(struct XAsset *to)
   {
     if(to->header.techniqueSet->remappedTechniqueSet == NULL)
     {
-      Material_OriginalRemapTechniqueSet(to->header.techniqueSet);
+      to->header.techniqueSet->remappedTechniqueSet = to->header.techniqueSet;
+    //  Material_OriginalRemapTechniqueSet(to->header.techniqueSet); //will lock up on shader model 2
     }
   }
 }
