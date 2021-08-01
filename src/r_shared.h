@@ -36,6 +36,7 @@
 #define r_aspectRatio getcvaradr(0xD569818)
 #define r_wideScreen getcvaradr(0x1476F14)
 #define r_vsync getcvaradr(0xD5695DC)
+#define r_preloadShaders getcvaradr(0xD569744)
 
 #pragma pack(push, 2)
 struct GfxGlobals

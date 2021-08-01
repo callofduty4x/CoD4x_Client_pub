@@ -17,6 +17,13 @@ const char * Material_GetName(Material *a1)
   return a1->info.name;
 }
 
+const char * TechniqueSet_GetName(MaterialTechniqueSet *a1)
+{
+  return a1->name;
+}
+
+
+
 void Font_InitTTF();
 
 
@@ -51,7 +58,7 @@ MaterialTechniqueSet *__cdecl Material_GetTechniqueSet(Material *material)
 //  assertx(material->techniqueSet, "material '%s' missing techset. If you are building fastfile, check Launcher for error messages.", material->info.name);
   return material->techniqueSet;
 }
-
+/*
 bool MaterialValidate()
 {
   bool status = false;
@@ -83,22 +90,28 @@ void Material_SortHook()
   }
   Com_Printf(0, "Error MaterialValidate is bad\n");
   //Material_SortInternal();
-/*  __asm__("movl $0x621600, %%eax\n"
+  __asm__("movl $0x621600, %%eax\n"
             "push %%edx\n"
             "call *%%eax\n"
             "add $4, %%esp\n"
             ::"edi" (rgp.materialCount), "edx" (rgp.sortedMaterials)
             :"eax");
-*/
-}
 
+}
+*/
 Material*** varMaterialHandlePtr = (Material***)0xE34598;
+#define varMaterialTechniqueSetPtr (*((MaterialTechniqueSet***)(0xE347A4)))
+
+/*
+
 void Load_Material();
 void Load_MaterialHook()
 {
   Load_Material();
-/*
+
+
   Material* mat = **varMaterialHandlePtr;
+  //OutputDebugStringA(Material_GetName(mat));
   if(Q_stricmp(Material_GetName(mat), "mc/mtl_desertpalmfronds") == 0)
   {
     Com_Printf(0, "^3Found Material %s Ref %p\n", Material_GetName(mat), mat);
@@ -111,7 +124,7 @@ void Load_MaterialHook()
       Com_Printf(0, "Material %s without techset remapping\n", Material_GetName(mat));
     }
   }
-*/  
+  
 
 }
 
@@ -133,7 +146,7 @@ XAssetHeader DB_AddXAsset_Material_Hook(XAssetHeader header)
     {
       Com_Printf(0, "Material %s without techset remapping\n", Material_GetName(mat));
     }
-    __asm__("int $3");
+    //__asm__("int $3");
   }
   
   
@@ -141,6 +154,16 @@ XAssetHeader DB_AddXAsset_Material_Hook(XAssetHeader header)
   return rheader;
 }
 
+
+XAssetHeader DB_AddXAsset_Techset_Hook(XAssetHeader header)
+{
+  XAssetHeader rheader = DB_AddXAsset(5, header);
+
+  
+  return rheader;
+}
+
+*/
 
 struct XAssetEntry
 {
@@ -163,6 +186,17 @@ static int __cdecl DB_GetXAssetTypeSize(int type)
   //assert( DB_GetXAssetSizeHandler[type] );
 
   return DB_GetXAssetSizeHandler[type]();
+}
+
+void __cdecl DB_CloneXAssetPostPass(struct XAsset *to)
+{
+  if(to->type == ASSET_TYPE_TECHNIQUE_SET)
+  {
+    if(to->header.techniqueSet->remappedTechniqueSet == NULL)
+    {
+      Material_OriginalRemapTechniqueSet(to->header.techniqueSet);
+    }
+  }
 }
 
 void __cdecl DB_CloneXAssetInternal(struct XAsset *from, struct XAsset *to)
@@ -190,6 +224,7 @@ void __cdecl DB_CloneXAsset(struct XAsset *from, struct XAsset *to, int cloneMet
 
   DB_DynamicCloneXAsset(from->header, to->header, to->type, cloneMethod);
   DB_CloneXAssetInternal(from, to);
+  DB_CloneXAssetPostPass(to);
 }
 
 void __cdecl DB_CloneXAssetEntry(struct XAssetEntry *from, struct XAssetEntry *to)
@@ -197,4 +232,32 @@ void __cdecl DB_CloneXAssetEntry(struct XAssetEntry *from, struct XAssetEntry *t
   DB_CloneXAsset(&from->asset, &to->asset, to->zoneIndex == 0);
   to->zoneIndex = from->zoneIndex;
 }
+//mc_l_sm_t0c0n0 
+#define mtlUploadGlob  ((MaterialTechniqueSet**)(0xD53E5E0))
+#define mtlUploadGlobIndex (*((int*)(0xE32888)))
 
+
+void __cdecl Material_UploadShaders(MaterialTechniqueSet *techset)
+{
+  if ( r_preloadShaders->boolean )
+  {
+    techset->unused[0] = 0;
+    mtlUploadGlob[mtlUploadGlobIndex++ & 0x3FF] = techset;
+  }
+}
+
+
+void __cdecl Load_MaterialTechniqueSetAsset(MaterialTechniqueSet **techniqueSet)
+{
+  *techniqueSet = DB_AddXAsset(ASSET_TYPE_TECHNIQUE_SET, (XAssetHeader)*techniqueSet).techniqueSet;
+
+  Material_OriginalRemapTechniqueSet(*techniqueSet);
+  Material_UploadShaders(*techniqueSet);
+}
+
+
+
+void __cdecl _Load_MaterialTechniqueSetAsset( )
+{
+  Load_MaterialTechniqueSetAsset(varMaterialTechniqueSetPtr);
+}

@@ -2118,3 +2118,29 @@ DB_AddXAsset:
 
 SECTION .rodata
 oDB_AddXAsset dd 0x489E50
+
+SECTION .text
+global DB_CloneXAssetEntry_Stub
+extern DB_CloneXAssetEntry
+DB_CloneXAssetEntry_Stub:
+	push esi
+	push edi
+	call dword [oDB_CloneXAssetEntry]
+	add esp, 8
+	ret
+
+SECTION .rodata
+oDB_CloneXAssetEntry dd DB_CloneXAssetEntry
+
+
+SECTION .text
+global Material_OriginalRemapTechniqueSet
+Material_OriginalRemapTechniqueSet:
+	push esi
+	mov esi, [esp+8]
+	call dword [oMaterial_OriginalRemapTechniqueSet]
+	pop esi
+	ret
+
+SECTION .rodata
+oMaterial_OriginalRemapTechniqueSet dd 0x619710

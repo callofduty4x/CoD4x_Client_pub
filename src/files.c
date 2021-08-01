@@ -1488,6 +1488,8 @@ void FS_ServerSetReferencedIwds(const char* sums, const char* names)
 {
     FS_ShutdownServerReferencedIwds();
     fs_numServerReferencedIwds = FS_ServerSetReferencedFiles(sums, names, fs_serverReferencedIwdSums, fs_serverReferencedIwdNames);
+	//Com_Printf(CON_CHANNEL_FILES, "Names: %s\nSums: %s\n", names, sums);
+
 }
 
 void FS_ServerSetReferencedFFs(const char* sums, const char* names)

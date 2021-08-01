@@ -272,7 +272,7 @@ typedef Material Material_t;
 Material* Material_RegisterHandle(const char* name, int track);
 qboolean Material_IsDefault(Material *);
 const char *__cdecl Material_GetName(Material *a1);
-
+void Material_OriginalRemapTechniqueSet(MaterialTechniqueSet *);
 #endif
 
 /*

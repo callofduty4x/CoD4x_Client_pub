@@ -250,6 +250,9 @@ void Con_RegisterDvar_Stub();
 void Material_SortHook();
 void Load_MaterialHook();
 void DB_AddXAsset_Material_Hook();
+void DB_AddXAsset_Techset_Hook();
+void DB_CloneXAssetEntry_Stub();
+void __cdecl _Load_MaterialTechniqueSetAsset( );
 /*
 void Com_Error_DebugFunction()
 {
@@ -1159,10 +1162,15 @@ void Patch_Other(){
 	SetCall(0x5417F9, UI_SetSystemCursorPos);
 	SetCall(0x54B298, UI_SetSystemCursorPos);
 	SetCall(0x452A44, IN_Frame);
-	SetCall(0x6029F6, Material_SortHook);
-	SetCall(0x621740, Material_SortHook);
-	SetCall(0x47BD09, Load_MaterialHook);
-	SetCall(0x47BD1D, DB_AddXAsset_Material_Hook);
+//	SetCall(0x6029F6, Material_SortHook);
+//	SetCall(0x621740, Material_SortHook);
+//	SetCall(0x47BD09, Load_MaterialHook);
+//	SetCall(0x47BD1D, DB_AddXAsset_Material_Hook);
+//	SetCall(0x488BA1, DB_AddXAsset_Techset_Hook);
+	SetCall(0x489D40, DB_CloneXAssetEntry_Stub);
+	SetCall(0x489DCF, DB_CloneXAssetEntry_Stub);
+
+	SetCall(0x47B96E, _Load_MaterialTechniqueSetAsset);
 }
 
 
