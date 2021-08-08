@@ -837,6 +837,7 @@ void Sys_Quit( );
 void Sys_NormalExit();
 void Sys_HideSplashWindow();
 void* Hunk_AllocateTempMemory(int size);
+bool CL_IsPlayback();
 
 #pragma pack(push, 1)
 typedef struct

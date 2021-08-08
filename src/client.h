@@ -724,6 +724,7 @@ qboolean CL_IsConnected();
 void CL_RestartAndReconnect();
 void CL_ShowSystemCursor(int show);
 void CL_SetCursorPos(int x, int y);
+
 #define CS_BASICANTICHEATCFG 4860
 
 #endif

@@ -9814,3 +9814,7 @@ void __cdecl CL_SetupForNewServerMap(const char *pszMapName, const char *pszGame
   SCR_UpdateScreen();
 }
 
+bool CL_IsPlayback()
+{
+	return clc.demoplaying;
+}

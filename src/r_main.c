@@ -1067,8 +1067,8 @@ void REGPARM(1) R_PickRenderer(D3DCAPS9 *caps)
   int i;
   const char *savailpath;
 
-  Com_Printf(CON_CHANNEL_GFX, "Pixel shader version is %i.%i\n", (caps->PixelShaderVersion & 0xFF00) >> 8, caps->PixelShaderVersion & 0xFF);
-  Com_Printf(CON_CHANNEL_GFX, "Vertex shader version is %i.%i\n", (caps->VertexShaderVersion & 0xFF00) >> 8, caps->VertexShaderVersion & 0xFF);
+  Com_Printf(CON_CHANNEL_GFX, "Pixel shader version is %i.%i\n", ((int)caps->PixelShaderVersion & 0xFF00) >> 8, (int)caps->PixelShaderVersion & 0xFF);
+  Com_Printf(CON_CHANNEL_GFX, "Vertex shader version is %i.%i\n", ((int)caps->VertexShaderVersion & 0xFF00) >> 8, (int)caps->VertexShaderVersion & 0xFF);
   capbits = R_CheckDxCaps(caps);
   ipaths = 2;
   for(i = 0; i < 2; ++i)
