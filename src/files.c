@@ -2594,6 +2594,8 @@ void FS_Startup(const char *gameName)
 			if (fs_homepath->string[0] && Q_stricmp(fs_homepath->string, fs_basepath->string))
 				FS_AddGameDirectory(fs_homepath->string, fs_gameDirVar->string);
 		}else{
+			Q_strncpyz(fs_gamedir, fs_gameDirVar->string, 256);
+			
 			if (fs_basepath->string[0])
 				FS_AddSearchPath(fs_basepath->string, fs_gameDirVar->string);
 			if (fs_homepath->string[0] && Q_stricmp(fs_homepath->string, fs_basepath->string))
