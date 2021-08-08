@@ -551,6 +551,11 @@ void IN_RawEvent(LPARAM lParam)
 
 }
 
+bool IN_AppActive()
+{
+	return in_appactive;
+}
+
 void IN_MenuResetMouse()
 {
 	g_wv.recenterMouse = CL_MouseEvent(s_wmv.oldPos.x, s_wmv.oldPos.y, 0, 0);
@@ -560,4 +565,10 @@ void IN_MenuResetMouse()
 		s_wmv.oldPos.x = window_center_x;
 		s_wmv.oldPos.y = window_center_y;
 	}
+}
+
+
+bool IN_RestartNeeded()
+{
+	return Cvar_HasLatchedValue(raw_input);
 }

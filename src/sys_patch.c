@@ -254,6 +254,9 @@ void DB_AddXAsset_Techset_Hook();
 void DB_CloneXAssetEntry_Stub();
 void __cdecl _Load_MaterialTechniqueSetAsset( );
 void R_PickRenderer(D3DCAPS9 *caps);
+void REGPARM(1) Dvar_SetVariant( );
+cvar_t* REGPARM(1) Cvar_SetFromStringByNameExternal(const char* varname, const char* valueString);
+
 /*
 void Com_Error_DebugFunction()
 {
@@ -1173,6 +1176,15 @@ void Patch_Other(){
 
 	SetCall(0x47B96E, _Load_MaterialTechniqueSetAsset);
 	SetCall(0x5F39D6, R_PickRenderer);
+	SetJump(0x56B1B0, Dvar_SetVariant);
+/*
+	SetCall(0x54FBFF, Cvar_SetFromStringByNameExternal);
+	SetCall(0x54FDB9, Cvar_SetFromStringByNameExternal);
+	SetCall(0x550149, Cvar_SetFromStringByNameExternal);
+	SetCall(0x54F98C, Cvar_SetFromStringByNameExternal);
+*/
+	SetCall(0x54F538, Cvar_SetFromStringByNameExternal);
+	
 }
 
 

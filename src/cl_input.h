@@ -93,6 +93,9 @@ qboolean CL_MouseEvent(int x, int y, int dx, int dy);
 void IN_SetCursorPos(int x, int y);
 void IN_RawMouseInit();
 void IN_MenuResetMouse();
+bool IN_AppActive();
+bool IN_RestartNeeded();
+
 
 typedef struct 
 {

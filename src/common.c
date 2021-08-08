@@ -60,7 +60,10 @@ static void	(*rd_flush)( char *buffer );
 
 fileHandle_t logfile;
 
-
+bool Com_LogFileOpen()
+{
+	return logfile != 0;
+}
 /*
 
 void Com_BeginRedirect (char *buffer, int buffersize, void (*flush)( char *) )
@@ -900,9 +903,8 @@ void __cdecl Com_Init_Try_Block(char* commandLine){
 	Com_Printf(CON_CHANNEL_SYSTEM, "--- Common Initialization Complete ---\n");
 	com_fullyInitialized = qtrue;
 
-	//CL_KevinosResetInfection();
-
 //	Cvar_Dump();  //Stop this unnecessary console spam
+	cvar_latchedSet = false;
 }
 
 qboolean Com_IsLegacyServer()
@@ -1135,8 +1137,17 @@ void Com_Frame_Try_Block()
 
 	CL_Frame(0);
 
-	/* reset cvar_changedflags maybe */
-	*(int*)0xCBA73F4 &= 0xFFFFFFFDu;
+	if(cvar_latchedSet)
+	{
+		if(IN_RestartNeeded())
+		{
+			Sys_In_Restart_f();
+		}
+		cvar_latchedSet = false;
+	}
+
+	/* reset cvar_modifiedFlags */
+	cvar_modifiedFlags &= ~CVAR_USERINFO;
 
 	if ( !UI_IsFullscreen(&uiMem.uiInfo) && !clientUIActives.state )
 	{
@@ -1549,12 +1560,12 @@ void __cdecl Com_WriteConfiguration()
 {
   char filename[64];
 
-  if ( !Com_IsFullyInitialized() || !(cvar_modifiedFlags & 1) )
+  if ( !Com_IsFullyInitialized() || !(cvar_modifiedFlags & CVAR_ARCHIVE) )
   {
 	return;
   }
 
-  cvar_modifiedFlags &= 0xFFFFFFFEu;
+  cvar_modifiedFlags &= ~CVAR_ARCHIVE;
 
   if ( !com_playerProfile->string[0] )
   {

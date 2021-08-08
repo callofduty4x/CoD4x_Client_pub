@@ -1180,7 +1180,7 @@ qboolean NET_IsIPv6Active()
 NET_IPSocket
 ====================
 */
-int NET_IPSocket( char *net_interface, int port, int *err ) {
+int NET_IPSocket( const char *net_interface, int port, int *err ) {
 	SOCKET				newsocket;
 	struct sockaddr_in	address;
 	ioctlarg_t			_true = 1;
@@ -1269,7 +1269,7 @@ int NET_IPSocket( char *net_interface, int port, int *err ) {
 NET_IP6Socket
 ====================
 */
-int NET_IP6Socket( char *net_interface, int port, struct sockaddr_in6 *bindto, int *err ) {
+int NET_IP6Socket( const char *net_interface, int port, struct sockaddr_in6 *bindto, int *err ) {
 	SOCKET				newsocket;
 	struct sockaddr_in6	address;
 	ioctlarg_t			_true = 1;

@@ -43,7 +43,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   #define FLATLINE_FOR_MASTER		GAMENAME_FOR_MASTER "dead"
   #define WINDOW_CLASS_NAME			"CoD4" //Do not change
   #define PRODUCT_VERSION 			"1.8"
-  #define UPDATE_VERSION_NUM		"20.2"
+  #define UPDATE_VERSION_NUM		"20.3"
   #define DEMO_PROTOCOL_VERSION		1
   #define STEAM_APPID				"7940"
   #define STEAM_GAMEID				"7940"
@@ -982,8 +982,8 @@ typedef struct{
 
 
 typedef struct cvar_s {
-	char *name;
-	char *description;
+	const char *name;
+	const char *description;
 	short int flags;
 	byte type;
 	byte modified;
@@ -991,7 +991,7 @@ typedef struct cvar_s {
 		float floatval;
 		float value;
 		int integer;
-		char* string;
+		const char* string;
 		byte boolean;
 		vec2_t vec2;
 		vec3_t vec3;
@@ -1001,7 +1001,7 @@ typedef struct cvar_s {
 	union{
 		float latchedFloatval;
 		int latchedInteger;
-		char* latchedString;
+		const char* latchedString;
 		byte latchedBoolean;
 		vec2_t latchedVec2;
 		vec3_t latchedVec3;
@@ -1011,7 +1011,7 @@ typedef struct cvar_s {
 	union{
 		float resetFloatval;
 		int resetInteger;
-		char* resetString;
+		const char* resetString;
 		byte resetBoolean;
 		vec2_t resetVec2;
 		vec3_t resetVec3;
@@ -1118,6 +1118,7 @@ void Cvar_GetUnpackedColor(cvar_t *cvar, float *expandedColor);
 //#define Dvar_InfoString(X,Y) Cvar_InfoString(Y)
 void Cvar_ClearFlags(cvar_t* var, int flags);
 int Cvar_GetFlags (cvar_t *var);
+qboolean Cvar_HasLatchedValue(cvar_t *cvar);
 
 /*
 void __cdecl Cvar_SetInt(cvar_t const* var, int val);

@@ -1295,7 +1295,10 @@ void Menus_Open(UiContext_t *dc, menuDef_t *menu)
   if ( menu->soundLoop )
     SND_PlayLocalSoundAliasByName(dc->localClientNum, menu->soundLoop);
 
-  IN_MenuResetMouse();
+  if(IN_AppActive())
+  {
+    IN_MenuResetMouse();
+  }
 }
 
 

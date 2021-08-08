@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define cvar_storage ((cvar_t*)(0xCBAB808))
 #define areCvarsSorted *((qboolean*)(0xD5EC4F8))
 
-
+bool cvar_latchedSet;
 
 
 
@@ -204,46 +204,6 @@ void Cvar_SetCommand(const char *var_name, const char *var_value);
 int Cvar_SetVariant( cvar_t *var, CvarValue_t value ,int cvarsetsource );
 void Cvar_Reregister(cvar_t *var, const char *cvarname, int type, unsigned short flags, CvarValue_t value, CvarLimits_t limits, const char *description);
 static cvar_t *Cvar_Register(const char* var_name, cvarType_t type, unsigned short flags, CvarValue_t value, CvarLimits_t limits, const char *description);
-/*
-void  __cdecl Cvar_Reregister(cvar_t* cvar, const char* name, unsigned char type, unsigned short flags, CvarValue_t value, CvarLimits_t limits, const char* description){
-
-__asm__ __volatile(
-	"push %edi\n"
-	//DvarLimits
-	"mov 0x2c(%ebp), %edx\n"
-	"push %edx\n"
-	"mov 0x28(%ebp), %edx\n"
-	"push %edx\n"	
-	//DvarValue
-	"mov 0x24(%ebp), %edx\n"
-	"push %edx\n"		
-	"mov 0x20(%ebp), %edx\n"
-	"push %edx\n"	
-	"mov 0x1c(%ebp), %edx\n"
-	"push %edx\n"
-	"mov 0x18(%ebp), %edx\n"
-	"push %edx\n"
-	//description
-	"mov 0x30(%ebp), %edx\n"
-	"push %edx\n"
-	//flags
-	"mov 0x14(%ebp), %edi\n"
-	//Type
-	"mov 0x10(%ebp), %edx\n"
-	"push %edx\n"
-	//Name
-	"mov 0xC(%ebp), %edx\n"
-	"push %edx\n"
-	//cvar
-	"mov 0x8(%ebp), %eax\n"
-	"mov $0x56bff0, %edx\n"
-	"call *%edx\n"
-	"add $0x24, %esp\n"
-	"pop %edi\n"
-	);
-}
-*/
-
 
 
 cvar_t* Cvar_RegisterString(const char* name, const char* string, unsigned short flags, const char* description){
@@ -895,16 +855,16 @@ void Cvar_Reregister(cvar_t *var, const char *cvarname, int type, unsigned short
   
 }
 
-void Cvar_AssignResetString(cvar_t *var, char **outstr, const char *string)
+void Cvar_AssignResetString(cvar_t *var, const char **outstr, const char *string)
 {
-  char *str;
+  const char *str;
   
   str = var->string;
 
   if ( (!str || (string != str && strcmp(string, var->string))) && ((str = var->latchedString) == 0
   || (string != str && strcmp(string, var->latchedString))))
   {
-    *outstr = (char*)CopyString(string);
+    *outstr = CopyString(string);
   }
   else
   {
@@ -969,11 +929,11 @@ typedef struct
 
 int Cvar_StringToEnum(CvarEnumStrings_t *a1, const char *str1)
 {
-  int itemCount; // esi@1
-  const char **string; // edi@2
-  int result; // eax@6
-  int v9; // ebx@14
-  const char **v10; // edi@15
+  int itemCount;
+  const char **string;
+  int result;
+  int v9;
+  const char **v10;
   int i;
   
   for(itemCount = 0, string = a1->stringlist; a1->numStrings > itemCount; ++itemCount, ++string)
@@ -1275,161 +1235,193 @@ int Cvar_GetFlags (cvar_t *var)
 	return var->flags;
 }
 
-/*
-//void __usercall Dvar_SetVariant(cvar_t *var@<eax>, CvarValue_t value, int setSource)
-void Dvar_SetVariant(cvar_t *var, CvarValue_t value, int setSource)
+typedef CvarValue_t DvarValue;
+typedef cvar_t cvar_s;
+typedef CvarLimits_t DvarLimits;
+
+bool Dvar_VectorInDomain(const float *vector, int components, float min, float max)
 {
-  int _min; // ecx@2
-  int _max; // ebx@2
-  byte v6; // al@2
-  char *v7; // ebx@5
-  const char *v9; // eax@5
-  const char *v10; // eax@5
-  signed int v11; // eax@7
-  float v12; // xmm0_4@8
-  char v13; // al@11
-  byte (__cdecl *v14)(cvar_t *, CvarValue_t); // eax@13
-  char *varname; // esi@15
-  const char *v18; // eax@15
-  int v19; // ebx@17
-  CvarValue_t v21; // ST00_16@17
-  byte v22; // al@18
-  int v23; // eax@22
-  char v24; // dl@25
-  char v25; // bl@26
-  int v26; // edx@28
-  float v27; // eax@28
-  bool v28; // edx@31
-  const char *v30; // eax@37
-  char *v31; // eax@37
-  __int16 flags; // dx@38
-  CvarValue_t curVal; // ST10_16@42
-  signed int v36; // eax@50
-  float v37; // xmm0_4@51
-  signed int v38; // eax@55
-  float v39; // xmm0_4@56
-  CvarValue_t v41; // ST00_16@63
-  CvarValue_t *v42; // eax@73
-  CvarValue_t *v43; // eax@73
-  int a5; // [sp+40h] [bp-508h]@17
-  int a4; // [sp+48h] [bp-500h]@17
-  int v46; // [sp+4Ch] [bp-4FCh]@17
-  int a3; // [sp+450h] [bp-F8h]@28
-  int v49; // [sp+460h] [bp-E8h]@27
-  CvarValue_t v52; // [sp+490h] [bp-B8h]@5
-  CvarValue_t v53; // [sp+4A0h] [bp-A8h]@60 MAPDST
-  CvarValue_t v54; // [sp+4B0h] [bp-98h]@14
-  CvarValue_t v55; // [sp+4C0h] [bp-88h]@15
-  CvarValue_t v56; // [sp+4D0h] [bp-78h]@42
-  CvarValue_t v57; // [sp+4E0h] [bp-68h]@42
-  CvarValue_t latchVal; // [sp+4F0h] [bp-58h]@42 MAPDST
-  CvarValue_t v60; // [sp+510h] [bp-38h]@17
-  CvarValue_t v61; // [sp+520h] [bp-28h]@63
-  CvarLimits_t limits;
+  int channel;
 
-
-	if ( Com_LogFileOpen() )
-	{
-		Com_PrintMessage("      dvar set %s %s\n", var->name, Cvar_ValueToString(var, value));
-	}
-	
-	limits.imin = var->imin;
-	limits.imax = var->imax;
-	
-    if ( Dvar_ValueInDomain(var->type, value, limits) == qfalse)
-	{
-		Com_Printf("'%s' is not a valid value for dvar '%s'\n", Cvar_ValueToString(var, value), var->name);
-		Com_Printf("  %s\n", char * Cvar_DomainToString(var->type, outString, limits));
-		
-		if ( var->type == CVAR_ENUM && memcmp(value.vec4, var->resetVec4, sizeof(value.vec4)) != 0)
-		{
-			memcpy(value.vec4, var->resetVec4, sizeof(value.vec4));
-			Dvar_SetVariant(var, value, setSource);
-		}
-		return;
-	}
-
-	if ( var->domainFunc && !var->domainFunc(var, value))
-	{
-		Com_Printf("'%s' is not a valid value for dvar '%s'\n\n", Cvar_ValueToString(var, value), var->name);
-		return;
-	}
-	
-	if ( setSource == 1 || setSource == 2 )
-	{
-   
-		if ( var->flags & 0x40 )
-		{
-			Com_Printf("%s is read only.\n", var->name);
-			return;
-		}
-		if ( var->flags & 0x10 )
-		{
-			Com_Printf("%s is write protected.\n", var->name);
-			return;
-		}
-		if ( setSource == 1 && (var->flags & 0x80u) != 0 && !dvar_cheats->boolean )
-		{
-			Com_Printf("%s is cheat protected.\n", var->name);
-			return;
-		}
-		if ( var->flags & 0x20 )
-		{
-			Dvar_SetLatchedValue(var, value);
-			
-			memcpy(latchVal.vec4, var->latchedVec4, sizeof(latchVal.vec4));
-			memcpy(curVal.vec4, var->vec4, sizeof(curVal.vec4));
-			if ( !Cvar_CompareValues(var->type, latchVal, curVal) )
-			{
-			  Com_Printf("%s will be changed upon restarting.\n", var->name);  
-			}
-			return;
-		}
-	}
-  	
-	memcpy(curVal.vec4, var->vec4, sizeof(curVal.vec4));
-    if ( Cvar_CompareValues(var->type, curVal, value) )
+  for ( channel = 0; channel < components; ++channel )
+  {
+    if ( min > vector[channel] )
     {
-		Dvar_SetLatchedValue(var, curVal);
-		return;
+      return false;
     }
-	
-	dvar_modifiedFlags |= var->flags;
-    
-	Dvar_UpdateValue(var, value);
-	
-	var->modified = 1;
+    if ( vector[channel] > max )
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool Dvar_ValueInDomain(cvarType_t type, DvarValue value, DvarLimits domain)
+{
+
+  switch ( type )
+  {
+    case CVAR_BOOL:
+	  if(value.boolean == true || value.boolean == false)
+	  {
+		  return true;
+	  }
+      return false;
+      break;
+    case CVAR_FLOAT:
+      if ( domain.fmin <= value.floatval )
+      {
+        return value.floatval <= domain.fmax;
+      }
+	  return false;
+    case CVAR_VEC2:
+      return Dvar_VectorInDomain(value.vec2, 2, domain.fmin, domain.fmax);
+    case CVAR_VEC3:
+      return Dvar_VectorInDomain(value.vec3, 3, domain.fmin, domain.fmax);
+    case CVAR_VEC4:
+      return Dvar_VectorInDomain(value.vec4, 4, domain.fmin, domain.fmax);
+    case CVAR_INT:
+	  assert(domain.imin <= domain.imax);
+      if ( value.integer >= domain.imin )
+      {
+        return value.integer <= domain.imax;
+      }
+	  return false;
+      break;
+    case CVAR_ENUM:
+      if((value.integer >= 0 && value.integer < domain.enumCount) || value.integer == 0)
+	  {
+		  return true;
+	  }
+	  return false;
+    case CVAR_STRING:
+    case CVAR_COLOR:
+      return true;
+    default:
+	  break;
+  }
+  return false;
+}
+
+void Dvar_PrintDomain(cvarType_t type, DvarLimits domain)
+{
+	char domainString[1024];
+	Com_Printf(CON_CHANNEL_SYSTEM, "  %s\n", Cvar_DomainToString(type, domainString, domain));
+}
+
+enum DvarSetSource
+{
+	DVAR_SOURCE_INTERNAL,
+	DVAR_SOURCE_EXTERNAL,
+	DVAR_SOURCE_SCRIPT,
+	DVAR_SOURCE_DEVGUI
+};
+
+bool Dvar_CanChangeValue(cvar_s *dvar, DvarValue value, enum DvarSetSource source)
+{
+	char *reason;
+
+	assert(dvar);
+
+	if ( !dvar )
+	{
+		return false;
+	}
+
+	DvarValue currentValue;
+
+	memcpy(currentValue.vec4, dvar->vec4, sizeof(currentValue.vec4));
+
+	if ( Cvar_ValuesEqual(dvar->type, value, currentValue) )
+	{
+		return true;
+	}
+	reason = 0;
+	if ( dvar->flags & CVAR_ROM )
+	{
+		reason = va("%s is read only.\n", dvar->name);
+	}
+	else if ( dvar->flags & CVAR_INIT )
+	{
+		reason = va("%s is write protected.\n", dvar->name);
+	}
+	else if ( dvar->flags & CVAR_CHEAT )
+	{
+		if ( !cvar_cheats->boolean )
+		{
+			if ( source == DVAR_SOURCE_EXTERNAL || source == DVAR_SOURCE_SCRIPT )
+			{
+				reason = va("%s is cheat protected.\n", dvar->name);
+			}
+		}
+	}
+	if ( !reason )
+	{
+		return true;
+	}
+	Com_Printf(CON_CHANNEL_ERROR, reason);
+	return false;
 }
 
 
   
-qboolean sub_569E70(cvar_t *var)
+bool Dvar_ShouldFreeCurrentString(cvar_t *var)
 {
   return var->string && var->string != var->latchedString && var->string != var->resetString;
 }
 
-qboolean sub_569E90(cvar_t *var)
+bool Dvar_ShouldFreeLatchedString(cvar_t *var)
 {
   return var->latchedString && var->latchedString != var->string && var->latchedString != var->resetString;
 }
 
-
-void Dvar_AssignCurrentStringValue(cvar_t *var, CvarValue_t *val, const char *string)
+void Dvar_WeakCopyString(const char *string, DvarValue *value)
 {
+	assert(string);
+  value->string = string;
+}
 
-  if ( var->latchedString && (var->latchedString == string || !strcmp(string, var->latchedString)) )
-  {
-    val->string = var->latchedString;
-	return;
-  }
+void Dvar_CopyString(const char *string, DvarValue *value)
+{
+	assert(string);
+  	value->string = CopyString(string);
+}
 
-  if ( var->resetString && (var->resetString == string || !strcmp(string, var->resetString)) )
-  {
-      val->string = var->resetString;
-	  return;
-  }
-  
-  val->string = CopyString(string);
+void Dvar_AssignCurrentStringValue(cvar_s *dvar, DvarValue *dest, const char *string)
+{
+	assert(string);
+
+	if ( dvar->latchedString && (string == dvar->latchedString || !strcmp(string, dvar->latchedString)) )
+	{
+		Dvar_WeakCopyString(dvar->latchedString, dest);
+	}
+	else if ( dvar->resetString && (string == dvar->resetString || !strcmp(string, dvar->resetString)) )
+	{
+		Dvar_WeakCopyString(dvar->resetString, dest);
+	}
+	else
+	{
+		Dvar_CopyString(string, dest);
+	}
+}
+
+void Dvar_AssignLatchedStringValue(cvar_s *dvar, DvarValue *dest, const char *string)
+{
+	assert(string);
+
+	if ( dvar->string && (string == dvar->string || !strcmp(string, dvar->string)) )
+	{
+		Dvar_WeakCopyString(dvar->string, dest);
+	}
+	else if ( dvar->resetString && (string == dvar->resetString || !strcmp(string, dvar->resetString)) )
+	{
+		Dvar_WeakCopyString(dvar->resetString, dest);
+	}
+	else
+	{
+		Dvar_CopyString(string, dest);
+	}
 }
 
 void Dvar_FreeString(const char **dvarString)
@@ -1438,36 +1430,42 @@ void Dvar_FreeString(const char **dvarString)
 	*dvarString = NULL;
 }
 
+
 void Dvar_UpdateValue(cvar_t *var, CvarValue_t value)
 {
-	CvarValue_t outValue;
-	qboolean dofree;
 	const char* oldString;
 	
 	if( var->type == CVAR_STRING)
 	{
-		oldString = var->string;
-		if ( value.string != oldString )
-		{
-			dofree = sub_569E70(var);
-			
-			Dvar_AssignCurrentStringValue(var, &outValue, value.string);
-			
-			var->string = (char*)outValue.string;
-        
-			if ( sub_569E90(var) )
-			{
-				Dvar_FreeString((const char**)&var->latchedString);
-			}
-			
-			var->latchedString = var->string;
-			
-			if ( dofree )
-			{
-			  Dvar_FreeString(&oldString);
-			}
+		assert(value.string != var->string || value.string == var->latchedString || value.string == var->resetString);
 		
+		bool shouldFreeString = Dvar_ShouldFreeCurrentString(var);
+		if ( shouldFreeString )
+		{
+			oldString = var->string;
 		}
+		
+		DvarValue currentString;
+
+		Dvar_AssignCurrentStringValue(var, &currentString, value.string);
+		var->string = currentString.string;
+		
+		if ( Dvar_ShouldFreeLatchedString(var) )
+		{
+			Dvar_FreeString(&var->latchedString);
+		}
+		var->latchedString = NULL;
+
+		DvarValue newLatch;
+
+		Dvar_WeakCopyString(var->string, &newLatch);
+		var->latchedString = newLatch.string;
+
+		if ( shouldFreeString )
+		{
+			Dvar_FreeString(&oldString);
+		}
+
 	}else{
 		memcpy(var->vec4, value.vec4, sizeof(var->vec4));
 		memcpy(var->latchedVec4, value.vec4, sizeof(var->latchedVec4));
@@ -1475,7 +1473,114 @@ void Dvar_UpdateValue(cvar_t *var, CvarValue_t value)
 
 }
 
-*/
+
+void Dvar_SetLatchedValue(cvar_s *dvar, DvarValue value)
+{
+  DvarValue latchedString;
+  DvarValue oldString;
+  bool shouldFree;
+
+
+	if( dvar->type == CVAR_STRING)
+	{
+      if ( dvar->latchedString != value.string )
+      {
+        shouldFree = Dvar_ShouldFreeLatchedString(dvar);
+        if ( shouldFree )
+        {
+          oldString.string = dvar->latchedString;
+        }
+        Dvar_AssignLatchedStringValue(dvar, &latchedString, value.string);
+        dvar->latchedString = latchedString.string;
+        if ( shouldFree )
+        {
+          Dvar_FreeString(&oldString.string);
+        }
+      }
+	}else{
+		memcpy(dvar->latchedVec4, value.vec4, sizeof(dvar->latchedVec4));
+	}
+}
+
+
+void REGPARM(1) Dvar_SetVariant(cvar_s *dvar, DvarValue value, enum DvarSetSource source)
+{
+	DvarLimits domain;
+	char string[1024];
+	DvarValue curVal;
+
+	assert(dvar);
+	assert(dvar->name);
+
+	if(!dvar || !dvar->name || !dvar->name[0]){
+		return;
+	}
+
+	if ( Com_LogFileOpen() )
+	{
+		DvarValue CurrentValue;
+		DvarValue NewValue;
+
+		memcpy(CurrentValue.vec4, dvar->vec4, sizeof(CurrentValue.vec4));
+		memcpy(NewValue.vec4, value.vec4, sizeof(NewValue.vec4));
+
+		if ( !Cvar_ValuesEqual(dvar->type, CurrentValue, NewValue) )
+		{
+			Com_sprintf(string, 1024, "      dvar set %s %s\n", dvar->name, Cvar_ValueToString(dvar, NewValue));
+			Com_PrintMessage(CON_CHANNEL_LOGFILEONLY, string, 0);
+		}
+	}
+
+	domain.imin = dvar->imin;
+	domain.enumStrings = dvar->enumStrings;
+	
+	if ( !Dvar_ValueInDomain(dvar->type, value, domain) )
+	{
+		Com_Printf(CON_CHANNEL_ERROR, "'%s' is not a valid value for dvar '%s'\n", Cvar_ValueToString(dvar, value), dvar->name);
+		Dvar_PrintDomain(dvar->type, domain);
+		if ( dvar->type == CVAR_ENUM )
+		{
+			DvarValue resetVal;
+			memcpy(resetVal.vec4, dvar->resetVec4, sizeof(resetVal.vec4));
+			Dvar_SetVariant(dvar, resetVal, source);
+		}
+		return;
+	}
+
+
+	if ( source == DVAR_SOURCE_EXTERNAL || source == DVAR_SOURCE_SCRIPT )
+	{
+		if ( !Dvar_CanChangeValue(dvar, value, source) )
+		{
+			return;
+		}
+		if ( dvar->flags & CVAR_LATCH )
+		{
+			Dvar_SetLatchedValue(dvar, value);
+
+			if ( Cvar_HasLatchedValue(dvar))
+			{
+			  Com_Printf(CON_CHANNEL_SYSTEM, "%s will be changed upon restarting.\n", dvar->name);
+			  cvar_latchedSet = true; 
+			}
+			return;
+		}
+	}
+
+	memcpy(curVal.vec4, dvar->vec4, sizeof(curVal.vec4));
+    if ( Cvar_ValuesEqual(dvar->type, curVal, value) )
+    {
+		Dvar_SetLatchedValue(dvar, curVal);
+		return;
+    }
+	
+	cvar_modifiedFlags |= dvar->flags;
+    
+	Dvar_UpdateValue(dvar, value);
+
+	dvar->modified = 1;
+
+}
 
 
 cvar_t* Cvar_FindVar(const char *dvarName)
@@ -1489,3 +1594,7 @@ cvar_t* Cvar_FindVar(const char *dvarName)
   return NULL;
 }
 
+cvar_t* REGPARM(1) Cvar_SetFromStringByNameExternal(const char* varname, const char* valueString)
+{
+	return Cvar_SetFromStringByNameFromSource(varname, valueString, DVAR_SOURCE_EXTERNAL);
+}

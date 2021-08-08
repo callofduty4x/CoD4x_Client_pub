@@ -901,6 +901,7 @@ void Sys_FreeFileListW( wchar_t **list );
 const char* sub_576280(char* totranslate);
 qboolean CL_IsVersion17Fallback();
 const char *__cdecl Sys_GetCurrentThreadName();
+bool Com_LogFileOpen();
 
 
 typedef struct
@@ -1202,5 +1203,7 @@ void PMem_Free(const char* name, unsigned int alloctype);
 
 
 #define scr_const (*((constantStrings_t*)(0x1406E90)))
+
+extern bool cvar_latchedSet;
 
 #endif
