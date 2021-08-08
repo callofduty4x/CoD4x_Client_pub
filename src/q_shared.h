@@ -43,7 +43,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   #define FLATLINE_FOR_MASTER		GAMENAME_FOR_MASTER "dead"
   #define WINDOW_CLASS_NAME			"CoD4" //Do not change
   #define PRODUCT_VERSION 			"1.8"
-  #define UPDATE_VERSION_NUM		"20.3"
+  #define UPDATE_VERSION_NUM		"20.4"
   #define DEMO_PROTOCOL_VERSION		1
   #define STEAM_APPID				"7940"
   #define STEAM_GAMEID				"7940"
