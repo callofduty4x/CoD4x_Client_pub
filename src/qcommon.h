@@ -1205,5 +1205,13 @@ void PMem_Free(const char* name, unsigned int alloctype);
 #define scr_const (*((constantStrings_t*)(0x1406E90)))
 
 extern bool cvar_latchedSet;
+enum FF_DIR
+{
+  FFD_DEFAULT,
+  FFD_MOD_DIR,
+  FFD_USER_MAP
+};
+
+int REGPARM(1) DB_FileSize(const char* zoneName, int source);
 
 #endif

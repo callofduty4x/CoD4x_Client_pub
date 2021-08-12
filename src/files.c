@@ -32,6 +32,8 @@ typedef struct iwdPureReferences_s
 #define fs_serverIwdNames ((const char**)(0xCB1CCC0))
 #define fs_serverReferencedIwdNames ((const char**)(0xCB199B8))
 #define fs_serverReferencedFFNames ((const char**)(0xCB1BAC0))
+#define fs_serverReferencedFFCheckSums ((int*)(0xCB1BB40))
+
 #define fs_loadStack *(int*)(0xCB1AABC)
 #define fs_fakeChkSum *(int*)(0xCB199B0)
 #define fs_packFiles *(int*)(0xd5ec4e0)
@@ -1557,6 +1559,115 @@ void FS_ShutdownIwdPureCheckReferences()
     fs_iwdPureChecks = 0;
 }
 
+signed int FS_CompareFFs(char *neededFFs, int len, int dlstring)
+{
+  char ffNameCopy[256];
+  int gameDirNameLength;
+  const char *ffName;
+  int fileSize;
+  int isSameFile;
+  int i;
+  enum FF_DIR ffDir;
+
+
+  if ( !fs_numServerReferencedFFs )
+  {
+    return 0;
+  }
+  *neededFFs = 0;
+  gameDirNameLength = strlen(fs_gameDirVar->string);
+  for ( i = 0; i < fs_numServerReferencedFFs; ++i )
+  {
+    ffDir = 0;
+    ffName = fs_serverReferencedFFNames[i];
+	if(strcmp(ffName,"cod4x_ambfix") == 0)
+	{
+		continue;
+	}
+    fileSize = DB_FileSize(ffName, 0);
+    if ( !fileSize )
+    {
+      if ( Q_stricmpn(fs_serverReferencedFFNames[i], "usermaps", 8) )
+      {
+        if ( !(fs_gameDirVar && fs_gameDirVar->string[0]) || Q_stricmpn(fs_serverReferencedFFNames[i], "mods", 4) )
+        {
+          ffName = fs_serverReferencedFFNames[i];
+          ffDir = FFD_DEFAULT;
+        }
+        else if ( strlen(fs_serverReferencedFFNames[i]) > gameDirNameLength + 1 )
+        {
+          ffName = &fs_serverReferencedFFNames[i][gameDirNameLength + 1];
+          ffDir = FFD_MOD_DIR;
+        }
+      }
+      else if ( strlen(fs_serverReferencedFFNames[i]) > 9 )
+      {
+        ffName = fs_serverReferencedFFNames[i] + 9;
+        ffDir = FFD_USER_MAP;
+      }
+      fileSize = DB_FileSize(ffName, ffDir);
+    }
+    isSameFile = fileSize == fs_serverReferencedFFCheckSums[i];
+
+    if ( !isSameFile && fs_serverReferencedFFNames[i] && *fs_serverReferencedFFNames[i] )
+    {
+      if ( ffDir == FFD_DEFAULT )
+      {
+        Q_strncpyz(neededFFs, fs_serverReferencedFFNames[i], len);
+        Q_strcat(neededFFs, len, ".ff");
+        return 2;
+      }
+      Q_strncpyz(ffNameCopy, fs_serverReferencedFFNames[i], sizeof(ffNameCopy));
+	  char* loadptr = strstr(ffNameCopy, "_load");
+	  if(loadptr)
+	  {
+		  *loadptr = 0;
+	  }
+      if ( dlstring )
+      {
+        Q_strcat(neededFFs, len, "@");
+        Q_strcat(neededFFs, len, ffNameCopy);
+		if(ffDir == FFD_USER_MAP)
+		{
+			Q_strcat(neededFFs, len, "/");
+        	Q_strcat(neededFFs, len, ffName);
+		}
+        Q_strcat(neededFFs, len, ".ff");
+        Q_strcat(neededFFs, len, "@");
+        Q_strcat(neededFFs, len, ffNameCopy);
+		if(ffDir == FFD_USER_MAP)
+		{
+			Q_strcat(neededFFs, len, "/");
+        	Q_strcat(neededFFs, len, ffName);
+		}
+		Q_strcat(neededFFs, len, ".ff");
+      }
+      else
+      {
+        Q_strcat(neededFFs, len, ffNameCopy);
+		if(ffDir == FFD_USER_MAP)
+		{
+			Q_strcat(neededFFs, len, "/");
+        	Q_strcat(neededFFs, len, ffName);
+		}        
+		Q_strcat(neededFFs, len, ".ff");
+        if ( fileSize )
+        {
+          Q_strcat(neededFFs, len, " (local file exists with wrong filesize)");
+        }
+        Q_strcat(neededFFs, len, "\n");
+      }
+    }
+  }
+  if ( !*neededFFs )
+  {
+    return 0;
+  }
+  Com_Printf(CON_CHANNEL_FILES, "Need FFs: %s\n", neededFFs);
+  return 1;
+}
+
+
 
 signed int FS_CompareFiles(char *downloadlist, int len, qboolean dlstring)
 {
@@ -1573,7 +1684,7 @@ signed int FS_CompareFiles(char *downloadlist, int len, qboolean dlstring)
   }
   paklen = strlen(downloadlist);
   ffList = &downloadlist[paklen];
-  ffcmp = FS_CompareFastFiles(&downloadlist[paklen], len - paklen, dlstring);
+  ffcmp = FS_CompareFFs(&downloadlist[paklen], len - paklen, dlstring);
   if ( ffcmp == 2 )
   {
     if ( paklen > 0 )

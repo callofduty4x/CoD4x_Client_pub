@@ -561,6 +561,7 @@ extern void* mss32importprocs[AIL_TOP_COUNT];
 typedef DWORD threadid_t;
 int _wrename(const wchar_t *oldname, const wchar_t *newname);
 void Sys_SetEvent(HANDLE hEvent);
+void Sys_In_Restart_f( void );
 
 #define rgRegisteredEvent (*(HANDLE*)(0x014E890C))
 #endif
