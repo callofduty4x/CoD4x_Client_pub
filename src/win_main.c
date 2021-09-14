@@ -980,7 +980,7 @@ void Sys_SetupCrashReporter()
 	int WINAPI (*crGetLastErrorMsgAImp)(LPSTR pszBuffer, UINT uBuffSize);
 
 	Sys_DllPath(dllpath);
-	Com_sprintfUni(crashrptdllpath, sizeof(crashrptdllpath), L"%s\\crashrpt1403.dll", dllpath);
+	Com_sprintfUni(crashrptdllpath, sizeof(crashrptdllpath), L"%ls\\crashrpt1403.dll", dllpath);
 	HMODULE hCrashRpt = LoadLibraryExW(crashrptdllpath, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
 	if(hCrashRpt)
 	{
@@ -1016,7 +1016,7 @@ void Sys_SetupCrashReporter()
 			FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 				0, GetLastError(), 0x400, errorMessageBuf, sizeof(errorMessageBuf) /2, 0);
 
-			Com_sprintfUni(displayMessageBuf, sizeof(displayMessageBuf), L"%s\nModule %s", errorMessageBuf, crashrptdllpath);
+			Com_sprintfUni(displayMessageBuf, sizeof(displayMessageBuf), L"%ls\nModule %s", errorMessageBuf, crashrptdllpath);
 
 			MessageBoxW(NULL, displayMessageBuf, L"Error loading crash reporter API", MB_OK);
 		}
@@ -1893,12 +1893,12 @@ int Sys_RemoveDirTreeUni(const wchar_t *dir)
   if ( lastchar == L'\\' || lastchar == L'/' )
   {
     hassep = 1;
-    Com_sprintfUni(FileName, sizeof(FileName), L"%s*", dir);
+    Com_sprintfUni(FileName, sizeof(FileName), L"%ls*", dir);
   }
   else
   {
     hassep = 0;
-	Com_sprintfUni(FileName, sizeof(FileName), L"%s\\*", dir);
+	Com_sprintfUni(FileName, sizeof(FileName), L"%ls\\*", dir);
   }
   dhandle = FindFirstFileW(FileName, &FindFileData);
   if ( dhandle == (HANDLE)-1 )
@@ -1913,9 +1913,9 @@ int Sys_RemoveDirTreeUni(const wchar_t *dir)
     {
 	    if(hassep)
 		{
-		  Com_sprintfUni(FileName, sizeof(FileName), L"%s%s", dir, FindFileData.cFileName);
+		  Com_sprintfUni(FileName, sizeof(FileName), L"%ls%ls", dir, FindFileData.cFileName);
         }else{
-		  Com_sprintfUni(FileName, sizeof(FileName), L"%s\\%s", dir, FindFileData.cFileName);
+		  Com_sprintfUni(FileName, sizeof(FileName), L"%ls\\%ls", dir, FindFileData.cFileName);
 		}
 
         if ( FindFileData.dwFileAttributes & 0x10 ? Sys_RemoveDirTreeUni(FileName) == 0 : _wremove(FileName) == -1 )
@@ -2106,14 +2106,14 @@ void Sys_RunInstallerOnDemand()
 
 	Q_StrToWStr(bindiruni, bindir, sizeof(bindiruni));
 
-	Com_sprintfUni(params, sizeof(params), L"+set installdir \"%s\"", bindiruni);
+	Com_sprintfUni(params, sizeof(params), L"+set installdir \"%ls\"", bindiruni);
 
 
 	if ( !ShellExecuteW(NULL, shellcmd, exefile, params, NULL, SW_RESTORE) )
 	{
 		FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 						0, GetLastError(), 0x400, displayMessageBuf, sizeof(displayMessageBuf)/2, 0);
-		Com_sprintfUni(errormsgbuf, sizeof(errormsgbuf), L"ShellExec of commandline: %s %s has failed.\nError: %s\n" , exefile, params, displayMessageBuf);
+		Com_sprintfUni(errormsgbuf, sizeof(errormsgbuf), L"ShellExec of commandline: %ls %ls has failed.\nError: %ls\n" , exefile, params, displayMessageBuf);
 		MessageBoxW(NULL, errormsgbuf, L"Call of Duty X Preinstaller - Error", MB_OK | MB_ICONERROR);
 	}
 }
@@ -2585,10 +2585,10 @@ void Sys_ListFilteredFilesW( const wchar_t *basedir, wchar_t *subdirs, wchar_t *
 	}
 
 	if (subdirs[0]) {
-		Com_sprintfUni( search, sizeof(search), L"%s\\%s\\*", basedir, subdirs );
+		Com_sprintfUni( search, sizeof(search), L"%ls\\%ls\\*", basedir, subdirs );
 	}
 	else {
-		Com_sprintfUni( search, sizeof(search), L"%s\\*", basedir );
+		Com_sprintfUni( search, sizeof(search), L"%ls\\*", basedir );
 	}
 
 	findhandle = _wfindfirst64i32 (search, &findinfo);
@@ -2602,10 +2602,10 @@ void Sys_ListFilteredFilesW( const wchar_t *basedir, wchar_t *subdirs, wchar_t *
 			if (wcscmp(findinfo.name, L".") && wcscmp(findinfo.name, L"..")) {
 
 				if (wcslen(subdirs)) {
-					Com_sprintfUni( newsubdirs, sizeof(newsubdirs), L"%s\\%s", subdirs, findinfo.name);
+					Com_sprintfUni( newsubdirs, sizeof(newsubdirs), L"%ls\\%ls", subdirs, findinfo.name);
 				}
 				else {
-					Com_sprintfUni( newsubdirs, sizeof(newsubdirs), L"%s", findinfo.name);
+					Com_sprintfUni( newsubdirs, sizeof(newsubdirs), L"%ls", findinfo.name);
 				}
 				Sys_ListFilteredFilesW( basedir, newsubdirs, filter, list, numfiles );
 			}
@@ -2613,7 +2613,7 @@ void Sys_ListFilteredFilesW( const wchar_t *basedir, wchar_t *subdirs, wchar_t *
 		if ( *numfiles >= MAX_FOUND_FILES - 1 ) {
 			break;
 		}
-		Com_sprintfUni( filename, sizeof(filename), L"%s\\%s", subdirs, findinfo.name );
+		Com_sprintfUni( filename, sizeof(filename), L"%ls\\%ls", subdirs, findinfo.name );
 		if (!Com_FilterPathW( filter, filename, qfalse ))
 			continue;
 		list[ *numfiles ] = _wcsdup( filename );
@@ -2825,7 +2825,7 @@ wchar_t **Sys_ListFilesW( const wchar_t *directory, const wchar_t *extension, wc
 		flag = _A_SUBDIR;
 	}
 
-	Com_sprintfUni( search, sizeof(search), L"%s\\*%s", directory, extension );
+	Com_sprintfUni( search, sizeof(search), L"%ls\\*%ls", directory, extension );
 
 	// search
 	nfiles = 0;
@@ -3373,7 +3373,7 @@ void __cdecl LoadMapFiles( )
 	  {
 		  continue;
 	  }
-	  Com_sprintfUni(filepath, sizeof(filepath), L"%s%c%s", mappath, L'\\', FindFileData.cFileName);
+	  Com_sprintfUni(filepath, sizeof(filepath), L"%ls\\%ls", mappath, FindFileData.cFileName);
 	  baseAddress = GetModuleHandleW(filepath);
       if ( baseAddress )
       {

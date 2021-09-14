@@ -1615,7 +1615,7 @@ int Com_NewPlayerProfile(const char *profname)
   }
 
   FS_BuildOSPathForThreadUni( FS_GetSavePath(), "players/profiles", profname, ospath, 0);
-  Com_sprintfUni(ospathout, sizeof(ospathout), L"%s%c", ospath, PATH_SEPUNI);
+  Com_sprintfUni(ospathout, sizeof(ospathout), L"%ls%c", ospath, PATH_SEPUNI);
 
   if ( FS_CreatePathUni(ospathout) )
   {
