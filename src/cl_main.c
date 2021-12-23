@@ -9091,15 +9091,23 @@ int CL_Record_WriteGameState(byte* CompressBuf, qboolean isfirst )
 		MSG_WriteShort( buf, numCS );
 
 		// configstrings
-		for ( i = 0 ; i < MAX_CONFIGSTRINGS ; i++ ) {
-			if ( !cl.gameState.stringOffsets[i] ) {
-				continue;
-			}
-			s = cl.gameState.stringData + cl.gameState.stringOffsets[i];
-			MSG_WriteBit0( buf );
-			MSG_WriteBits( buf, i, 12 );
-			MSG_WriteBigString( buf, s );
-		}
+    int previousIndex = -1;
+    for (i = 0; i < MAX_CONFIGSTRINGS; i++) {
+        if (!cl.gameState.stringOffsets[i]) {
+            continue;
+        }
+        s = cl.gameState.stringData + cl.gameState.stringOffsets[i];
+
+        if (1 + previousIndex++ == i) {
+            MSG_WriteBit1(buf);
+        }
+        else {
+            MSG_WriteBit0(buf);
+            MSG_WriteBits(buf, i, 12);
+        }
+
+        MSG_WriteBigString(buf, s);
+    }
 
 		SV_SetMapCenterInSVSHeader(cls.mapCenter);
 
