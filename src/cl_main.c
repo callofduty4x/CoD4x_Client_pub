@@ -9098,7 +9098,7 @@ int CL_Record_WriteGameState(byte* CompressBuf, qboolean isfirst )
         }
         s = cl.gameState.stringData + cl.gameState.stringOffsets[i];
 
-        if (1 + previousIndex++ == i) {
+        if (previousIndex + 1 == i) {
             MSG_WriteBit1(buf);
         }
         else {
@@ -9106,6 +9106,7 @@ int CL_Record_WriteGameState(byte* CompressBuf, qboolean isfirst )
             MSG_WriteBits(buf, i, 12);
         }
 
+        previousIndex = i;
         MSG_WriteBigString(buf, s);
     }
 
