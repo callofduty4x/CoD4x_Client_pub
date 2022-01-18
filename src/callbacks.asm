@@ -374,6 +374,7 @@ bin_import CG_ConfigStringModified, 0x44AF10
 bin_import LoadMapLoadScreenInternal, 0x46A800
 bin_import StringTable_LookupRowNumForValue, 0x569AA0
 bin_import Load_Material, 0x047B9C0
+bin_import _Z15R_GetCodeMatrixP20GfxCmdBufSourceStatejj, 0x631D90 
 ;SECTION .text
 ;global MSG_WriteEntityIndex
 ;MSG_WriteEntityIndex:
@@ -2145,3 +2146,17 @@ Material_OriginalRemapTechniqueSet:
 
 SECTION .rodata
 oMaterial_OriginalRemapTechniqueSet dd 0x619710
+
+
+SECTION .text
+global R_ChangeState_1_Stub
+extern R_ChangeState_1
+R_ChangeState_1_Stub:
+	push ebp
+	push edi
+	call dword [oR_ChangeState_1]
+	add esp, 8
+	ret
+
+SECTION .rodata
+oR_ChangeState_1 dd R_ChangeState_1

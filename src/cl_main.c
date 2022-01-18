@@ -8094,7 +8094,6 @@ typedef struct
 
 legacydemoprotocolinfo_t demoprotocolinfo[] =
 {
-	{15, 16},
 	{17, 18},
 	{18, 19},
 	{0, 0}
@@ -8169,10 +8168,6 @@ qboolean CL_FindAndRunOldVersion(int protocol)
 qboolean CL_DemoProtocolSufficient(int demoproto, int current)
 {
 	if(demoproto == current)
-	{
-		return qtrue;
-	}
-	if(demoproto == 18)
 	{
 		return qtrue;
 	}

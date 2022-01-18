@@ -447,7 +447,7 @@ void __cdecl sub_57AE10()
   }
 }
 
-
+DWORD mixerGetRecordLevel();
 
 void Voice_Init()
 {
@@ -468,7 +468,7 @@ void Voice_Init()
 
   sub_57B350();
   sub_57B5C0("Mic");
-  *(int*)0xCC1B3B8 = mixerGetRecordSource();
+  *(int*)0xCC1B3B8 = mixerGetRecordLevel();
   *(int*)0xCC1B4C0 = (unsigned __int16)winvoice_mic_reclevel->floatval;
   sub_57B1D0( winvoice_mic_reclevel->floatval );
   sub_57B860( winvoice_mic_mute->boolean );
@@ -590,7 +590,7 @@ qboolean __stdcall Sub_57B5C0_Patch(HMIXEROBJ hmxobj, struct tagMIXERLINEA* pmxl
 }
 
 
-DWORD mixerGetRecordSource()
+DWORD mixerGetRecordLevel()
 {
   DWORD i;
   DWORD numConnections;
@@ -611,7 +611,7 @@ DWORD mixerGetRecordSource()
 
   if(mixerGetLineInfoA(hmxobj, &pmxl, 3u) != MMSYSERR_NOERROR)
   {
-    Com_PrintError(CON_CHANNEL_SOUND, "mixerGetRecordSource: Failed to get line info(0)!\n");
+    Com_PrintError(CON_CHANNEL_SOUND, "mixerGetRecordLevel: Failed to get line info(0)!\n");
     mixerClose((HMIXER)hmxobj);
     return -1;
   }
@@ -620,7 +620,7 @@ DWORD mixerGetRecordSource()
 
   if(numConnections >= 128)
   {
-	Com_PrintError(CON_CHANNEL_SOUND, "mixerGetRecordSource exceeded 128 devices!\n");
+	Com_PrintError(CON_CHANNEL_SOUND, "mixerGetRecordLevel exceeded 128 devices!\n");
 	numConnections = 0;
   }
 
@@ -629,7 +629,7 @@ DWORD mixerGetRecordSource()
     pmxl.dwSource = i;
     if(mixerGetLineInfoA(hmxobj, &pmxl, 1u) != MMSYSERR_NOERROR)
     {
-      Com_PrintError(CON_CHANNEL_SOUND, "mixerGetRecordSource: Failed to get line info(1)!\n");
+      Com_PrintError(CON_CHANNEL_SOUND, "mixerGetRecordLevel: Failed to get line info(1)!\n");
       mixerClose((HMIXER)hmxobj);
       return -1;
     }
@@ -641,7 +641,7 @@ DWORD mixerGetRecordSource()
   }
   if(i == numConnections)
   {
-		Com_PrintWarning(CON_CHANNEL_SOUND, "mixerGetRecordSource: No mic found\n");
+		Com_PrintWarning(CON_CHANNEL_SOUND, "mixerGetRecordLevel: No mic found\n");
   		mixerClose((HMIXER)hmxobj);
 		return -1;
   }

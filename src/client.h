@@ -282,7 +282,7 @@ typedef struct {
 	qboolean	rendererStarted;
 	qboolean	cgameStarted;
 
-	int			framecount;
+	int			uiStarted;
 	int			frametime;			// msec since last frame
 
 	int			realtime;			// ignores pause

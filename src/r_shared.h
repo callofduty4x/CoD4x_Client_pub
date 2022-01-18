@@ -38,6 +38,9 @@
 #define r_vsync getcvaradr(0xD5695DC)
 #define r_preloadShaders getcvaradr(0xD569744)
 #define r_rendererInUse getcvaradr(0xD5696C0)
+#define sm_polygonOffsetScale getcvaradr(0xD5695F0)
+#define sm_polygonOffsetBias getcvaradr(0xD569850)
+
 #pragma pack(push, 2)
 struct GfxGlobals
 {

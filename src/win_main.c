@@ -1150,7 +1150,10 @@ __declspec( dllexport ) int CALLBACK WinMain( HINSTANCE hInstance, HINSTANCE hPr
 	Cvar_Init();
 
 	*(double*)(0xCC11EF8) = InitTiming() * 1000.0;
-
+	
+	char tmp[1024];
+	sprintf(tmp, "%g", *(double*)(0xCC11EF8));
+	MessageBoxA(NULL, tmp, "PerformanceMsec", MB_OK);
 	Sys_GetHardwareInfo();
 
 	g_wv.hInstance = hInstance;
@@ -2472,10 +2475,10 @@ const char* Sys_DefaultInstallPath()
 		Com_Error(ERR_FATAL, "Sys_DefaultInstallPath: Got no HMODULE");
 		return exePath;
 	}
-	len = GetModuleFileNameA(hModule, exePath, 0x100u);
-    if ( len == 256 )
+	len = GetModuleFileNameA(hModule, exePath, sizeof(exePath));
+    if ( len == sizeof(exePath) )
     {
-      len = 255;
+      len = sizeof(exePath) -1;
     }
     else if ( len == 0 )
     {

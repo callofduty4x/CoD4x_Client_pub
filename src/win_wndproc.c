@@ -249,7 +249,7 @@ LONG WINAPI MainWndProc(
 			Cbuf_AddText( "vid_restart\n" );
 		}
 		r_autopriority = Cvar_RegisterBool("r_autopriority", qtrue, 0, "Automatically set the priority of the windows process when the game is minimized");
-		MSH_MOUSEWHEEL = RegisterWindowMessage( "MSWHEEL_ROLLMSG" );
+		MSH_MOUSEWHEEL = RegisterWindowMessageA( "MSWHEEL_ROLLMSG" );
 		IN_RawMouseInit();
 		break;
 

@@ -256,6 +256,9 @@ void __cdecl _Load_MaterialTechniqueSetAsset( );
 void R_PickRenderer(D3DCAPS9 *caps);
 void REGPARM(1) Dvar_SetVariant( );
 cvar_t* REGPARM(1) Cvar_SetFromStringByNameExternal(const char* varname, const char* valueString);
+void R_ChangeState_0(struct GfxCmdBufState *state, unsigned int stateBits0);
+void R_ChangeState_1_Stub();
+void _Z26R_TessTrianglesPreTessListPK19GfxDrawSurfListArgs16GfxCmdBufContext();
 
 /*
 void Com_Error_DebugFunction()
@@ -1184,7 +1187,9 @@ void Patch_Other(){
 	SetCall(0x54F98C, Cvar_SetFromStringByNameExternal);
 */
 	SetCall(0x54F538, Cvar_SetFromStringByNameExternal);
-	
+	SetCall(0x64C54D, R_ChangeState_0);
+	SetCall(0x64C564, R_ChangeState_1_Stub);
+	SetJump(0x648580, _Z26R_TessTrianglesPreTessListPK19GfxDrawSurfListArgs16GfxCmdBufContext);
 }
 
 
