@@ -388,14 +388,15 @@ void R_SetDirect3DCreate9Func(void* farproc)
 {
 	Direct3DCreate9_ptr = farproc;
 }
+void R_InitDebugSystems();
 
 void R_PreCreateWindow()
 {
   if(!r_dx.d3d9)
   {
 	Com_Printf(CON_CHANNEL_GFX, "Getting Direct3D 9 interface...\n");
-
 	//Sys_CleanUpNvd3d9Wrap();
+  R_InitDebugSystems();
 
 	if(Direct3DCreate9_ptr == NULL)
     {

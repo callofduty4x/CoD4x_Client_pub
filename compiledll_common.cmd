@@ -29,6 +29,11 @@ g++.exe -c %FLAGS% "../src/gfx/r_setstate.cpp"
 g++.exe -c %FLAGS% "../src/gfx/r_shade.cpp"
 g++.exe -c %FLAGS% "../src/gfx/r_state.cpp"
 g++.exe -c %FLAGS% "../src/gfx/rb_tess.cpp"
+g++.exe -c %FLAGS% "../src/gfx/r_draw_lit.cpp"
+g++.exe -c %FLAGS% "../src/gfx/r_rendertarget.cpp"
+g++.exe -c %FLAGS% "../src/gfx/rb_draw_3d.cpp"
+g++.exe -c %FLAGS% "../src/gfx/r_debug.cpp"
+g++.exe -c %FLAGS% "../src/gfx/win_debugcon.cpp"
 gcc.exe -c %FLAGS_O3% -D NOUNCRYPT "../src/unzip/*.c"
 gcc.exe -c %FLAGS% "../src/r_init.c"
 gcc.exe -c %FLAGS% "../src/stringed_hooks.c"
@@ -121,7 +126,7 @@ nasm -f win32 ../src/fsdword.asm --prefix _ -o fsdword.o
 
 cd "../"
 echo Linking...
-g++.exe -shared %FLAGS% -o bin/%binfilename%.dll bin/*.o -Llib/ -lsteam_integration -ludis86 -ltomcrypt -lmbedtls_win32 -ldiscord_rpc -static -lversion -lkernel32 -ladvapi32 -lole32 -loleaut32 -luuid -lwsock32 -lws2_32 -lwinmm -lshell32 -luser32 -lgdi32 -lcrypt32 -ld3dx9_34 -lpsapi -lfreetype -lmsvcr100 -Wl,--exclude-libs,msvcrt.a,-Map=%bindir%\%binfilename%.map,-fPic,--stack,8388608
+g++.exe -shared %FLAGS% -o bin/%binfilename%.dll bin/*.o -Llib/ -lfmt -lsteam_integration -ludis86 -ltomcrypt -lmbedtls_win32 -ldiscord_rpc -static -lversion -lkernel32 -ladvapi32 -lole32 -loleaut32 -luuid -lwsock32 -lws2_32 -lwinmm -lshell32 -luser32 -lgdi32 -lcrypt32 -ld3dx9_34 -lpsapi -lfreetype -lmsvcr100 -Wl,--exclude-libs,msvcrt.a,-Map=%bindir%\%binfilename%.map,-fPic,--stack,8388608
 
 
 

@@ -259,7 +259,7 @@ cvar_t* REGPARM(1) Cvar_SetFromStringByNameExternal(const char* varname, const c
 void R_ChangeState_0(struct GfxCmdBufState *state, unsigned int stateBits0);
 void R_ChangeState_1_Stub();
 void _Z26R_TessTrianglesPreTessListPK19GfxDrawSurfListArgs16GfxCmdBufContext();
-
+void R_DrawDecalCallback();
 /*
 void Com_Error_DebugFunction()
 {
@@ -1190,6 +1190,7 @@ void Patch_Other(){
 	SetCall(0x64C54D, R_ChangeState_0);
 	SetCall(0x64C564, R_ChangeState_1_Stub);
 	SetJump(0x648580, _Z26R_TessTrianglesPreTessListPK19GfxDrawSurfListArgs16GfxCmdBufContext);
+	SetJump(0x657E70, R_DrawDecalCallback);
 }
 
 

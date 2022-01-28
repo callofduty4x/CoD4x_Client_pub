@@ -374,7 +374,10 @@ bin_import CG_ConfigStringModified, 0x44AF10
 bin_import LoadMapLoadScreenInternal, 0x46A800
 bin_import StringTable_LookupRowNumForValue, 0x569AA0
 bin_import Load_Material, 0x047B9C0
-bin_import _Z15R_GetCodeMatrixP20GfxCmdBufSourceStatejj, 0x631D90 
+bin_import _Z15R_GetCodeMatrixP20GfxCmdBufSourceStatejj, 0x631D90
+bin_import R_DrawSurfs, 0x612260
+
+
 ;SECTION .text
 ;global MSG_WriteEntityIndex
 ;MSG_WriteEntityIndex:

@@ -423,7 +423,7 @@ struct __attribute__((aligned(4))) GfxBuffers
 };
 
 extern GfxBuffers gfxBuf;
-extern vidConfig_t vidConfig;
+#define vidConfig (*((vidConfig_t*)(0x0CC9D0E0)))
 
 
 struct GfxViewInfo
@@ -562,6 +562,7 @@ void R_ChangeIndices(GfxCmdBufPrimState *state, D3DIndexBuffer *ib);
 void R_GetViewport(GfxCmdBufSourceState *source, GfxViewport *outViewport);
 void R_SetViewport(GfxCmdBufState *state, const GfxViewport *viewport);
 void R_UpdateViewport(GfxCmdBufSourceState *source, GfxViewport *viewport);
+void R_UnbindImage(GfxCmdBufState *state, GfxImage *image);
 
 
 void RB_Resource_Lock();

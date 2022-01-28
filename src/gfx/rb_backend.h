@@ -163,8 +163,8 @@ enum GfxPixelCostMode
   GFX_PIXEL_COST_MODE_ADD_PASSES_IGNORE_DEPTH
 };
 
-extern struct GfxRenderTarget gfxRenderTargets[R_RENDERTARGET_COUNT];
-extern GfxPixelCostMode pixelCostMode;
+#define gfxRenderTargets (*(GfxRenderTarget**)(0xD573EB0))
+#define pixelCostMode (*(GfxPixelCostMode*)(0xD5EC684))
 
 
 struct GfxVertex
@@ -224,7 +224,7 @@ static inline void Byte4PackPixelColor(const float *from, uint8_t *to)
 
 void R_HW_EnableScissor(D3DDevice *device, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
 void R_HW_DisableScissor(D3DDevice *device);
-void R_DrawSurfs(GfxCmdBufContext context, GfxCmdBufState *prepassState, const GfxDrawSurfListInfo *info);
+extern "C" void R_DrawSurfs(GfxCmdBufState *prepassState, const GfxDrawSurfListInfo *info, GfxCmdBufContext context);
 GfxRenderTargetId RB_PixelCost_OverrideRenderTarget(GfxRenderTargetId targetId);
 void R_HW_SetRenderTarget(GfxCmdBufState *state, unsigned int newTargetId);
 void R_HW_SetVertexShader(D3DDevice *device, const MaterialVertexShader *mtlShader);

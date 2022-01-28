@@ -51,6 +51,20 @@ const unsigned int s_stencilFuncTable[] = { 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u };
 #define gfxMetrics (*((struct GfxMetrics*)(0x0CC9F450)))
 
 
+GfxRenderTargetId RB_PixelCost_OverrideRenderTarget(GfxRenderTargetId targetId)
+{
+  if ( targetId <= R_RENDERTARGET_FRAME_BUFFER )
+  {
+    return R_RENDERTARGET_FRAME_BUFFER;
+  }
+  if ( targetId <= R_RENDERTARGET_PINGPONG_1 )
+  {
+    return R_RENDERTARGET_SCENE;
+  }
+  return targetId;
+}
+
+
 void R_HW_SetColorMask(D3DDevice *device, unsigned int stateBits0)
 {
   int mask = 0;
@@ -849,3 +863,31 @@ void R_ChangeIndices(GfxCmdBufPrimState *state, D3DIndexBuffer *ib)
   D3DCALL(device->SetIndices( ib ));
 
 }
+
+void R_HW_DisableSampler(D3DDevice *device, unsigned int samplerIndex)
+{
+  D3DCALL(device->SetTexture( samplerIndex, 0 ));
+}
+
+void R_DisableSampler(GfxCmdBufState *state, unsigned int samplerIndex)
+{
+  state->samplerTexture[samplerIndex] = 0;
+  R_HW_DisableSampler(state->prim.device, samplerIndex);
+}
+
+void R_UnbindImage(GfxCmdBufState *state, GfxImage *image)
+{
+  unsigned int samplerIndex;
+  unsigned int maxTextureMaps;
+
+  maxTextureMaps = vidConfig.maxTextureMaps;
+  for ( samplerIndex = 0; samplerIndex < maxTextureMaps; ++samplerIndex )
+  {
+    if ( (GfxImage *)state->samplerTexture[samplerIndex] == image )
+    {
+      R_DisableSampler(state, samplerIndex);
+    }
+  }
+}
+
+
