@@ -55,8 +55,8 @@
 #endif
 #endif
 
-
-
+#define WM_ADDTEXTLINE WM_USER+1
+#define CONSOLE_BUFFER_SIZE 16384
 //********************************************************
 
 #define Q_IsColorString(p)	( p && *(p) == Q_COLOR_ESCAPE && *((p)+1) && *((p)+1) != Q_COLOR_ESCAPE )
@@ -115,12 +115,11 @@
 	** Conbuf_AppendText
 	*/
 	void DebugConsole::PrintInternal( const char *pMsg ) {
-	#define CONSOLE_BUFFER_SIZE     16384
 
-		char buffer[CONSOLE_BUFFER_SIZE * 2];
+		char buffer[2*CONSOLE_BUFFER_SIZE];
 		char *b = buffer;
 		const char *msg;
-		int bufLen;
+		//int bufLen;
 		int i = 0;
 
 		//
@@ -161,29 +160,31 @@
 			i++;
 		}
 		*b = 0;
-		bufLen = b - buffer;
 
-		s_totalChars += bufLen;
-
+/*
 		//
 		// replace selection instead of appending if we're overflowing
 		//
 		if ( s_totalChars > CONSOLE_BUFFER_SIZE ) {
-			SendNotifyMessageA( s_wcd.hwndBuffer, EM_SETSEL, 0, -1 );
+			PostMessageA( s_wcd.hWnd, EM_SETSEL, 0, -1 );
 			s_totalChars = bufLen;
 		} else {
 			// NERVE - SMF - always append at the bottom of the textbox
-			SendNotifyMessageA( s_wcd.hwndBuffer, EM_SETSEL, 0xFFFF, 0xFFFF );
+			PostMessageA( s_wcd.hWnd, EM_SETSEL, 0xFFFF, 0xFFFF );
 		}
 
 		//
 		// put this text into the windows console
 		//
-		SendNotifyMessageA( s_wcd.hwndBuffer, EM_LINESCROLL, 0, 0xffff );
-		SendNotifyMessageA( s_wcd.hwndBuffer, EM_SCROLLCARET, 0, 0 );
+		PostMessageA( s_wcd.hWnd, EM_LINESCROLL, 0, 0xffff );
+		PostMessageA( s_wcd.hWnd, EM_SCROLLCARET, 0, 0 );
 
 		
-		SendNotifyMessageA( s_wcd.hwndBuffer, EM_REPLACESEL, 0, (LPARAM) buffer );
+		//PostMessageA( s_wcd.hwndBuffer, EM_REPLACESEL, 0, (LPARAM) "Test message abcdefghijklmnopqrstuvwxyz\n" );
+*/
+		s_wcd.messagequeue.push_back(strdup(buffer));
+		PostMessageA( s_wcd.hWnd, WM_ADDTEXTLINE, 0, (LPARAM) 0 );
+
 		//
 		//InvalidateRect(s_wcd.hwndBuffer, NULL, TRUE);
 	}
@@ -196,7 +197,7 @@
 	}
 	void DebugConsole::DisableDraw() 
 	{
-		SendMessage(  s_wcd.hwndBuffer, WM_SETREDRAW, (WPARAM) FALSE, 0);
+		SendMessageA(  s_wcd.hwndBuffer, WM_SETREDRAW, (WPARAM) FALSE, 0);
 	}
 
 	void DebugConsole::EnableDraw() 
@@ -287,6 +288,32 @@
 				SendMessageA( s_wcd.hwndBuffer, EM_REPLACESEL, FALSE, ( LPARAM ) "" );
 				UpdateWindow( s_wcd.hwndBuffer );
 			}
+			break;
+		case WM_ADDTEXTLINE:
+			for(char* text : s_wcd.messagequeue)
+			{
+				int bufLen = strlen(text);
+				s_totalChars += bufLen;
+				//
+				// replace selection instead of appending if we're overflowing
+				//
+				if ( s_totalChars >= CONSOLE_BUFFER_SIZE ) {
+					SendMessageA( s_wcd.hWnd, EM_SETSEL, 0, -1 );
+					s_totalChars = bufLen;
+				} else {
+					// NERVE - SMF - always append at the bottom of the textbox
+					SendMessageA( s_wcd.hWnd, EM_SETSEL, 0xFFFF, 0xFFFF );
+				}
+
+				//
+				// put this text into the windows console
+				//
+				SendMessageA( s_wcd.hWnd, EM_LINESCROLL, 0, 0xffff );
+				SendMessageA( s_wcd.hWnd, EM_SCROLLCARET, 0, 0 );
+				SendMessageA( s_wcd.hwndBuffer, EM_REPLACESEL, FALSE, ( LPARAM ) text);
+				free(text);
+			}
+			s_wcd.messagequeue.clear();
 			break;
 		case WM_CREATE:
 	//		s_wcd.hbmLogo = LoadBitmap( g_wv.hInstance, MAKEINTRESOURCE( IDB_BITMAP1 ) );
@@ -512,7 +539,6 @@
 											s_wcd.hWnd,
 											( HMENU ) COPY_ID,         // child window ID
 											hInstance, NULL );
-		//SendMessageA( s_wcd.hwndButtonCopy, WM_SETTEXT, 0, ( LPARAM ) "copy" );
 
 
 
@@ -524,7 +550,6 @@
 											s_wcd.hWnd,
 											( HMENU ) CLEAR_ID,       // child window ID
 											hInstance, NULL );
-		//SendMessageA( s_wcd.hwndButtonClear, WM_SETTEXT, 0, ( LPARAM ) "clear" );
 
 
 		SendMessageA( s_wcd.hwndBuffer, WM_SETFONT, ( WPARAM ) s_wcd.hfBufferFont, 0 );
@@ -542,6 +567,12 @@
 	*/
 	void DebugConsole::Shutdown( void ) {
 		if ( s_wcd.hWnd ) {
+			for(char* text : s_wcd.messagequeue)
+			{
+				free(text);
+			}
+			s_wcd.messagequeue.clear();
+
 			ShowWindow( s_wcd.hWnd, SW_HIDE );
 			CloseWindow( s_wcd.hWnd );
 			DestroyWindow( s_wcd.hWnd );

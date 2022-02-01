@@ -24,6 +24,7 @@
 
 #include <windows.h>
 #include <string>
+#include <queue>
 
 class DebugConsole
 {
@@ -96,15 +97,13 @@ private:
 
 		HWND hwndInputLine;
 
-		char errorString[80];
-
 		char consoleText[512], returnedText[512];
 		int visLevel;
 		bool quitOnClose;
 		int windowWidth, windowHeight;
 
 		WNDPROC SysInputLineWndProc;
-
+		std::vector<char*> messagequeue;
 	};
 
 	WinConData s_wcd;

@@ -2,9 +2,6 @@
 #include "rb_backend.h"
 #include "r_debug.h"
 
-//void R_InitDebugSystems();
-
-
 extern "C" void R_DrawDecalCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
   GfxViewInfo *data = (GfxViewInfo*)userData;
@@ -19,14 +16,7 @@ extern "C" void R_DrawDecalCallback(const void *userData, GfxCmdBufContext conte
   R_DrawSurfs(prepassContext.state, &data->decalInfo, context);
   R_HW_DisableScissor(context.state->prim.device);
 
-/*
-  static bool created;
-  if(created == false)
-  {
-    R_InitDebugSystems();
-    created = true;
-  }
-*/
+
 
   dbgCon->Print("\n-------- R_DrawDecalCallback ---------\n");
 
