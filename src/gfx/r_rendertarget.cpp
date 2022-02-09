@@ -62,7 +62,7 @@ void R_SetRenderTarget(GfxCmdBufContext context, GfxRenderTargetId newTargetId)
   }
   if ( newTargetId != context.state->renderTargetId )
   {
-    //_RB_LogPrintf("\n========== R_SetRenderTarget( %s ) ==========\n\n", R_RenderTargetName(newTargetId));
+    _RB_LogPrintf("\n========== R_SetRenderTarget( %s ) ==========\n\n", R_RenderTargetName(newTargetId));
 #ifdef BLACKOPS    
     R_UpdateStatsTarget(context, (uint8_t)newTargetId);
 #endif

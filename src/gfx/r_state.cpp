@@ -506,7 +506,7 @@ void R_DrawIndexedPrimitive(GfxCmdBufPrimState *state, const GfxDrawPrimArgs *ar
     }
     RB_TrackDrawPrimCall(state, triCount);
 */
-    device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, args->vertexCount, args->baseIndex, triCount);
+    D3DCALL(device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, args->vertexCount, args->baseIndex, triCount));
 //}
 
 }

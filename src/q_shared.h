@@ -134,6 +134,9 @@ PROTOCOL
 #endif
 
 
+#ifdef __cplusplus
+extern "C"{
+#endif
 
 /*
 =====================================================================
@@ -906,7 +909,7 @@ float	LittleFloat (const float *l);
 
 void	Swap_Init (void);
 */
-char	* QDECL va(char *format, ...) __attribute__ ((format (printf, 1, 2)));
+char	* QDECL va(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
 
 #define TRUNCATE_LENGTH	64
 void Com_TruncateLongString( char *buffer, const char *s );
@@ -2242,5 +2245,10 @@ int RingBuffer_available_space(RingBuffer *buffer);
 #define RingBuffer_ends_at(B) ((B)->buffer + (B)->end)
 #define RingBuffer_commit_read(B, A) ((B)->start = ((B)->start + (A)) % (B)->length)
 #define RingBuffer_commit_write(B, A) ((B)->end = ((B)->end + (A)) % (B)->length)
+
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif	// __Q_SHARED_H

@@ -19,12 +19,13 @@
 ===========================================================================
 */
 
-#ifndef __WIN_DEBUGCON_H__
-#define __WIN_DEBUGCON_H__
+#ifndef WIN_DEBUGCON_H__
+#define WIN_DEBUGCON_H__
 
-#include <windows.h>
 #include <string>
 #include <queue>
+#include "../mingw.mutex.h"
+#include <windows.h>
 
 class DebugConsole
 {
@@ -103,7 +104,8 @@ private:
 		int windowWidth, windowHeight;
 
 		WNDPROC SysInputLineWndProc;
-		std::vector<char*> messagequeue;
+		std::vector<std::string> messagequeue;
+		std::mutex messagequeuemutex;
 	};
 
 	WinConData s_wcd;

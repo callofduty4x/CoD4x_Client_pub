@@ -160,33 +160,12 @@
 			i++;
 		}
 		*b = 0;
-
-/*
-		//
-		// replace selection instead of appending if we're overflowing
-		//
-		if ( s_totalChars > CONSOLE_BUFFER_SIZE ) {
-			PostMessageA( s_wcd.hWnd, EM_SETSEL, 0, -1 );
-			s_totalChars = bufLen;
-		} else {
-			// NERVE - SMF - always append at the bottom of the textbox
-			PostMessageA( s_wcd.hWnd, EM_SETSEL, 0xFFFF, 0xFFFF );
+		{
+			std::lock_guard<std::mutex> glock(s_wcd.messagequeuemutex);
+			s_wcd.messagequeue.emplace_back( buffer );
 		}
-
-		//
-		// put this text into the windows console
-		//
-		PostMessageA( s_wcd.hWnd, EM_LINESCROLL, 0, 0xffff );
-		PostMessageA( s_wcd.hWnd, EM_SCROLLCARET, 0, 0 );
-
-		
-		//PostMessageA( s_wcd.hwndBuffer, EM_REPLACESEL, 0, (LPARAM) "Test message abcdefghijklmnopqrstuvwxyz\n" );
-*/
-		s_wcd.messagequeue.push_back(strdup(buffer));
 		PostMessageA( s_wcd.hWnd, WM_ADDTEXTLINE, 0, (LPARAM) 0 );
 
-		//
-		//InvalidateRect(s_wcd.hwndBuffer, NULL, TRUE);
 	}
 
 	void DebugConsole::Print( const std::string &pMsg ) {
@@ -290,30 +269,34 @@
 			}
 			break;
 		case WM_ADDTEXTLINE:
-			for(char* text : s_wcd.messagequeue)
 			{
-				int bufLen = strlen(text);
-				s_totalChars += bufLen;
-				//
-				// replace selection instead of appending if we're overflowing
-				//
-				if ( s_totalChars >= CONSOLE_BUFFER_SIZE ) {
-					SendMessageA( s_wcd.hWnd, EM_SETSEL, 0, -1 );
-					s_totalChars = bufLen;
-				} else {
-					// NERVE - SMF - always append at the bottom of the textbox
-					SendMessageA( s_wcd.hWnd, EM_SETSEL, 0xFFFF, 0xFFFF );
+				std::lock_guard<std::mutex> glock(s_wcd.messagequeuemutex);
+				for(const std::string& text : s_wcd.messagequeue)
+				{
+					int bufLen = text.length();
+					s_totalChars += bufLen;
+					//
+					// replace selection instead of appending if we're overflowing
+					//
+					if ( s_totalChars >= CONSOLE_BUFFER_SIZE ) {
+						SendMessageA( s_wcd.hwndBuffer, EM_SETSEL, 0, -1 );
+//						SendMessageA( s_wcd.hwndBuffer, EM_REPLACESEL, FALSE, ( LPARAM ) "" );
+						s_totalChars = bufLen;
+					} else {
+						// NERVE - SMF - always append at the bottom of the textbox
+						SendMessageA( s_wcd.hwndBuffer, EM_SETSEL, 0xFFFF, 0xFFFF );
+					}
+					//
+					// put this text into the windows console
+					//
+					SendMessageA( s_wcd.hwndBuffer, EM_LINESCROLL, 0, 0xffff );
+					SendMessageA( s_wcd.hwndBuffer, EM_SCROLLCARET, 0, 0 );
+					SendMessageA( s_wcd.hwndBuffer, EM_REPLACESEL, FALSE, ( LPARAM ) text.c_str());
+					//
+					//InvalidateRect(s_wcd.hwndBuffer, NULL, TRUE);
 				}
-
-				//
-				// put this text into the windows console
-				//
-				SendMessageA( s_wcd.hWnd, EM_LINESCROLL, 0, 0xffff );
-				SendMessageA( s_wcd.hWnd, EM_SCROLLCARET, 0, 0 );
-				SendMessageA( s_wcd.hwndBuffer, EM_REPLACESEL, FALSE, ( LPARAM ) text);
-				free(text);
+				s_wcd.messagequeue.clear();
 			}
-			s_wcd.messagequeue.clear();
 			break;
 		case WM_CREATE:
 	//		s_wcd.hbmLogo = LoadBitmap( g_wv.hInstance, MAKEINTRESOURCE( IDB_BITMAP1 ) );
@@ -567,10 +550,8 @@
 	*/
 	void DebugConsole::Shutdown( void ) {
 		if ( s_wcd.hWnd ) {
-			for(char* text : s_wcd.messagequeue)
-			{
-				free(text);
-			}
+			std::lock_guard<std::mutex> glock(s_wcd.messagequeuemutex);
+
 			s_wcd.messagequeue.clear();
 
 			ShowWindow( s_wcd.hWnd, SW_HIDE );

@@ -20,3 +20,5 @@ public:
 
 
 extern RDebugConsole *dbgCon;
+
+#define r_logFile getcvaradr(0xD5697F8)
