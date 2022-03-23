@@ -2430,7 +2430,6 @@ void Sys_MitigateNvidiaD3d9Wrap()
 	//MessageBoxA(NULL, "Failed to disable nvd3d9wrap from d3d9.dll. The game does maybe crash when Steam is running and nvd3d9wrap.dll is installed.", "Failed to mitigate nvd3d9wrap", MB_OK | MB_ICONWARNING);
 		return;
 	}
-
 	//Sys_SteamSetOverlayhandler();
 
 }

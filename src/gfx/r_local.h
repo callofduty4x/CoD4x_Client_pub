@@ -14,7 +14,10 @@ typedef cvar_t dvar_s;
     0x88760868 = D3DERR_DEVICELOST
 */
 #define r_lightMap getcvaradr(0xD5696D0)
-
+#define r_specularMap getcvaradr(0xD5696B4)
+#define r_normalMap getcvaradr(0xD5697FC)
+#define r_colorMap getcvaradr(0xD569794)
+#define r_scaleViewport getcvaradr(0xD56975C)
 
 #define MAX_WINDOWHANDLES 1
 #define MAX_ADAPTERMODES 256
@@ -250,8 +253,8 @@ struct GfxCmdBufState
   const struct MaterialVertexShader *vertexShader;
   GfxViewport viewport;
   GfxRenderTargetId renderTargetId;
-  struct Material *processMaterial;
-  MaterialTechniqueType processTechType;
+  Material *origMaterial;
+  MaterialTechniqueType origTechType;
 };
 #pragma pack(pop)
 
@@ -312,7 +315,9 @@ struct r_globals_t
   bool8 hasAnyImageOverrides;
   char field_21[47];
   GfxScaledPlacement remotePlacement;
-  char field_2264[12];
+  char field_2264[8];
+  bool8 distortion;
+  char pad2[3];
   const char *codeImageNames[TEXTURE_SRC_CODE_COUNT];
   unsigned int viewInfoCount;
   int sunShadowFull;
@@ -537,9 +542,9 @@ void RB_LogPrintState_1(int stateBits1, int changedBits1);
 void RB_LogPrintfDebug(const char *fmt, ...);
 void RB_UpdateLogging();
 
-const char * R_ErrorDescription(HRESULT hr);
+extern "C" const char * R_ErrorDescription(HRESULT hr);
 void R_UploadWaterTexture(water_t *water, float floatTime);
-GfxImage *R_OverrideGrayscaleImage(dvar_s *dvar);
+GfxImage *R_OverrideGrayscaleImage(const dvar_s *dvar);
 void R_SetSampler(GfxCmdBufContext context, unsigned int samplerIndex, unsigned char samplerState, const GfxImage *image);
 float * R_GetCodeMatrix(GfxCmdBufSourceState *source, unsigned int sourceIndex, unsigned int firstRow);
 void R_SetupPassCriticalPixelShaderArgs(GfxCmdBufContext context);
@@ -674,6 +679,11 @@ void R_SetReflectionProbe(GfxCmdBufContext context, unsigned int reflectionProbe
 void R_SetLightmap(GfxCmdBufContext context, unsigned int lmapIndex);
 GfxImage * R_GetTextureFromCode(GfxCmdBufSourceState *source, unsigned int codeTexture, char *samplerState);
 GfxCmdBufSourceState * R_GetActiveWorldMatrix(GfxCmdBufSourceState *source);
+extern "C" void Com_Error(int code, const char* fmt, ...);
+extern "C" __attribute__((regparm(1))) void R_ChangeState_0(GfxCmdBufState *state, unsigned int stateBits0);
+extern "C" void R_ChangeState_1(GfxCmdBufState *state, unsigned int stateBits1);
+
+
 
 template <class T> static void R_ReleaseAndSetNULL(T *var, const char *fn, const char *filename, int line)
 {
@@ -693,7 +703,6 @@ struct GfxAssets
 };
 
 
-extern int g_disableRendering;
 extern GfxScaledPlacement s_manualObjectPlacement;
 extern int alwaysfails;
 extern bool g_allocateMinimalResources;
@@ -703,32 +712,35 @@ template <class T> void R_ReleaseAndSetNULL(T *var, const char *fn, const char *
 
 #define _RB_LogPrintf RB_LogPrintfDebug
 
-#define D3DSEMSTART \
-        int semaphore;\
-        semaphore = R_AcquireDXDeviceOwnership(0);
+#define D3DSEMSTART
 
-#define D3DSEMEND \
-        if ( semaphore ){\
-          R_ReleaseDXDeviceOwnership();\
-        }
+#define D3DSEMEND
 
-#define D3DSEMGUARDEDCALL(EXP)\
-do{\
-      int semaphore;\
-      semaphore = R_AcquireDXDeviceOwnership(0);\
-      EXP;\
-      if ( semaphore ){\
-        R_ReleaseDXDeviceOwnership();\
-      }\
-}while(0)\
+#define D3DSEMGUARDEDCALL(EXP)
 
 
 
 
 #define FloatAsInt(x) (*(int*)x)
 
-#define D3DCALL(EXP) EXP
+#define D3DCALL(EXP) \
+do { \
+  HRESULT hr;\
+  _RB_LogPrintf(#EXP"\n"); \
+  hr = EXP; \
+  if ( hr < 0 ){\
+    Com_Error(ERR_FATAL, __FILE__ " (%i) " #EXP " failed: %s\n", __LINE__, R_ErrorDescription(hr));\
+  }\
+}while(0)\
 
+#define D3DCALLNOLOG(EXP) \
+do { \
+  HRESULT hr;\
+  hr = EXP; \
+  if ( hr < 0 ){\
+    Com_Error(ERR_FATAL, __FILE__ " (%i) " #EXP " failed: %s\n", __LINE__, R_ErrorDescription(hr));\
+  }\
+}while(0)\
 
 
 void R_OpenGL_SetBufferHint(unsigned int hint);

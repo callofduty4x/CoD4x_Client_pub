@@ -260,6 +260,8 @@ void R_ChangeState_0(struct GfxCmdBufState *state, unsigned int stateBits0);
 void R_ChangeState_1_Stub();
 void _Z26R_TessTrianglesPreTessListPK19GfxDrawSurfListArgs16GfxCmdBufContext();
 void R_DrawDecalCallback();
+void R_SetupPass();
+void R_DepthPrepassCallback(const void *userData, void* context, void* prepassContext);
 /*
 void Com_Error_DebugFunction()
 {
@@ -1191,6 +1193,9 @@ void Patch_Other(){
 	SetCall(0x64C564, R_ChangeState_1_Stub);
 	SetJump(0x648580, _Z26R_TessTrianglesPreTessListPK19GfxDrawSurfListArgs16GfxCmdBufContext);
 	SetJump(0x657E70, R_DrawDecalCallback);
+	SetJump(0x64C500, R_SetupPass);
+	SetJump(0x658F40, R_DepthPrepassCallback);
+
 }
 
 

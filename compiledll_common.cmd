@@ -21,6 +21,8 @@ echo.
 echo Compiling...
 
 cd bin
+g++.exe -c %FLAGS% -std=c++17 "../src/gfx/r_depthprepass.cpp"
+g++.exe -c %FLAGS% -std=c++17 "../src/gfx/rb_shade.cpp"
 g++.exe -c %FLAGS% -std=c++17 "../src/gfx/rb_logfile.cpp"
 g++.exe -c %FLAGS% -std=c++17 "../src/gfx/r_state_utils.cpp"
 g++.exe -c %FLAGS% -std=c++17 "../src/gfx/r_drawbsp.cpp"
@@ -35,6 +37,7 @@ g++.exe -c %FLAGS% -std=c++17 "../src/gfx/r_rendertarget.cpp"
 g++.exe -c %FLAGS% -std=c++17 "../src/gfx/rb_draw_3d.cpp"
 g++.exe -c %FLAGS% -std=c++17 "../src/gfx/r_debug.cpp"
 g++.exe -c %FLAGS% -std=c++17 "../src/gfx/win_debugcon.cpp"
+g++.exe -c %FLAGS% -std=c++17 "../src/gfx/r_water.cpp"
 gcc.exe -c %FLAGS_O3% -D NOUNCRYPT "../src/unzip/*.c"
 gcc.exe -c %FLAGS% "../src/r_init.c"
 gcc.exe -c %FLAGS% "../src/stringed_hooks.c"

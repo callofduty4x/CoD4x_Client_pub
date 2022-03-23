@@ -38,9 +38,8 @@ extern "C" void R_DrawDecalCallback(const void *userData, GfxCmdBufContext conte
   }
   if(data->decalInfo.drawSurfCount == 1 && portalmat)
   {
-    Cvar_SetBool(r_logFile, qtrue);
 
-    RB_LogPrintf("\n-------- R_DrawDecalCallback ---------\n");
+    _RB_LogPrintf("\n-------- R_DrawDecalCallback ---------\n");
 
 
 
@@ -68,10 +67,7 @@ extern "C" void R_DrawDecalCallback(const void *userData, GfxCmdBufContext conte
 
   if(data->decalInfo.drawSurfCount == 1 && portalmat)
   {
-    RB_LogPrintf("\n-------- Finished R_DrawDecalCallback ---------\n");
+    _RB_LogPrintf("\n-------- Finished R_DrawDecalCallback ---------\n");
   }
-
-  Cvar_SetBool(r_logFile, qfalse);
-
 
 }

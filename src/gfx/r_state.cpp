@@ -3,6 +3,8 @@
 #include "r_material.h"
 #include "rb_backend.h"
 #include "gfx_world.h"
+#include "r_debug.h"
+#include "r_state.h"
 
 
 #define GFXS0_ATEST_DISABLE 0x800
@@ -217,7 +219,7 @@ void R_HW_DisableStencil(D3DDevice *device)
 {
   D3DCALL(device->SetRenderState( D3DRS_STENCILENABLE, 0 ));
 }
-/*
+
 void R_SetAlphaAntiAliasingState(IDirect3DDevice9 *device, int stateBits0)
 {
   DWORD aaAlphaFormat;
@@ -226,7 +228,7 @@ void R_SetAlphaAntiAliasingState(IDirect3DDevice9 *device, int stateBits0)
   {
     aaAlphaFormat = 0;
   }
-  else if ( r_aaAlpha->current.integer == 2 )
+  else if ( r_aaAlpha->integer == 2 )
   {
     aaAlphaFormat = (D3DFORMAT)MAKEFOURCC('S', 'S', 'A', 'A');
   }
@@ -236,7 +238,7 @@ void R_SetAlphaAntiAliasingState(IDirect3DDevice9 *device, int stateBits0)
   }
   D3DCALL(device->SetRenderState( D3DRS_ADAPTIVETESS_Y, aaAlphaFormat ));
 }
-*/
+
 void R_HW_SetFrontStencilFunc(D3DDevice *device, unsigned int stencilFunc)
 {
   D3DCALL(device->SetRenderState( D3DRS_STENCILFUNC, s_stencilFuncTable[stencilFunc] ));
@@ -294,7 +296,12 @@ extern "C" __attribute__((regparm(1))) void R_ChangeState_0(GfxCmdBufState *stat
   changedBits = state->activeStateBits[0] ^ stateBits0;
   if ( changedBits || (state->refStateBits[0] ^ stateBits0) & 0x7000700 )
   {
-//    assert(r_dx.d3d9 && r_dx.device);
+    if ( r_logFile->integer )
+    {
+      RB_LogPrintState_0(stateBits0, changedBits);
+    }
+
+    assert(r_dx.d3d9 && r_dx.device);
     
     device = state->prim.device;
 
@@ -339,7 +346,7 @@ extern "C" __attribute__((regparm(1))) void R_ChangeState_0(GfxCmdBufState *stat
 
 
     blendOpRgbWasEnabled = ((state->refStateBits[0] >> GFXS0_BLENDOP_RGB_SHIFT) & GFXS_BLENDOP_MASK) != 0;
-    if ( (stateBits0 >> GFXS0_BLENDOP_RGB_SHIFT) & GFXS_BLENDOP_MASK )                                                                                                      //CHANGE!
+    if ( (stateBits0 >> GFXS0_BLENDOP_RGB_SHIFT) & GFXS_BLENDOP_MASK )
     {
       if ( !((stateBits0 >> GFXS0_BLENDOP_ALPHA_SHIFT) & GFXS_BLENDOP_MASK) )
       {
@@ -354,10 +361,10 @@ extern "C" __attribute__((regparm(1))) void R_ChangeState_0(GfxCmdBufState *stat
     }
     else
     {
-      assert((stateBits0 & GFXS0_BLENDOP_ALPHA_MASK) == (GFXS_BLENDOP_DISABLED << GFXS0_BLENDOP_ALPHA_SHIFT));
+      assert(!(stateBits0 & GFXS0_BLENDOP_ALPHA_MASK) ); //originally (stateBits0 & GFXS0_BLENDOP_ALPHA_MASK) == (GFXS_BLENDOP_DISABLED << GFXS0_BLENDOP_ALPHA_SHIFT) //constants seem to be incorrect to evaluate to the original expression
 
       stateBits0 = (stateBits0 & ~0x7FF07FFu) | (state->activeStateBits[0] & 0x7FF07FF);
-      
+
       changedBits &= ~0x7FF07FFu;
 
       assert((stateBits0 ^ state->activeStateBits[0]) == changedBits);
@@ -367,10 +374,9 @@ extern "C" __attribute__((regparm(1))) void R_ChangeState_0(GfxCmdBufState *stat
         R_HW_DisableBlend(device);
       }
     }
-/*
     if ( gfxMetrics.hasTransparencyMsaa )
     {
-      if ( r_aaAlpha->current.integer )
+      if ( r_aaAlpha->integer )
       {
         if ( changedBits & (GFXS_BLEND_MASK << GFXS0_BLENDOP_RGB_SHIFT))
         {
@@ -378,7 +384,6 @@ extern "C" __attribute__((regparm(1))) void R_ChangeState_0(GfxCmdBufState *stat
         }
       }
     }
-*/    
     state->activeStateBits[0] = stateBits0;
   }
 }
@@ -395,6 +400,10 @@ extern "C" void R_ChangeState_1(GfxCmdBufState *state, unsigned int stateBits1)
   {
     assert((!(stateBits1 & GFXS1_STENCIL_BACK_ENABLE)) | (stateBits1 & GFXS1_STENCIL_FRONT_ENABLE));
 
+    if ( r_logFile->integer )
+    {
+      RB_LogPrintState_1(stateBits1, changedBits);
+    }
 
     assert(r_dx.d3d9 && r_dx.device);
 
@@ -488,7 +497,7 @@ void R_ChangeStreamSource(GfxCmdBufPrimState *state, int streamIndex, D3DVertexB
   state->streams[streamIndex].offset = vertexOffset;
   state->streams[streamIndex].stride = vertexStride;
   
-  device->SetStreamSource(streamIndex, vb, vertexOffset, vertexStride);
+  D3DCALL(device->SetStreamSource(streamIndex, vb, vertexOffset, vertexStride));
 }
 
 
@@ -506,10 +515,12 @@ void R_DrawIndexedPrimitive(GfxCmdBufPrimState *state, const GfxDrawPrimArgs *ar
     }
     RB_TrackDrawPrimCall(state, triCount);
 */
-    D3DCALL(device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, args->vertexCount, args->baseIndex, triCount));
+    _RB_LogPrintf("device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, %d, %d, %d)\n", args->vertexCount, args->baseIndex, triCount);
+    D3DCALLNOLOG(device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, args->vertexCount, args->baseIndex, triCount));
 //}
 
 }
+
 
 
 unsigned int R_HW_SetSamplerState(D3DDevice *device, unsigned int samplerIndex, unsigned int samplerState, unsigned int oldSamplerState)
@@ -525,12 +536,12 @@ unsigned int R_HW_SetSamplerState(D3DDevice *device, unsigned int samplerIndex, 
     if ( diffSamplerState & 0xF00 )
     {
       unsigned int minFilter = (samplerState & 0xF00) >> 8;
-      device->SetSamplerState( samplerIndex, D3DSAMP_MINFILTER, minFilter );
+      D3DCALL(device->SetSamplerState( samplerIndex, D3DSAMP_MINFILTER, minFilter ));
     }
     if ( diffSamplerState & 0xF000 )
     {
       unsigned int magFilter = (samplerState & 0xF000) >> 12;
-      device->SetSamplerState( samplerIndex, D3DSAMP_MAGFILTER, magFilter );
+      D3DCALL(device->SetSamplerState( samplerIndex, D3DSAMP_MAGFILTER, magFilter ));
     }
     if ( diffSamplerState & 0xFF )
     {
@@ -541,31 +552,31 @@ unsigned int R_HW_SetSamplerState(D3DDevice *device, unsigned int samplerIndex, 
       }
       else
       {
-        device->SetSamplerState( samplerIndex, D3DSAMP_MAXANISOTROPY, anisotropy );
+        D3DCALL(device->SetSamplerState( samplerIndex, D3DSAMP_MAXANISOTROPY, anisotropy ));
       }
     }
     if ( diffSamplerState & 0xF0000 )
     {
       unsigned int mipFilter = (samplerState & 0xF0000) >> 16;
-      device->SetSamplerState( samplerIndex, D3DSAMP_MIPFILTER, mipFilter );
+      D3DCALL(device->SetSamplerState( samplerIndex, D3DSAMP_MIPFILTER, mipFilter ));
     }
     if ( diffSamplerState & 0x3F00000 )
     {
         if ( diffSamplerState & 0x300000 )
         {
           unsigned int address = (samplerState & 0x300000) >> 20;
-          device->SetSamplerState( samplerIndex, D3DSAMP_ADDRESSU, address );
+          D3DCALL(device->SetSamplerState( samplerIndex, D3DSAMP_ADDRESSU, address ));
         }
 
         if ( diffSamplerState & 0xC00000 )
         {
           unsigned int address = (samplerState & 0xC00000) >> 22;
-          device->SetSamplerState( samplerIndex, D3DSAMP_ADDRESSV, address );
+          D3DCALL(device->SetSamplerState( samplerIndex, D3DSAMP_ADDRESSV, address ));
         }
         if ( diffSamplerState & 0x3000000 )
         {
           unsigned int address = (samplerState & 0x3000000) >> 24;
-          device->SetSamplerState( samplerIndex, D3DSAMP_ADDRESSW, address );
+          D3DCALL(device->SetSamplerState( samplerIndex, D3DSAMP_ADDRESSW, address ));
         }
     }
     return finalSamplerState;
@@ -573,11 +584,11 @@ unsigned int R_HW_SetSamplerState(D3DDevice *device, unsigned int samplerIndex, 
 
 
 
+
 void R_HW_SetSamplerTexture(D3DDevice *device, unsigned int samplerIndex, const GfxTexture *texture)
 {
-  device->SetTexture( samplerIndex, texture->basemap );
+  D3DCALL(device->SetTexture( samplerIndex, texture->basemap ));
 }
-
 
 void R_SetSampler(GfxCmdBufContext context, unsigned int samplerIndex, unsigned char samplerState, const GfxImage *image)
 {
@@ -891,3 +902,98 @@ void R_UnbindImage(GfxCmdBufState *state, GfxImage *image)
 }
 
 
+void R_GetViewport(GfxCmdBufSourceState *source, GfxViewport *outViewport)
+{
+
+  assert(source);
+
+  if ( source->viewportBehavior == 1 )
+  {
+    assert(source->renderTargetWidth > 0);
+    assert(source->renderTargetHeight > 0);
+
+    outViewport->x = 0;
+    outViewport->y = 0;
+    outViewport->width = source->renderTargetWidth;
+    outViewport->height = source->renderTargetHeight;
+  }
+  else
+  {
+    assert(source->sceneViewport.width > 0);
+    assert(source->sceneViewport.height > 0);
+
+    outViewport->x = source->sceneViewport.x;
+    outViewport->y = source->sceneViewport.y;
+    outViewport->width = source->sceneViewport.width;
+    outViewport->height = source->sceneViewport.height;
+    assert(outViewport->width > 0);
+    assert(outViewport->height > 0);
+  }
+  if ( source->viewMode != 2 && r_scaleViewport->value != 1.0 )
+  {
+    outViewport->x += (signed int)((float)outViewport->width * (1.0 - r_scaleViewport->value) * 0.5);
+    outViewport->y += (signed int)((float)outViewport->height * (1.0 - r_scaleViewport->value) * 0.5);
+    if ( (signed int)((float)outViewport->width * r_scaleViewport->value) > 1 )
+    {
+        outViewport->width = (signed int)(float)((float)outViewport->width * r_scaleViewport->value);
+    }
+    else
+    {
+        outViewport->width = 1;
+    }
+    if ( (signed int)((float)outViewport->height * r_scaleViewport->value) > 1 )
+    {
+        outViewport->height = (signed int)((float)outViewport->height * r_scaleViewport->value);
+    }
+    else
+    {
+        outViewport->height = 1;
+    }
+  }
+}
+
+
+void R_UpdateViewport(GfxCmdBufSourceState *source, GfxViewport *viewport)
+{
+  float invWidth;
+  float invHeight;
+  float lookupScale[2];
+  float lookupOffset[2];
+
+  assert(source);
+  assert(source->viewMode != VIEW_MODE_NONE);
+  assert(source->renderTargetWidth > 0 && source->renderTargetHeight > 0);
+
+  source->viewportIsDirty = false;
+
+  invWidth = 1.0 / (float)source->renderTargetWidth;
+  invHeight = 1.0 / (float)source->renderTargetHeight;
+  lookupScale[0] = 0.5 * ((float)viewport->width * invWidth);
+  lookupScale[1] = 0.5 * ((float)viewport->height * invHeight);
+  lookupOffset[0] = (0.5 * invWidth) + (lookupScale[0] + ((float)viewport->x * invWidth));
+  lookupOffset[1] = (0.5 * invHeight) + (lookupScale[1] + ((float)viewport->y * invHeight));
+
+  vec4_t codeconst = {(float)source->renderTargetWidth, (float)source->renderTargetHeight, invWidth, invHeight};
+  R_SetCodeConstantFromVec4(source, CONST_SRC_CODE_RENDER_TARGET_SIZE, codeconst);
+
+  vec4_t codeconst2 = {lookupScale[0], -lookupScale[1], 0.0, 1.0};
+  R_SetCodeConstantFromVec4(source, CONST_SRC_CODE_CLIP_SPACE_LOOKUP_SCALE, codeconst2);
+
+  vec4_t codeconst3 = {lookupOffset[0], lookupOffset[1], 0.0, 0.0};
+  R_SetCodeConstantFromVec4(source, CONST_SRC_CODE_CLIP_SPACE_LOOKUP_OFFSET, codeconst3);
+}
+
+void R_SetViewport(GfxCmdBufState *state, const GfxViewport *viewport)
+{
+  _RB_LogPrintf("Viewport at (%i, %i) with size %i x %i\n", viewport->x, viewport->y, viewport->width, viewport->height);
+  assert(viewport->x >= 0);
+  assert(viewport->y >= 0);
+  assert(viewport->width > 0);
+  assert(viewport->height > 0);
+
+  if ( viewport->x != state->viewport.x || viewport->y != state->viewport.y || viewport->width != state->viewport.width || viewport->height != state->viewport.height )
+  {
+    state->viewport = *viewport;
+    R_HW_SetViewport(state->prim.device, viewport, state->depthRangeNear, state->depthRangeFar);
+  }
+}
