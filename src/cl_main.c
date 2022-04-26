@@ -6747,12 +6747,7 @@ void CL_WWWDownload()
 		{
 			cls.disconnectForWWWdl = 0;
 			CL_ClearStaticDownload();
-			if(!autoupdateStarted)
-			{
-				Com_Error(ERR_DROP, "'\x15'Download failure while getting '%s'\n", cls.downloadName);
-			}else{
-				Com_Error(ERR_DROP, "'\x15'Download failure while getting '%s'\nAutoupdate is unsuccessful", cls.downloadName);
-			}
+			Com_Error(ERR_DROP, "'\x15'Download failure while getting '%s'\n", cls.downloadName);
 			return;
 		}
 		Com_Printf(CON_CHANNEL_CLIENT, "Download failure while getting '%s'\n", cls.downloadTempName);
@@ -6761,12 +6756,6 @@ void CL_WWWDownload()
 		cls.field_304924 = 0;
 		return;
   }
-
-	if(autoupdateStarted)
-	{
-		CL_AutoUpdateDoneDownload();
-		return;
-	}
 
 	if(Com_IsLegacyServer() || CL_VerifyFinal())
 	{
@@ -6780,14 +6769,11 @@ void CL_WWWDownload()
 
 	  if ( cls.disconnectForWWWdl )
 	  {
-				if ( !autoupdateStarted )
-				{
-					Cbuf_AddText("reconnect\n");
-				}
+		Cbuf_AddText("reconnect\n");
 	  }
 	  else
 	  {
-				CL_ReportWWWDLDone();
+		CL_ReportWWWDLDone();
 	  }
 
 		CL_WWWDownloadStop();
@@ -6841,12 +6827,8 @@ int CL_WWWDownloadLoop()
 
 		if(!cls.download)
 		{
-			if(autoupdateStarted)
-			{
-				cls.download = FS_SV_FOpenFileWriteSavePath( cls.downloadTempName );
-			}else{
-				cls.download = FS_SV_FOpenFileWrite( cls.downloadTempName );
-			}
+//			cls.download = FS_SV_FOpenFileWriteSavePath( cls.downloadTempName );
+			cls.download = FS_SV_FOpenFileWrite( cls.downloadTempName );
 
 			if ( !cls.download )
 			{
@@ -6956,7 +6938,7 @@ qboolean CL_WWWBeginDownload(char* downloadFileName, char* downloadURL)
 		}
 	}
 
-	if(!autoupdateStarted && strstr(downloadFileName, "updates"))
+	if(strstr(downloadFileName, "updates"))
 	{
 		Com_Error(ERR_DROP, "An unauthorized server tried to push an autoupdate file\n");
 		return qfalse;
@@ -7053,109 +7035,8 @@ void CL_WWWDownloadStop()
 }
 
 
-
-
-void CL_UpdateStartWWWDownload(const char* localName, const char* url)
+void CL_AutoUpdateStartup()
 {
-	CL_ClearStaticDownload();
-
-	Com_DPrintf(CON_CHANNEL_CLIENT, "***** CL_UpdateStartWWWDownload *****\n"
-	"Localname: %s\n"
-	"Remotename: %s\n"
-	"****************************\n", url, localName);
-
-	Q_strncpyz( cls.downloadName, url, sizeof( cls.downloadName ) );
-	Com_sprintf( cls.downloadTempName, sizeof( cls.downloadTempName ), "%s.tmp", localName );
-
-	// Set so UI gets access to it
-	cluidlstatus.cl_downloadSize = 0;
-	cluidlstatus.cl_downloadCount = 0;
-	cluidlstatus.cl_downloadTime = cls.realtime;
-
-	cls.downloadBlock = 0; // Starting new file
-	cls.downloadCount = 0;
-
-	Q_strncpyz(cls.wwwDownloadName, localName, sizeof(cls.wwwDownloadName));
-	cls.downloadSize = 0;
-	cls.cl_wwwDlDisconnected = 1;
-
-	cluidlstatus.cl_downloadSize = cls.downloadSize;
-    cls.field_304924 = 1;
-
-	if ( !CL_WWWBeginDownload(cls.downloadTempName, cls.downloadName) )
-    {
-		CL_WWWDownloadStop();
-		cls.field_304924 = 0;
-		Com_Printf(CON_CHANNEL_CLIENT, "Failed to initialize download for '%s'\n", cls.downloadName);
-    }
-	cls.disconnectForWWWdl = 1;
-	wwwDownloadInProgress = 1;
-	cls.wwwdlCheckedHead = 0;
-}
-
-
-
-void CL_AutoUpdateDoneDownload()
-{
-
-	int len;
-	byte* filebuf;
-	char* search;
-	char checksum[16384];
-	char downloadname[1024];
-	// rename the file
-	FS_SV_RenameSavePath( cls.downloadTempName, cls.wwwDownloadName );
-	Q_strncpyz(downloadname, cls.wwwDownloadName, sizeof(downloadname));
-	CL_ClearStaticDownload();
-
-
-	Q_strncpyz(checksum, cl_updatefiles->string, sizeof(checksum));
-
-	search = strchr(checksum, ' ');
-	if(search == NULL)
-	{
-		Com_Error(ERR_DROP, "Update failed. Unable to read checksum");
-		return;
-	}
-
-	memmove(checksum, search+1, strlen(search+1) +1);
-
-	search = strchr(checksum, '\r');
-	if(search)
-	{
-		*search = '\0';
-	}
-	search = strchr(checksum, '\n');
-	if(search)
-	{
-		*search = '\0';
-	}
-
-	len = FS_SV_ReadFile(downloadname, (void**)&filebuf);
-	if(len < 1)
-	{
-		FS_SV_RemoveSavePath(downloadname);
-		Com_Error(ERR_DROP, "Update failed. Unable to verify downloaded file");
-		return;
-	}
-
-	if(Sec_VerifyMemory(checksum, filebuf, len, cod4xpem) == qfalse)
-	{
-		FS_FreeFile(filebuf);
-		FS_SV_RemoveSavePath(downloadname);
-		Com_Error(ERR_DROP, "Update failed. Verifying downloaded file: Checksum is invalid");
-		return;
-	}
-
-	FS_FreeFile(filebuf);
-
-
-	if(FS_SV_WriteFileToSavePath("updates/cod4update.key", checksum, strlen(checksum) +1 ) < 1)
-	{
-		Com_Error(ERR_DROP, "Update failed. Couldn't write key file");
-		return;
-	}
-
 	autoupdateDownloaded = qtrue;
 	Sys_SetupUpdater( "1" );
 	Cbuf_AddText("quit\n");
@@ -7229,32 +7110,17 @@ void CL_GetAutoUpdate( void ) {
 	CL_Disconnect( );
 	Con_Close( 0 );
 
-	Q_strncpyz( cls.servername, "Auto-Updater", sizeof( cls.servername ) );
-
 	// Copy auto-update server address to Server connect address
 	clc.serverAddress.type = NA_BAD;
 
-	clientUIActives.state = CA_CHALLENGING;
+	clientUIActives.state = CA_DISCONNECTED;
 	autoupdateStarted = qtrue;
 
-	clientUIActives.keyCatchers = 0;
-	clc.connectTime = 0;
-	clc.connectPacketCount = 0;
-
-	Cvar_SetBool(com_legacyProtocol, qtrue);
 
 	UI_CloseAllMenusInternal(0);
-
 	Scr_UpdateLoadScreen();
 
-	Q_strncpyz(updateFileUrl, cl_updatefiles->string, sizeof(updateFileUrl));
-
-	search = strchr(updateFileUrl, ' ');
-	if(search)
-	{
-		*search = '\0';
-	}
-	CL_UpdateStartWWWDownload("updates/cod4update.dl_", updateFileUrl);
+	CL_AutoUpdateStartup();
 
 }
 
