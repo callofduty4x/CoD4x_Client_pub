@@ -1,11 +1,11 @@
-binfilename=cod4x_020
+binfilename=cod4x_021
 
 CC=i686-w64-mingw32-gcc
 CXX=i686-w64-mingw32-g++
 FLAGS="-m32 -s -Wall -O0 -DNDEBUG"
 FLAGS_O3="-m32 -s -O3 -Wall -DNDEBUG"
 
-bindir=out/bin/cod4x_020
+bindir=out/bin/cod4x_021
 [ -d $bindir ] || mkdir -p $bindir
 
 cd bin
