@@ -1466,7 +1466,7 @@ void* CL_GetServersThread(void* arg)
 		int rlen;
 		int rlentotal = 0;
 
-		Com_sprintf(querystring, sizeof(querystring), "\xff\xff\xff\xffgetservers %d %s", getserversinfo->protocol, getserversinfo->keywords);
+		Com_sprintf(querystring, sizeof(querystring), "\xff\xff\xff\xffgetservers %d %s", PROTOCOL_VERSION, getserversinfo->keywords);
 		if(getserversinfo->demo)
 		{
 			Q_strcat(querystring, sizeof(querystring), " demo");
@@ -7960,9 +7960,10 @@ typedef struct
 
 legacydemoprotocolinfo_t demoprotocolinfo[] =
 {
-	{15, 16},
-	{17, 18},
+//	{15, 16},
+//	{17, 18},
 	{18, 19},
+	{20, 21},
 	{0, 0}
 };
 
@@ -8038,7 +8039,7 @@ qboolean CL_DemoProtocolSufficient(int demoproto, int current)
 	{
 		return qtrue;
 	}
-	if(demoproto == 18)
+	if(demoproto == 20)
 	{
 		return qtrue;
 	}
