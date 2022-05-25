@@ -727,4 +727,11 @@ void CL_SetCursorPos(int x, int y);
 
 #define CS_BASICANTICHEATCFG 4860
 
+static inline clientActive_t* CL_GetLocalClientGlobals(const int localClientNum)
+{
+    assert(localClientNum == 0);
+    //return &clients[localClientNum];
+    return &cl;
+}
+
 #endif

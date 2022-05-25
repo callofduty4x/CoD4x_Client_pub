@@ -256,6 +256,8 @@ void __cdecl _Load_MaterialTechniqueSetAsset( );
 void R_PickRenderer(D3DCAPS9 *caps);
 void REGPARM(1) Dvar_SetVariant( );
 cvar_t* REGPARM(1) Cvar_SetFromStringByNameExternal(const char* varname, const char* valueString);
+void CL_FinishMove(usercmd_t *cmd);
+
 
 /*
 void Com_Error_DebugFunction()
@@ -1184,7 +1186,7 @@ void Patch_Other(){
 	SetCall(0x54F98C, Cvar_SetFromStringByNameExternal);
 */
 	SetCall(0x54F538, Cvar_SetFromStringByNameExternal);
-	
+	SetCall(0x463DEF, CL_FinishMove);
 }
 
 

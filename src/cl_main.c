@@ -9694,3 +9694,57 @@ bool CL_IsPlayback()
 {
 	return clc.demoplaying;
 }
+
+void CL_FinishMove(usercmd_t *cmd)
+{
+	int localClientNum = 0; //Function argument optimized away for iw3mp
+    //signed int k;
+    //signed int j;
+    int i;
+    clientActive_t *client;
+
+    client = CL_GetLocalClientGlobals(localClientNum);
+    cmd->weapon = client->cgameUserCmdWeapon;
+    cmd->offHandIndex = client->cgameUserCmdOffHandIndex;
+    //cmd->lastWeaponAltModeSwitch = client->cgameUserCmdLastWeaponForAlt;
+    if ( client->serverTime - client->snap.serverTime > 5000 )
+    {
+        cmd->serverTime = client->snap.serverTime + 5000;
+    }
+    else
+    {
+        cmd->serverTime = client->serverTime;
+    }
+    for ( i = 0; i < 3; ++i )
+    {
+        cmd->angles[i] = ANGLE2SHORT(client->viewangles[i] + client->cgameKickAngles[i]);
+    }
+	/*
+    for ( j = 0; j < 2; ++j )
+    {
+        cmd->button_bits.array[j] |= client->cgameExtraButton_bits.array[j];
+    }
+	*/
+	cmd->buttons |= client->cgameExtraButtons;
+    /*
+	for ( k = 0; k < 2; ++k )
+    {
+        client->cgameExtraButton_bits.array[k] = 0;
+    }
+	*/
+	client->cgameExtraButtons = 0;
+	
+	/*
+	//Already no longer a part of CoDWaW
+
+	clientInfo_t *cli = &cgArray[0].bgs.clientinfo[cgArray[0].predictedPlayerState.clientNum];
+	if ( cli->attachedVehEntNum != 1023 && !cli->attachedVehSlotIndex )
+	{
+		v6 = 182.0444488525391 * client->vehicleViewPitch;
+		cmd->angles[1] = (signed int)(client->vehicleViewYaw * 182.0444488525391 + 0.5) & 0xFFFF;
+		cmd->angles[2] = 0;
+		cmd->angles[0] = (signed int)(v6 + 0.5) & 0xFFFF;
+	}
+	*/
+}
+
