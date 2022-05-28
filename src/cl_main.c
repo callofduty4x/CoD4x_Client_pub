@@ -1040,7 +1040,7 @@ void CL_InitOnceForAllClients(){
   m_pitch = Cvar_RegisterFloat("m_pitch", 0.022, -1, 1, 1, "Default pitch");
   m_yaw = Cvar_RegisterFloat("m_yaw", 0.022, -1, 1, 1, "Default yaw");
   m_forward = Cvar_RegisterFloat("m_forward", 0.25, -1, 1, 1, "Forward speed in units per second");
-  m_side = Cvar_RegisterFloat("m_side", 0.022, -1, 1, 1, "Sideways motion in units per second");
+  m_side = Cvar_RegisterFloat("m_side", 0.25, -1, 1, 1, "Sideways motion in units per second");
   m_filter = Cvar_RegisterBool("m_filter", 0, 1, "Allow mouse movement smoothing");
   cl_motdString = Cvar_RegisterString("cl_motdString", "", 64, "Message of the day");
   cl_ingame = Cvar_RegisterBool("cl_ingame", 0, 64, "True if the game is active");
