@@ -1065,6 +1065,16 @@ qboolean CG_DeployAdditionalServerCommand();
 void __cdecl CG_RegisterSounds();
 void CG_Vote_f();
 cgSafeAngles_t* CG_GetSafeAngles();
+void CG_ApplyViewAnimation();
+float CG_GetViewFov();
+void CG_UpdateFov(float fov);
+void CG_UpdateThirdPerson();
+void CalcViewValuesVehicleDriver();
+void CG_VehSphereCoordsToPos(float sphereDist, float sphereYaw, float sphereAlt, float* result);
+void ThirdPersonViewTrace(cg_t *cgameGlob, const float *start, const float* end, float* result);
+void CG_OffsetFirstPersonView(cg_t *cgameGlob);
+void CG_PerturbCamera(cg_t *cgameGlob);
+void CG_VehSeatOriginForLocalClient(int localClientNum, float *result);
 
 #define cg_paused getcvaradr(0x8C9400)
 #define cg_cursorHints getcvaradr(0x8C9404)
@@ -1081,6 +1091,7 @@ cgSafeAngles_t* CG_GetSafeAngles();
 #define cg_overheadNamesGlow getcvaradr(0x8C631C)
 #define cg_drawFPSLabels getcvaradr(0x8C63AC)
 #define cg_gameMessageWidth getcvaradr(0x8C6300)
+#define cg_thirdPerson getcvaradr(0x748638)
 
 #define CG_ALIGN_Y 12
 #define CG_ALIGN_TOP 4

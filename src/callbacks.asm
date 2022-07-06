@@ -392,6 +392,9 @@ bin_import Load_Material, 0x047B9C0
 
 bin_import Cvar_Init, 0x56d2b0
 bin_import R_CheckDxCaps, 0x6349E0
+bin_import CG_ApplyViewAnimation, 0x00450890
+bin_import CG_GetViewFov, 0x004503A0
+bin_import CG_UpdateFov, 0x00450510
 
 SECTION .text
 global Cbuf_AddText
@@ -2145,3 +2148,77 @@ Material_OriginalRemapTechniqueSet:
 
 SECTION .rodata
 oMaterial_OriginalRemapTechniqueSet dd 0x619710
+
+
+
+SECTION .text
+global SeatTransformForSlot
+SeatTransformForSlot:
+	mov edx, [esp+4]
+	mov eax, [esp+8]
+	mov esi, [esp+12]
+	mov edi, [esp+16]
+	mov ecx, [esp+20]
+	push ecx
+	push eax
+	call dword [oSeatTransformForSlot]
+	add esp, 8
+	ret
+
+SECTION .rodata
+oSeatTransformForSlot dd 0x44E820
+
+SECTION .text
+global CG_OffsetFirstPersonView
+CG_OffsetFirstPersonView:
+	mov edi, [esp+4]
+	call dword [oCG_OffsetFirstPersonView]
+	ret
+
+SECTION .rodata
+oCG_OffsetFirstPersonView dd 0x00450050
+
+SECTION .text
+global CG_PerturbCamera
+CG_PerturbCamera:
+	mov edi, [esp+4]
+	call dword [oCG_PerturbCamera]
+	ret
+
+SECTION .rodata
+oCG_PerturbCamera dd 0x0044C730
+
+SECTION .text
+global CG_VehSphereCoordsToPos
+CG_VehSphereCoordsToPos:
+	mov edx, [esp + 16]
+	mov eax, [esp + 12]
+	mov ecx, [esp + 8]
+	mov ebx, [esp + 4]
+	push eax
+	push ecx
+	push ebx
+	call dword [oCG_VehSphereCoordsToPos]
+	add esp, 12
+	ret
+
+SECTION .rodata
+oCG_VehSphereCoordsToPos dd 0x0044F8D0
+
+
+SECTION .text
+global ThirdPersonViewTrace
+ThirdPersonViewTrace:
+	mov eax, [esp + 16]
+	mov ecx, [esp + 12]
+	mov ebx, [esp + 4]
+	mov esi, [esp + 8]
+	push eax
+	push ecx
+	push ebx
+	call dword[oThirdPersonViewTrace]
+	add esp, 12
+	ret
+
+SECTION .rodata
+oThirdPersonViewTrace dd 0x0044FA00
