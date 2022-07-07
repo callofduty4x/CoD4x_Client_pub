@@ -7,6 +7,7 @@
 #include "ui_shared.h"
 #include "sys_patch.h"
 #include "callbacks.h"
+#include "cg_shared.h"
 
 #include <windows.h>
 #include <stdlib.h>
@@ -1187,6 +1188,8 @@ void Patch_Other(){
 */
 	SetCall(0x54F538, Cvar_SetFromStringByNameExternal);
 	SetCall(0x463DEF, CL_FinishMove);
+	SetJump(0x00451D70, CG_UpdateThirdPerson);
+	SetJump(0x004509D0, CalcViewValuesVehicleDriver);
 }
 
 
