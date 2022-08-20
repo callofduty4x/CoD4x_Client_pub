@@ -636,7 +636,6 @@ HANDLE __cdecl DB_OpenCommonXZoneFile(const char* zoneName, int* type)
           SetEvent(databaseCompletedEvent);
           Com_Error(ERR_FATAL, "ERROR: Could not find zone '%s'\n", ospath);
         }
-        return 0;
     }
     return h;
 }
