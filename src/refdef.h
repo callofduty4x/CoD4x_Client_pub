@@ -2,6 +2,7 @@
 #define __REFDEF_H__
 
 #include "xassets/gfximage.h"
+#include <stdbool.h>
 
 /* 7008 */
 #pragma pack(push, 4)
