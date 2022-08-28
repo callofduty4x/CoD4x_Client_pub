@@ -10,14 +10,16 @@
 #include "xassets/xmodel.h"
 #include "client.h"
 #include "refdef.h"
+#include "ui_shared.h"
 
 //#define cgsArray (*((cgsData_t*)(0x74a908)))
-//#define cgArray (*((cgData_t*)(0x74E338)))
+//#define cgArray (*((cg_t*)(0x74E338)))
 #define cgs (*((cgs_t*)(0x74a908)))
 #define cg (*((cg_t*)(0x74E338)))
 #define cgEntities ((centity_t*)(0x84F2D8))
 #define cgMedia (*((cgMedia_t*)(0x84CB30)))
 #define s_cameraShakeSet (*((CameraShakeSet*)(0x7380C0)))
+#define cgDC ((UiContext_t*)(0x746FA8))
 
 typedef void FxEffect_t; //Too complicated
 
@@ -377,7 +379,7 @@ typedef struct clientInfo_s
   char turnAnimType;
   char pad2[3];  
   int attachedVehEntNum;
-  int attachedVehSlotIndex;
+  int attachedVehSeat;
   byte hideWeapon;
   byte usingKnife;
   char pad3[2];
@@ -614,7 +616,7 @@ typedef struct cgData_s
 #define cg_drawFPS getcvaradr(0x748634)
 #define cg_drawSnapshot getcvaradr(0x74A888)
 #define cg_debugInfoCornerOffset getcvaradr(0x8C63B8)
-
+#define cg_errorDecay getcvaradr(0x8C6378)
 
 typedef struct CEntPlayerInfo_s
 {
@@ -712,6 +714,30 @@ typedef struct centity_s
   vec3_t lightingOrigin;
   XAnimTree_s *tree;
 }centity_t;
+
+
+enum entityType_t
+{
+  ET_GENERAL = 0x0,
+  ET_PLAYER = 0x1,
+  ET_PLAYER_CORPSE = 0x2,
+  ET_ITEM = 0x3,
+  ET_MISSILE = 0x4,
+  ET_INVISIBLE = 0x5,
+  ET_SCRIPTMOVER = 0x6,
+  ET_SOUND_BLEND = 0x7,
+  ET_FX = 0x8,
+  ET_LOOP_FX = 0x9,
+  ET_PRIMARY_LIGHT = 0xA,
+  ET_MG42 = 0xB,
+  ET_HELICOPTER = 0xC,
+  ET_PLANE = 0xD,
+  ET_VEHICLE = 0xE,
+  ET_VEHICLE_COLLMAP = 0xF,
+  ET_VEHICLE_CORPSE = 0x10,
+  ET_EVENTS = 0x11,
+  ET_MOVER = 0x99 //Dummy for botlib
+};
 
 
 /* 7255 */
@@ -1039,6 +1065,26 @@ typedef struct
   float phase;
 }CameraShakeSet;
 
+enum pmtype_t
+{
+  PM_NORMAL,
+  PM_NORMAL_LINKED,
+  PM_NOCLIP,
+  PM_UFO,
+  PM_SPECTATOR,
+  PM_INTERMISSION,
+  PM_LASTSTAND,
+  PM_DEAD,
+  PM_DEAD_LINKED
+};
+
+enum vehicleRideSlots_t
+{
+  VEHICLE_RIDESLOT_DRIVER,
+  VEHICLE_RIDESLOT_PASSENGER,
+  VEHICLE_RIDESLOT_GUNNER,
+  VEHICLE_RIDESLOTS_COUNT
+};
 
 void CG_DrawUpperRightDebugInfo();
 double __cdecl CG_DrawFPSDebugInfo(float a1);
@@ -1065,6 +1111,18 @@ qboolean CG_DeployAdditionalServerCommand();
 void __cdecl CG_RegisterSounds();
 void CG_Vote_f();
 cgSafeAngles_t* CG_GetSafeAngles();
+double CG_GetViewFov();
+void CG_CalcFov();
+void __cdecl ThirdPersonViewTrace(cg_t   *cgameGlob, const float *start, const float *end, int contentMask, float *result);
+REGPARM(1) void CG_CalcCubemapViewValues(cg_t *cgameGlob);
+void CG_UpdateViewAngles();
+void CG_ApplyViewAnimation(int localClientNum);
+REGPARM(1) void CG_CalcTurretViewValues(int localClientNum);
+REGPARM(1) void CG_ShakeCamera(int localClientNum);
+void CG_VisionSetApplyToRefdef(int localClientNum);
+void CG_OffsetThirdPersonView(cg_t *cgameGlob);
+void CG_OffsetFirstPersonView(cg_t *cgameGlob);
+void GetTagMatrix(int localClientNum, int vehEntNum, uint16_t tagName, float (*resultTagMat)[3], float *resultOrigin);
 
 #define cg_paused getcvaradr(0x8C9400)
 #define cg_cursorHints getcvaradr(0x8C9404)
@@ -1081,6 +1139,12 @@ cgSafeAngles_t* CG_GetSafeAngles();
 #define cg_overheadNamesGlow getcvaradr(0x8C631C)
 #define cg_drawFPSLabels getcvaradr(0x8C63AC)
 #define cg_gameMessageWidth getcvaradr(0x8C6300)
+
+#define vehDriverViewHeightMax getcvaradr(0xCB0CC84)
+#define vehDriverViewFocusRange getcvaradr(0x8C9F80)
+#define vehDebugClient getcvaradr(0x8C9E38)
+#define vehDriverViewDist getcvaradr(0x8C9F88)
+#define cg_viewZSmoothingTime getcvaradr(0x8C633C)
 
 #define CG_ALIGN_Y 12
 #define CG_ALIGN_TOP 4

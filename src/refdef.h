@@ -102,7 +102,8 @@ typedef struct refdef_s
   int field_4084;
   int field_4088;
   int field_408c;
-  int field_4090;
+  bool useScissorViewport;
+  byte pad[3];
   int localClientNum;
 }refdef_t;
 

@@ -624,7 +624,7 @@ HANDLE __cdecl DB_OpenCommonXZoneFile(const char* zoneName, int* type)
       *type = 0;
       h = CreateFileA(ospath, 0x80000000, 1u, 0, 3u, 0x60000000u, 0);
     }
-
+/*
     if ( h == (HANDLE)-1 )
     {
         if ( strstr(ospath, "_load") )
@@ -638,6 +638,7 @@ HANDLE __cdecl DB_OpenCommonXZoneFile(const char* zoneName, int* type)
         }
         return 0;
     }
+*/
     return h;
 }
 

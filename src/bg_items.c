@@ -33,3 +33,5 @@ qboolean BG_CanItemBeGrabbed(playerState_t *ps_, entityState_t *ItemState_, int 
     }
     return qtrue;
 }
+
+

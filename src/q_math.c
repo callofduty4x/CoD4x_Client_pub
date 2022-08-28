@@ -969,7 +969,9 @@ int Q_log2( int val ) {
 	return answer;
 }
 
-
+vec_t Vec2Length( const vec2_t v ) {
+	return sqrt( v[0] * v[0] + v[1] * v[1] );
+}
 
 /*
 =================
@@ -1133,3 +1135,21 @@ float Q_acos(float c) {
 	return angle;
 }
 #endif
+
+
+
+vec_t Vec3Normalize( vec3_t v ) {
+	float length, ilength;
+
+	length = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+	length = sqrt( length );
+
+	if ( length ) {
+		ilength = 1 / length;
+		v[0] *= ilength;
+		v[1] *= ilength;
+		v[2] *= ilength;
+	}
+
+	return length;
+}

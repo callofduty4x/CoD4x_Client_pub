@@ -10,11 +10,14 @@
 #endif
 #include "ui_shared.h"
 #include "xzone.h"
+#include "bg_shared.h"
+#include "cg_local_mp.h"
 
 #include <stdbool.h>
 
 cvar_t* debug_show_viewpos;
 cvar_t* cg_zoom_sensitivity_ratio;
+//float CG_DrawViewAngles(ScreenPlacement *scrPlace, float y);
 
 void __cdecl CG_DrawUpperRightDebugInfo()
 {
@@ -32,6 +35,8 @@ void __cdecl CG_DrawUpperRightDebugInfo()
   {
     yoffset = CG_DrawSnapshotDebugInfo(yoffset);
   }
+  //yoffset = CG_DrawViewAngles(&scrPlaceFull, yoffset);
+
 
 }
 
@@ -50,7 +55,21 @@ qboolean CG_DeployAdditionalServerCommand()
   return qtrue;
 }
 
+cg_t* CG_GetLocalClientGlobals(int localClientNum)
+{
+  assert ( (unsigned int)localClientNum >= MAX_LOCAL_CLIENTS);
+  //return &cgArray[localClientNum];
+  return &cg;
+}
 
+cgs_t *__cdecl CG_GetLocalClientStaticGlobals(int localClientNum)
+{
+  assert ( (unsigned int)localClientNum >= MAX_LOCAL_CLIENTS);
+
+  //return &cgsArray[localClientNum];
+  return &cgs;
+
+}
 
 /*
 Not used, needed and bugged
@@ -169,6 +188,12 @@ void __cdecl CG_RegisterItems()
 }
 
 
+void __cdecl CG_DebugStar(const float *point, const float *color, int duration)
+{
+  CL_AddDebugStar(point, color, duration, qfalse);
+}
+
+
 void CG_UpdateCursorHints(cg_t *cgarg)
 {
   if ( !cgarg->renderingThirdPerson )
@@ -183,13 +208,46 @@ void CG_UpdateCursorHints(cg_t *cgarg)
   }
 }
 
+double CG_FadeAlpha(int timeNow, int startMsec, int totalMsec, int fadeMsec)
+{
+  int t;
+
+  t = timeNow - startMsec;
+  if ( fadeMsec <= 0 || totalMsec - t >= fadeMsec )
+  {
+    return 1.0;
+  }
+  else
+  {
+    return (double)(totalMsec - t) * 1.0 / (double)fadeMsec;
+  }
+}
+
+float * CG_FadeColor(int timeNow, int startMsec, int totalMsec, int fadeMsec)
+{
+  static vec4_t color;
+
+  if ( !startMsec )
+  {
+    return 0;
+  }
+  if ( timeNow - startMsec >= totalMsec )
+  {
+    return 0;
+  }
+  color[3] = CG_FadeAlpha(timeNow, startMsec, totalMsec, fadeMsec);
+  color[2] = 1.0;
+  color[1] = 1.0;
+  color[0] = 1.0;
+  return color;
+}
+
 
 void CG_DrawCursorHint(int localClientNum, rectDef_t *rect, Font_t *font, float scale, float *color, int style)
 {
   const char *v7; // ebp@1
   double v8; // st7@2
   double v9; // st6@5
-  bool v10; // zf@8
   double v11; // st5@8
   float v12; // ST44_4@9
   double v14; // st6@12
@@ -230,7 +288,6 @@ void CG_DrawCursorHint(int localClientNum, rectDef_t *rect, Font_t *font, float 
   float v59; // ST34_4@46
   float posx; // [sp+8h] [bp-158h]@44
   float posy; // [sp+Ch] [bp-154h]@44
-  float alpha;
   int fontscale; // [sp+10h] [bp-150h]@44
   int v64; // [sp+14h] [bp-14Ch]@44
   float v69; // [sp+34h] [bp-12Ch]@8
@@ -246,33 +303,30 @@ void CG_DrawCursorHint(int localClientNum, rectDef_t *rect, Font_t *font, float 
   int x, y;
   char weaponUseDisplayString[256];
 
+  cg_t* cgameGlob = &cg; //CG_GetLocalClientGlobals(localClientNum);
+
   v7 = 0;
   if ( !cg_cursorHints->integer )
     return;
-  CG_UpdateCursorHints(&cg);
-  v8 = 1.0;
-  if ( cg.cursorHintFade - (cg.time - cg.cursorHintTime) >= 100 )
-    alpha = 1.0;
-  else
-    alpha = (double)(cg.cursorHintFade - (cg.time - cg.cursorHintTime)) / 100.0;
-  alpha = alpha * color[3];
-  color[3] = alpha;
+  CG_UpdateCursorHints(cgameGlob);
+  v8 = 1.0;  
+  color[3] *= CG_FadeAlpha(cgameGlob->time, cgameGlob->cursorHintTime, cgameGlob->cursorHintFade, 100);
+
   v9 = 0.0;
-  if ( 0.0 == alpha )
+  if ( 0.0 == color[3] )
   {
     cg.cursorHintIcon = 0;
     return;
   }
-  v10 = cg_cursorHints->integer == 3;
   v75 = 1.0;
   v74 = 1.0;
   v77 = 0;
   v69 = 0.0;
   v11 = 0.5;
-  if ( v10 )
+  if ( cg_cursorHints->integer == 3 )
   {
     v12 = (double)cg.time / 150.0;
-    color[3] = (sin(v12) * 0.5 + 0.5) * alpha;
+    color[3] = (sin(v12) * 0.5 + 0.5) * color[3];
     v9 = 0.0;
     v11 = 0.5;
     v8 = 1.0;
@@ -976,7 +1030,34 @@ float CG_DrawViewpos(ScreenPlacement *scrPlace, float y)
   return y;
 }
 
+/*
+float CG_DrawViewAngles(ScreenPlacement *scrPlace, float y)
+{
+  clientActive_t *client;
+  float steerYaw;
 
+  client = CL_GetLocalClientGlobals(0);
+  int vehEntNum = cg.bgs.clientinfo[cg.predictedPlayerState.clientNum].attachedVehEntNum;
+  if(vehEntNum != 1023)
+  {
+    centity_t *cVehEnt = &cgEntities[vehEntNum];
+    if ( cVehEnt->nextValid )
+    {
+      if(cVehEnt->nextState.eType == ET_VEHICLE)
+      {
+        steerYaw = cVehEnt->pose.angles[YAW];
+      }
+    }
+  }
+
+  float farRight = (float)((float)(scrPlace->virtualViewableMax[0] - scrPlace->virtualViewableMin[0]) + cg_debugInfoCornerOffset->value) - CG_DrawViewposoffset;
+  const char* s = va("%.1f %.1f %.1f vy%.1f t%.1f", client->viewangles[0], client->viewangles[1], client->viewangles[2], cl.vehicleViewYaw, steerYaw);
+  y = CG_CornerDebugPrint(scrPlace, farRight, y, 0.0, s, "", colorWhite) + y;
+//  CG_LogViewpos(s);
+
+  return y;
+}
+*/
 
 int __cdecl CG_DrawDevString(ScreenPlacement *scrPlace, float x, float y, float xScale, float yScale, const char *s, const float *color, int align, struct Font_s *font)
 {
@@ -1102,6 +1183,604 @@ void CG_InitConsoleCommandsPatched()
   Cmd_AddCommand("unmuteplayer", NULL);
 }
 
+
+void CG_UpdateFov(float fov)
+{
+  float v3;
+  float v4;
+
+  v3 = tan(fov * (M_PI / 360));
+  v4 = 0.75 * v3;
+  cg.refdef.tanHalfFovX = cgs.viewAspect * v4;
+  cg.refdef.tanHalfFovY = v4;
+  cg.zoomSensitivity = v3 / (1/(M_PI / 2));
+}
+
+
+void CG_CalcFov(){
+  float fov;
+
+  fov = CG_GetViewFov();
+  CG_UpdateFov(fov);
+}
+
+void CG_VehSphereCoordsToPos(float sphereDistance, float sphereYaw, float sphereAltitude, float *result)
+{
+  double sin_alt;
+  double sin_yaw;
+  double cos_alt;
+  float alt_rad;
+  float yaw_rad;
+  double cos_yaw;
+
+  alt_rad = (90.0 - sphereAltitude) * (M_PI/180);
+  sincos(alt_rad, &sin_alt, &cos_alt);
+
+  yaw_rad = (sphereYaw - 90.0) * (M_PI/180);
+  sincos(yaw_rad, &sin_yaw, &cos_yaw);
+
+  result[0] = cos_yaw * sphereDistance * sin_alt;
+  result[1] = sin_yaw * sphereDistance * sin_alt;
+  result[2] = sphereDistance * cos_alt;
+}
+
+static float oldVehForwardYaw;
+static float oldClientViewYaw;
+
+void CG_VehUseInitialize()
+{  
+  clientActive_t *client = CL_GetLocalClientGlobals(0);
+
+  int vehEntNum = cg.bgs.clientinfo[cg.predictedPlayerState.clientNum].attachedVehEntNum;
+
+  centity_t *cVehEnt = &cgEntities[vehEntNum];
+
+  client->vehicleViewYaw = cVehEnt->pose.angles[YAW] - 90.0f;
+  client->viewangles[1] = client->vehicleViewYaw;
+  oldVehForwardYaw = client->vehicleViewYaw;
+  oldClientViewYaw = client->viewangles[1];
+}
+
+void CG_VehUseDeinitialize()
+{
+
+}
+
+void CalcViewValuesVehicleDriver()
+{
+  double v1;
+  float normalizedPitch;
+  vec3_t newLookDir;
+  vec3_t lookAtPos;
+
+  clientActive_t *client = CL_GetLocalClientGlobals(0);
+
+  lookAtPos[2] = cg.predictedPlayerState.origin[2] + 55.0;
+  lookAtPos[0] = cg.predictedPlayerState.origin[0] + 0.0;
+  lookAtPos[1] = cg.predictedPlayerState.origin[1] + 0.0;
+  normalizedPitch = client->vehicleViewPitch / 360;
+
+
+  //client->vehicleViewYaw = client->viewangles[1];
+  int vehEntNum = cg.bgs.clientinfo[cg.predictedPlayerState.clientNum].attachedVehEntNum;
+  centity_t *cVehEnt = &cgEntities[vehEntNum];
+  if ( cVehEnt->nextValid && cVehEnt->nextState.eType == ET_VEHICLE)
+  {
+    float vehForwardYaw = cVehEnt->pose.angles[YAW] - 90.0f;
+
+    float vehYawDelta = vehForwardYaw - oldVehForwardYaw;
+    float clientYawDelta = client->viewangles[1] - oldClientViewYaw;
+    
+
+    client->vehicleViewYaw += (vehYawDelta + clientYawDelta);
+/*
+    float viewforwardoffset = client->vehicleViewYaw - vehForwardYaw;
+
+    if( viewforwardoffset > 75 )
+    {
+      client->vehicleViewYaw = vehForwardYaw + 75.0f;
+    }else if( viewforwardoffset < 75 ){
+      client->vehicleViewYaw = vehForwardYaw - 75.0f;
+    }
+*/
+
+    oldVehForwardYaw = vehForwardYaw;
+    oldClientViewYaw = client->viewangles[1];
+    //client->vehicleViewYaw = cVehEnt->pose.angles[YAW] - 90.0f;
+  }
+  
+  v1 = fabs((normalizedPitch - floorf(normalizedPitch + 0.5)) * 360.0);
+
+  lookAtPos[2] = (vehDriverViewHeightMax->floatval - v1) / vehDriverViewHeightMax->floatval * vehDriverViewFocusRange->floatval + lookAtPos[2];
+  if ( vehDebugClient->boolean )
+  {
+    CG_DebugStar(lookAtPos, colorBlue, 0);
+  }
+  CG_VehSphereCoordsToPos(vehDriverViewDist->floatval, client->vehicleViewYaw, client->vehicleViewPitch, newLookDir);
+
+  VectorAdd(newLookDir, lookAtPos, cg.refdef.vieworg);
+
+  ThirdPersonViewTrace(&cg, lookAtPos, cg.refdef.vieworg, 0x811, cg.refdef.vieworg);
+  
+  VectorSubtract(lookAtPos, cg.refdef.vieworg, newLookDir);
+  
+  VectorNormalize(newLookDir);
+  vectoangles(newLookDir, cg.refdefViewAngles);
+  AnglesToAxis(cg.refdefViewAngles, cg.refdef.viewaxis);
+  
+  CG_CalcFov();
+}
+
+float BG_GetSpeed(const playerState_t *ps, int time)
+{
+  if ( (ps->pm_flags & 8) != 0 )
+  {
+    if ( time - ps->jumpTime >= 500 )
+    {
+      return ps->velocity[2];
+    }
+    return 0.0;
+  }
+  return Vec2Length(ps->velocity);
+}
+
+clientInfo_t * ClientInfoForLocalClient(int localClientNum)
+{
+  cg_t *cgameGlob;
+  playerState_t *ps;
+  bgs_t *bg;
+
+  assert((unsigned int)localClientNum > MAX_LOCAL_CLIENTS);
+
+  cgameGlob = CG_GetLocalClientGlobals(localClientNum);
+  ps = &cgameGlob->predictedPlayerState;
+  bg = &cgameGlob->bgs;
+  assert(ps->clientNum < MAX_CLIENTS);
+  return &bg->clientinfo[ps->clientNum];
+}
+
+bool CG_VehLocalClientUsingVehicle(int localClientNum)
+{
+  clientInfo_t *ci;
+
+  ci = ClientInfoForLocalClient(localClientNum);
+  assert(ci);
+  return ci->attachedVehEntNum != 1023;
+}
+
+void CG_PerturbCamera(cg_t *cgameGlob)
+{
+  vec3_t rot[3];
+  vec3_t axis[3];
+
+  if ( cgameGlob->shellshock.viewDelta[0] != 0.0 || cgameGlob->shellshock.viewDelta[1] != 0.0 )
+  {
+    rot[2][0] = 0.0;
+    rot[2][1] = 0.0;
+    rot[2][2] = 1.0;
+    rot[0][0] = 1.0;
+    rot[0][1] = cgameGlob->shellshock.viewDelta[0];
+    rot[0][2] = cgameGlob->shellshock.viewDelta[1];
+    Vec3Normalize(rot[0]);
+    Vec3Cross(rot[2], rot[0], rot[1]);
+    Vec3Normalize(rot[1]);
+    Vec3Cross(rot[0], rot[1], rot[2]);
+    AxisCopy(cgameGlob->refdef.viewaxis, axis);
+    MatrixMultiply(rot, axis, cgameGlob->refdef.viewaxis);
+  }
+}
+
+void CG_CalcVrect(int localClientNum)
+{
+  cg_t *cgameGlob;
+  cgs_t *_cgs;
+
+  cgameGlob = CG_GetLocalClientGlobals(localClientNum);
+  _cgs = CG_GetLocalClientStaticGlobals(localClientNum);
+  cgameGlob->refdef.x = _cgs->viewX;
+  cgameGlob->refdef.y = _cgs->viewY;
+  cgameGlob->refdef.width = _cgs->viewWidth;
+  cgameGlob->refdef.height = _cgs->viewHeight;
+  cgameGlob->refdef.useScissorViewport = false;
+}
+
+
+void CG_SmoothCameraZ(cg_t *cgameGlob)
+{
+  int timeSinceStart;
+  int smoothingDuration;
+  float lerp;
+
+  if ( cgameGlob->stepViewChange != 0.0 && cgameGlob->time - cgameGlob->stepViewStart >= 0 )
+  {
+    timeSinceStart = cgameGlob->time - cgameGlob->stepViewStart;
+    smoothingDuration = (int)(cg_viewZSmoothingTime->floatval * 1000.0);
+    if ( timeSinceStart < smoothingDuration ) //clip to bounds between 1.0 and 0.0
+    {
+      if ( timeSinceStart >= 0 )
+      {
+        lerp = (float)timeSinceStart / (float)smoothingDuration;
+      }
+      else
+      {
+        lerp = 0.0;
+      }
+    }
+    else
+    {
+      lerp = 1.0;
+    }
+    cgameGlob->refdef.vieworg[2] = cgameGlob->refdef.vieworg[2] - (1.0 - lerp) * cgameGlob->stepViewChange;
+  }
+}
+
+int CG_VehLocalClientVehicleSlot(int localClientNum)
+{
+  clientInfo_t *ci;
+
+  ci = ClientInfoForLocalClient(localClientNum);
+  
+  assert(ci);
+  assert(ci->attachedVehEntNum != ENTITYNUM_NONE);
+
+  return ci->attachedVehSeat;
+}
+
+void CG_VehGunnerPOV(int localClientNum, float *resultOrigin, float *resultAngles)
+{
+  clientInfo_t *ci;
+  float axis[4][3];
+
+  ci = ClientInfoForLocalClient(localClientNum);
+
+  assert(ci);
+  assert(ci->attachedVehEntNum != ENTITYNUM_NONE);
+  
+  GetTagMatrix(localClientNum, ci->attachedVehEntNum, scr_const.tag_gunner_pov, axis, resultOrigin);
+  AxisToAngles(axis, resultAngles);
+}
+
+void SeatTransformForSlot(int localClientNum, int vehEntNum, int vehSlotIdx, float *resultOrigin, float *resultAngles)
+{
+  uint16_t tagName;
+  vec3_t tagOrigin;
+  vec3_t tagMtx[3];
+
+  tagName = BG_VehiclesGetSlotTagName(vehSlotIdx);
+  GetTagMatrix(localClientNum, vehEntNum, tagName, tagMtx, tagOrigin);
+  if ( resultAngles )
+  {
+    AxisToAngles(tagMtx, resultAngles);
+  }
+  if ( resultOrigin )
+  {
+    VectorCopy(tagOrigin, resultOrigin);
+    if ( vehSlotIdx == VEHICLE_RIDESLOT_DRIVER || vehSlotIdx == VEHICLE_RIDESLOT_PASSENGER )
+    {
+      resultOrigin[2] -= 35.0;
+    }
+  }
+}
+
+void SeatTransformForClientInfo(int localClientNum, clientInfo_t *ci, float *resultOrigin, float *resultAngles)
+{
+  assert(ci);
+  assert(ci->attachedVehEntNum != ENTITYNUM_NONE);
+
+  SeatTransformForSlot(localClientNum, ci->attachedVehEntNum, ci->attachedVehSeat, resultOrigin, resultAngles);
+}
+
+
+clientInfo_t* ClientInfoForEntity(int localClientNum, int entNum)
+{
+  centity_t *cent;
+
+  cent = CG_GetEntity(localClientNum, entNum);
+  if ( cent->nextState.eType != ET_PLAYER )
+  {
+    return 0;
+  }
+  assert(cent->nextState.clientNum < MAX_CLIENTS);
+  return &cg.bgs.clientinfo[cent->nextState.clientNum];
+}
+
+void CG_VehSeatTransformForPlayer(int localClientNum, int entNum, float *resultOrigin, float *resultAngles)
+{
+  clientInfo_t *ci;
+
+  ci = ClientInfoForEntity(localClientNum, entNum);
+  /*
+  centity_t *centPlayer = CG_GetEntity(localClientNum, entNum);
+
+  assert(centPlayer->nextState.eType == ET_PLAYER);
+  assert(centPlayer->nextState.eType < ET_EVENTS);
+  */
+  assert(ci->attachedVehEntNum != 0);
+
+  SeatTransformForClientInfo(localClientNum, ci, resultOrigin, resultAngles);
+}
+
+void CG_VehSeatOriginForLocalClient(int localClientNum, float *result)
+{
+  clientInfo_t *ci;
+
+  assert(result);
+  ci = ClientInfoForLocalClient(localClientNum);
+  SeatTransformForClientInfo(localClientNum, ci, result, 0);
+}
+
+void CalcViewValuesVehicleGunner(int localClientNum)
+{
+  cg_t *cgameGlob = CG_GetLocalClientGlobals(localClientNum);
+
+  CG_VehGunnerPOV(localClientNum, cgameGlob->refdef.vieworg, cgameGlob->refdefViewAngles);
+  AnglesToAxis(cgameGlob->refdefViewAngles, cgameGlob->refdef.viewaxis);
+  CG_ApplyViewAnimation(localClientNum);
+  CG_PerturbCamera(cgameGlob);
+  CG_CalcFov(localClientNum);
+}
+
+void CalcViewValuesVehiclePassenger(int localClientNum)
+{
+  playerState_t *ps;
+
+  cg_t *cgameGlob = CG_GetLocalClientGlobals(localClientNum);
+
+  ps = &cgameGlob->predictedPlayerState;
+  CG_VehSeatOriginForLocalClient(localClientNum, ps->origin);
+
+  VectorCopy(ps->origin, cgameGlob->refdef.vieworg);
+  VectorCopy(ps->viewangles, cgameGlob->refdefViewAngles);
+
+  CG_OffsetFirstPersonView(cgameGlob);
+  AnglesToAxis(cgameGlob->refdefViewAngles, cgameGlob->refdef.viewaxis);
+  CG_ApplyViewAnimation(localClientNum);
+  CG_PerturbCamera(cgameGlob);
+  CG_CalcFov(localClientNum);
+}
+
+void CalcViewValuesVehicle(int localClientNum)
+{
+  int slot;
+
+  assert(CG_VehLocalClientUsingVehicle( localClientNum ));
+
+  slot = CG_VehLocalClientVehicleSlot(localClientNum);
+  if(slot == VEHICLE_RIDESLOT_DRIVER)
+  {
+    CalcViewValuesVehicleDriver(localClientNum);
+  }else if(slot == VEHICLE_RIDESLOT_PASSENGER){
+    CalcViewValuesVehiclePassenger(localClientNum);
+  }else{
+    assert(slot == VEHICLE_RIDESLOT_GUNNER);
+    CalcViewValuesVehicleGunner(localClientNum);
+  }
+}
+
+void CG_CalcViewValues(int localClientNum)
+{
+  //float maxmin;
+  //float *lastViewAngles;
+  //float *predictedError;
+  //float *refdefViewAngles;
+  //float *viewangles;
+  //float *vieworg;
+  //float *origin;
+  //vec3_t angles;
+  int t;
+  float f;
+  //CameraMode camMode;
+  cg_t *cgameGlob;
+  float uiBlurRadius;
+  playerState_t *ps;
+  static bool initVeh;
+
+  cgameGlob = CG_GetLocalClientGlobals(localClientNum);
+  cgameGlob->refdef.zNear = 0.0;
+  cgameGlob->refdef.time = cgameGlob->time;
+  cgameGlob->refdef.localClientNum = localClientNum;
+  /*
+  cgameGlob->refdef.sunVisibility = 1.0;
+  cgameGlob->refdef.noLodCullOut = 0;
+  */
+  uiBlurRadius = CL_GetMenuBlurRadius(localClientNum);
+  cgameGlob->refdef.blurRadius = sqrt((float)(cgDC[localClientNum].blurRadiusOut * cgDC[localClientNum].blurRadiusOut) + (float)(uiBlurRadius * uiBlurRadius));
+  /*
+  camMode = CG_UpdateCameraMode(localClientNum);
+  CG_CalcFov(localClientNum, -1.0);
+  */
+  CG_VisionSetApplyToRefdef(localClientNum);
+  if ( cgameGlob->cubemapShot )
+  {
+    //CG_CalcFov(localClientNum, -1.0);
+    CG_CalcCubemapViewValues(cgameGlob);
+    return;
+  }
+
+  CG_CalcVrect(localClientNum);
+  ps = &cgameGlob->predictedPlayerState;
+  if ( cgameGlob->predictedPlayerState.pm_type == PM_INTERMISSION )
+  {
+    VectorCopy(ps->origin, cgameGlob->refdef.vieworg);
+    VectorCopy(ps->viewangles, cgameGlob->refdefViewAngles);
+    AnglesToAxis(cgameGlob->refdefViewAngles, cgameGlob->refdef.viewaxis);
+    CG_CalcFov(localClientNum); //CoD4
+    return;
+  }
+
+  if(CG_VehLocalClientUsingVehicle(localClientNum))
+  {
+
+    if(!initVeh)
+    {
+      initVeh = true;
+      CG_VehUseInitialize();
+    }
+    CalcViewValuesVehicle(localClientNum);
+    return;
+  }
+
+  if(initVeh)
+  {
+    initVeh = false;
+    CG_VehUseDeinitialize();
+  }
+
+  cgameGlob->fBobCycle = BG_GetBobCycle(ps);
+  cgameGlob->xyspeed = BG_GetSpeed(&cgameGlob->predictedPlayerState, cgameGlob->time);
+  VectorCopy(ps->origin, cgameGlob->refdef.vieworg);
+  if ( !cgameGlob->playerTeleported )
+  {
+    if(cgameGlob->nextSnap->ps.pm_type == PM_NORMAL || cgameGlob->nextSnap->ps.pm_type == PM_NOCLIP || cgameGlob->nextSnap->ps.pm_type == PM_UFO)
+    {
+//      if( cgameGlob->renderingThirdPerson == TP_OFF )
+        CG_SmoothCameraZ(cgameGlob);
+    }
+  }
+  VectorCopy(cgameGlob->refdef.vieworg, cgameGlob->lastVieworg);
+  VectorCopy(ps->viewangles, cgameGlob->refdefViewAngles); //cod4
+  if ( /*camMode != CAM_VEHICLE && camMode != CAM_VEHICLE_THIRDPERSON && */ cg_errorDecay->floatval > 0.0 )
+  {
+    t = cgameGlob->time - cgameGlob->predictedErrorTime;
+    f = (cg_errorDecay->floatval - (float)t) / cg_errorDecay->floatval;
+    if ( f <= 0.0 || f >= 1.0 )
+    {
+      cgameGlob->predictedErrorTime = 0;
+    }
+    else
+    {
+      VectorMA(cgameGlob->refdef.vieworg, f, cgameGlob->predictedError, cgameGlob->refdef.vieworg);
+    }
+  }
+  CG_CalcTurretViewValues(localClientNum);
+  if ( !cgameGlob->renderingThirdPerson ){
+    CG_OffsetFirstPersonView(cgameGlob);
+  }
+  CG_ShakeCamera(localClientNum);
+  AnglesToAxis(cgameGlob->refdefViewAngles, cgameGlob->refdef.viewaxis);
+  CG_ApplyViewAnimation(localClientNum);
+  if ( cgameGlob->renderingThirdPerson ){
+    CG_OffsetThirdPersonView(cgameGlob);
+  }
+  CG_PerturbCamera(cgameGlob);
+  CG_CalcFov(localClientNum);
+
+/*  else if ( Demo_IsPlaying() && ps->pm_type == 4 && !Demo_IsMovieCamera() && ps->stats[4] < 2 )
+  {
+    VectorCopy(ps->origin, cgameGlob->refdef.vieworg);
+    VectorCopy(ps->viewangles, cgameGlob->refdefViewAngles);
+    AnglesToAxis(cgameGlob->refdefViewAngles, cgameGlob->refdef.viewaxis);
+  }
+  else if ( CG_KillCamEntityEnabled(localClientNum) )
+  {
+    CG_UpdateKillCamEntity(cgameGlob->killCamEntityType, localClientNum);
+    CG_VisionSetApplyToRefdef(localClientNum, 0);
+  }
+  else
+  {
+    cgameGlob->fBobCycle = BG_GetBobCycle(ps);
+    cgameGlob->xyspeed = BG_GetSpeed(&cgameGlob->predictedPlayerState, cgameGlob->time);
+    VectorCopy(ps->origin, cgameGlob->refdef.vieworg);
+
+    if ( !cgameGlob->playerTeleported
+      && (!cgameGlob->nextSnap->ps.pm_type || cgameGlob->nextSnap->ps.pm_type == 2 || cgameGlob->nextSnap->ps.pm_type == 3)
+      && cgameGlob->renderingThirdPerson == TP_OFF )
+    {
+      CG_SmoothCameraZ(cgameGlob);
+    }
+    VectorCopy(ps->viewangles, cgameGlob->refdefViewAngles);
+
+    switch ( camMode )
+    {
+      case CAM_VEHICLE:
+        CG_CalcVehicleViewValues(localClientNum);
+        VectorCopy(ps->viewangles, cgameGlob->refdefViewAngles);
+        break;
+      case CAM_VEHICLE_THIRDPERSON:
+        CG_Calc3rdPersonVehicleViewValues(localClientNum);
+        break;
+      case CAM_MISSILE:
+        CG_CalcMissileViewValues(localClientNum);
+        break;
+      case CAM_EXTRACAM:
+        CG_CalcExtraCamViewValues(localClientNum);
+        break;
+    }
+    if ( camMode != CAM_VEHICLE && camMode != CAM_VEHICLE_THIRDPERSON && cg_errorDecay->current.value > 0.0 )
+    {
+      t = cgameGlob->time - cgameGlob->predictedErrorTime;
+      f = (float)(cg_errorDecay->current.value - (float)t) / cg_errorDecay->current.value;
+      if ( f <= 0.0 || f >= 1.0 )
+      {
+        cgameGlob->predictedErrorTime = 0;
+      }
+      else
+      {
+        VectorMA(cgameGlob->refdef.vieworg, f, cgameGlob->predictedError, cgameGlob->refdef.vieworg);
+      }
+    }
+    switch ( camMode )
+    {
+      case CAM_TURRET:
+        CG_CalcTurretViewValues(localClientNum);
+        break;
+      case CAM_VEHICLE:
+      case CAM_VEHICLE_THIRDPERSON:
+        CG_OffsetVehicleView(localClientNum, camMode);
+        break;
+      case CAM_VEHICLE_GUNNER:
+        cgameGlob->refdef.noLodCullOut = 1;
+        CG_OffsetVehicleGunner(localClientNum, cgameGlob);
+        break;
+      default:
+        if ( camMode != CAM_EXTRACAM && camMode != CAM_MISSILE )
+        {
+          if ( camMode == CAM_RADIANT )
+          {
+            CG_RadiantCamCalcView(localClientNum);
+          }
+          else if ( cgameGlob->renderingThirdPerson != TP_FOR_MODEL )
+          {
+            CG_OffsetFirstPersonView(cgameGlob);
+          }
+        }
+        break;
+    }
+    CG_ShakeCamera(localClientNum);
+    CG_CalcFov(localClientNum, -1.0);
+    CG_UpdateCameraTween(localClientNum);
+    if ( camMode == CAM_MISSILE )
+    {
+      CG_CalcMissileAngleValues(localClientNum);
+      VectorCopy(cgameGlob->refdefViewAngles, cgameGlob->cameraData.lastViewAngles);
+    }
+    AnglesToAxis(cgameGlob->refdefViewAngles, cgameGlob->refdef.viewaxis);
+    CG_ApplyViewAnimation(localClientNum);
+    if ( cgameGlob->renderingThirdPerson == TP_FOR_MODEL && CG_ShouldRenderThirdPerson(camMode) )
+    {
+      CG_OffsetThirdPersonView(localClientNum);
+    }
+    else if ( camMode == CAM_VEHICLE && (ps->otherFlags & 2) != 0 && cgameGlob->renderingThirdPerson == TP_FOR_MODEL )
+    {
+      CG_OffsetChaseCamView(localClientNum, camMode);
+    }
+    CG_PerturbCamera(cgameGlob);
+    R_SetADSZScale(localClientNum, min(cg_adsZScaleMax->floatval - ps->fWeaponPosFrac * ps->fWeaponPosFrac, 1.0));
+    if ( cg_thirdPerson->integer && cg_thirdPersonMode->integer == 2 )
+    {
+      AnglesToAxis(devSavedAngles, cgameGlob->refdef.viewaxis);
+      VectorCopy(devSavedOrigin, cgameGlob->refdef.vieworg);
+      
+    }
+    else
+    {
+      AxisToAngles(cgameGlob->refdef.viewaxis, angles);
+      CG_DevSaveCamera(angles, cgameGlob->refdef.vieworg);
+    }
+    CG_ExtraCamDebug_SaveView(localClientNum);
+  }
+  */
+}
 
 
 #ifndef OFFICIAL

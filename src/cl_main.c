@@ -9734,17 +9734,16 @@ void CL_FinishMove(usercmd_t *cmd)
 	*/
 	client->cgameExtraButtons = 0;
 	
-	/*
+	
 	//Already no longer a part of CoDWaW
 
-	clientInfo_t *cli = &cgArray[0].bgs.clientinfo[cgArray[0].predictedPlayerState.clientNum];
-	if ( cli->attachedVehEntNum != 1023 && !cli->attachedVehSlotIndex )
+	clientInfo_t *cli = &cg.bgs.clientinfo[cg.predictedPlayerState.clientNum];
+	if ( cli->attachedVehEntNum != 1023 && !cli->attachedVehSeat )
 	{
-		v6 = 182.0444488525391 * client->vehicleViewPitch;
-		cmd->angles[1] = (signed int)(client->vehicleViewYaw * 182.0444488525391 + 0.5) & 0xFFFF;
+		cmd->angles[1] = ANGLE2SHORT(client->vehicleViewYaw);
 		cmd->angles[2] = 0;
-		cmd->angles[0] = (signed int)(v6 + 0.5) & 0xFFFF;
+		cmd->angles[0] = ANGLE2SHORT(client->vehicleViewPitch);
 	}
-	*/
+	
 }
 

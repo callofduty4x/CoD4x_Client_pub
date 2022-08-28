@@ -342,4 +342,6 @@ bool UI_KeysBypassMenu(const int localClientNum);
 void __cdecl UI_MouseEvent(int x, int y);
 void __cdecl UI_SetSystemCursorPos(float x, float y);
 const char* UI_GetSiteDomain();
+double UI_GetBlurRadius(int localClientNum);
+
 #endif

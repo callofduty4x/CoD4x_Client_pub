@@ -1,8 +1,11 @@
 #include "q_shared.h"
 #include "client.h"
+#include "ui_shared.h"
 
 #include <stdlib.h>
 #include <string.h>
+
+const float MYNULLTEXTCOLOR[4] = { 0.0 };
 
 void Key_SetCatcher(int catcher)
 {
@@ -620,3 +623,19 @@ void __cdecl CL_AddDebugStarWithText(const float *point, const float *starColor,
   }
 }
 
+void __cdecl CL_AddDebugStar(const float *point, const float *color, int duration, qboolean fromServer)
+{
+  CL_AddDebugStarWithText(point, color, MYNULLTEXTCOLOR, 0, 1.0, duration, fromServer);
+}
+
+double CL_GetMenuBlurRadius(int localClientNum)
+{
+  if ( Key_IsCatcherActive(localClientNum, 16) && cls.uiStarted )
+  {
+    return UI_GetBlurRadius(localClientNum);
+  }
+  else
+  {
+    return 0.0;
+  }
+}

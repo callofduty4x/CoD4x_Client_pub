@@ -257,6 +257,8 @@ void R_PickRenderer(D3DCAPS9 *caps);
 void REGPARM(1) Dvar_SetVariant( );
 cvar_t* REGPARM(1) Cvar_SetFromStringByNameExternal(const char* varname, const char* valueString);
 void CL_FinishMove(usercmd_t *cmd);
+void CalcViewValuesVehicleDriver();
+void CG_CalcViewValues(int localClientNum);
 
 
 /*
@@ -1187,6 +1189,9 @@ void Patch_Other(){
 */
 	SetCall(0x54F538, Cvar_SetFromStringByNameExternal);
 	SetCall(0x463DEF, CL_FinishMove);
+	SetCall(0x452A70, CG_CalcViewValues);
+	SetCall(0x451E22, CG_CalcViewValues);
+
 }
 
 

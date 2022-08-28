@@ -3195,7 +3195,7 @@ static netField_t clientStateFields[] =
 	{ CSF( name[12] ), 32, 0},
 	{ CSF( attachModelIndex[1] ), 9, 0},
 	{ CSF( maxSprintTimeMultiplier ), 0, 0},
-	{ CSF( attachedVehSlotIndex ), 2, 0},
+	{ CSF( attachedVehSeat ), 2, 0},
 	{ CSF( attachTagIndex[5] ), 5, 0},
 	{ CSF( attachTagIndex[0] ), 5, 0},
 	{ CSF( attachTagIndex[1] ), 5, 0},

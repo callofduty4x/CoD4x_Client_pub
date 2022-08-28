@@ -281,8 +281,8 @@ typedef struct {
 
 	qboolean	rendererStarted;
 	qboolean	cgameStarted;
+	qboolean	uiStarted;
 
-	int			framecount;
 	int			frametime;			// msec since last frame
 
 	int			realtime;			// ignores pause
@@ -450,8 +450,10 @@ typedef struct clientActive_s
   entityState_t entityBaselines[1024];
   entityState_t parseEntities[2048];
   clientState_t parseClients[2048];
-  char gap_1B1AD0[264];
-  int field_1B1BD8;
+  int corruptedTranslationFile;
+  char translationVersion[256];
+  float vehicleViewYaw;
+  float vehicleViewPitch;
 }clientActive_t;
 
 
@@ -603,7 +605,7 @@ void Com_CreatePlayerProfile();
 void UI_DeletePlayerProfile();
 void CLUI_GetServerAddressString( int source, int n, char *buf, int buflen );
 signed int CLUI_GetServerPunkBuster(int n, int source);
-int Key_ClearStates(int a1);
+void Key_ClearStates(int a1);
 void LAN_GetServerInfo( int source, int n, char *buf, int buflen );
 int LAN_GetServerPing( int source, int n );
 int LAN_ServerIsVisible( int source, int n );
@@ -711,6 +713,7 @@ void __cdecl CL_DrawText(ScreenPlacement *scrPlace, const char *text, int maxCha
 void __cdecl CL_AddDebugString(const float *xyz, const float *color, float scale, const char *text, qboolean fromServer, int duration);
 void __cdecl CL_AddDebugStarWithText(const float *point, const float *starColor, const float *textColor, const char *string, float fontsize, int duration, qboolean fromServer);
 void __cdecl CL_AddDebugLine(const float *start, const float *end, const float *color, int depthTest, int duration, qboolean fromServer);
+void __cdecl CL_AddDebugStar(const float *point, const float *color, int duration, qboolean fromServer);
 void CL_NetAddDebugData( );
 qboolean CreateDebugStringsIfNeeded();
 qboolean CreateDebugLinesIfNeeded();
@@ -724,6 +727,8 @@ qboolean CL_IsConnected();
 void CL_RestartAndReconnect();
 void CL_ShowSystemCursor(int show);
 void CL_SetCursorPos(int x, int y);
+double CL_GetMenuBlurRadius(int localClientNum);
+bool Key_IsCatcherActive(int localClientNum, int mask);
 
 #define CS_BASICANTICHEATCFG 4860
 

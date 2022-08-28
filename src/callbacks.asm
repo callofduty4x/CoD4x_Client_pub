@@ -374,6 +374,14 @@ bin_import CG_ConfigStringModified, 0x44AF10
 bin_import LoadMapLoadScreenInternal, 0x46A800
 bin_import StringTable_LookupRowNumForValue, 0x569AA0
 bin_import Load_Material, 0x047B9C0
+bin_import CG_GetViewFov, 0x4503A0
+bin_import CG_CalcCubemapViewValues, 0x450590
+bin_import CG_ApplyViewAnimation, 0x450890
+bin_import CG_CalcTurretViewValues, 0x4507B0
+bin_import CG_ShakeCamera, 0x423D00
+bin_import CG_VisionSetApplyToRefdef, 0x4538D0
+bin_import CG_OffsetThirdPersonView, 0x44FB20
+
 ;SECTION .text
 ;global MSG_WriteEntityIndex
 ;MSG_WriteEntityIndex:
@@ -2145,3 +2153,75 @@ Material_OriginalRemapTechniqueSet:
 
 SECTION .rodata
 oMaterial_OriginalRemapTechniqueSet dd 0x619710
+
+
+;void __usercall ThirdPersonViewTrace(cg_s *cgameGlob, const float *start@<esi>, float *end, int contentmask, float *result)
+SECTION .text
+global ThirdPersonViewTrace
+ThirdPersonViewTrace:
+
+	push ebp
+	mov ebp, esp
+	push esi
+;result
+	mov edx, [ebp+24]
+	push edx
+;end
+	mov edx, [ebp+16]
+	push edx
+;start
+	mov esi, [ebp+12]
+;cgameGlob
+	mov edx, [ebp+8]
+	push edx
+	call dword [oThirdPersonViewTrace]
+	add esp, 12
+	pop esi
+	pop ebp
+	ret
+
+SECTION .rodata
+oThirdPersonViewTrace dd 0x44FA00
+
+
+
+SECTION .text
+global CG_OffsetFirstPersonView
+CG_OffsetFirstPersonView:
+	push edi
+	mov edi, [esp+8]
+	call dword [oCG_OffsetFirstPersonView]
+	pop edi
+	ret
+
+SECTION .rodata
+oCG_OffsetFirstPersonView dd 0x450050
+
+
+;void __usercall GetTagMatrix(int localClientNum, int vehEntNum@<ecx>, unsigned __int16 tagName, float *resultTagMat@<eax>, float *resultOrigin)
+SECTION .text
+global GetTagMatrix
+GetTagMatrix:
+
+	push ebp
+	mov ebp, esp
+;resultOrigin
+	mov edx, [ebp+24]
+	push edx
+;resultTagMat
+	mov eax, [ebp+20]
+;tagName
+	mov edx, [ebp+16]
+	push edx
+;vehEntNum
+	mov ecx, [ebp+12]
+;localClientNum
+	mov edx, [ebp+8]
+	push edx
+	call dword [oGetTagMatrix]
+	add esp, 12
+	pop ebp
+	ret
+
+SECTION .rodata
+oGetTagMatrix dd 0x44E770

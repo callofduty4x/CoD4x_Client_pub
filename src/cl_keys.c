@@ -30,6 +30,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "qcommon.h"
 #include "keys.h"
 #include "cl_input.h"
+#include "client.h"
 #include <ctype.h>
 
 /*
@@ -232,4 +233,9 @@ qboolean Key_IsActive(int keynum)
 qboolean IN_IsTalkKeyHeld()
 {
   return Key_IsActive(29);
+}
+
+bool Key_IsCatcherActive(int localClientNum, int mask)
+{
+  return localClientNum != -1 && (mask & clientUIActives.keyCatchers) != 0;
 }

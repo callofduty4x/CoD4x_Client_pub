@@ -694,6 +694,8 @@ static ID_INLINE void CrossProduct( const vec3_t v1, const vec3_t v2, vec3_t cro
 	cross[2] = v1[0]*v2[1] - v1[1]*v2[0];
 }
 
+#define Vec3Cross(v1, v2, cross) CrossProduct(v1, v2, cross)
+
 #else
 int VectorCompare( const vec3_t v1, const vec3_t v2 );
 
@@ -712,8 +714,10 @@ void VectorInverse( vec3_t v );
 void CrossProduct( const vec3_t v1, const vec3_t v2, vec3_t cross );
 
 #endif
-
+vec_t Vec2Length( const vec2_t v );
 vec_t VectorNormalize (vec3_t v);		// returns vector length
+vec_t Vec3Normalize( vec3_t v );
+
 vec_t VectorNormalize2( const vec3_t v, vec3_t out );
 void Vector4Scale( const vec4_t in, vec_t scale, vec4_t out );
 void VectorRotate( vec3_t in, vec3_t matrix[3], vec3_t out );
@@ -1216,7 +1220,7 @@ typedef enum {
 //
 // per-level limits
 //
-#define	MAX_CLIENTS			18		// absolute limit
+#define	MAX_CLIENTS			64		// absolute limit
 #define MAX_LOCATIONS		64
 
 #define	GENTITYNUM_BITS		10		// don't need to send any more
@@ -1291,7 +1295,7 @@ typedef struct clientState_s
   int prestige;
   int perks;
   int attachedVehEntNum;
-  int attachedVehSlotIndex;
+  int attachedVehSeat;
 }clientState_t;
 
 typedef struct{

@@ -2125,3 +2125,20 @@ const char* UI_GetSiteDomain()
   }
   return cl_cod4xsitedom->string;
 }
+
+uiInfo_t* UI_GetInfo(int localClientNum)
+{
+  assert( localClientNum < MAX_LOCAL_CLIENTS );
+
+  //return &uiInfoArray[localClientNum];
+  return &uiMem.uiInfo;
+}
+
+double UI_GetBlurRadius(int localClientNum)
+{
+  uiInfo_t *uiInfo;
+
+  uiInfo = UI_GetInfo(localClientNum);
+  assert(uiInfo);
+  return uiInfo->uiDC.blurRadiusOut;
+}
