@@ -193,6 +193,7 @@ void		NET_FlushPacketQueue(void);
 qboolean	NET_SendPacket (netsrc_t sock, int length, const void *data, netadr_t* to);
 void		NET_OutOfBandPrint( netsrc_t net_socket, netadr_t *adr, const char *format, ...) __attribute__ ((format (printf, 3, 4)));
 void		QDECL NET_OutOfBandData( netsrc_t sock, netadr_t *adr, byte *format, int len );
+unsigned short NET_PortFromSRV(const char* domain);
 
 qboolean	NET_CompareAdr (netadr_t *a, netadr_t *b);
 qboolean	NET_CompareBaseAdrMask(netadr_t *a, netadr_t *b, int netmask);

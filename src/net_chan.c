@@ -55,7 +55,9 @@ to the new value before sending out any replies.
 #include "win_sys.h"
 #include "qcommon.h"
 
+#include <limits.h>
 #include <stdlib.h>
+#include <windns.h>
 
 #define MAX_PACKETLEN           1400        // max size of a network packet
 
@@ -641,6 +643,52 @@ void NET_OutOfBandData( netsrc_t sock, netadr_t *adr, byte *format, int len ) {
 	NET_SendPacket( sock, i+4, string, adr );
 }
 
+unsigned short NET_PortFromSRV(const char* domain) {
+    if (!domain || !*domain) {
+        return 0;
+    }
+    char domainName[256];
+    Com_sprintf(domainName, sizeof(domainName), "_cod4._udp.%s", domain);
+    Com_DPrintf(CON_CHANNEL_NETWORK, "Resolving SRV for %s\n", domainName);
+
+    PDNS_RECORD recordList = NULL;
+    DNS_STATUS ret = DnsQuery_A(domainName, DNS_TYPE_SRV, DNS_QUERY_STANDARD, NULL, &recordList, NULL);
+    if (ret != ERROR_SUCCESS) {
+        switch (ret) {
+        case DNS_ERROR_RCODE_NAME_ERROR:
+            Com_DPrintf(CON_CHANNEL_NETWORK, "No SRV record for %s exists\n", domainName);
+            return 0;
+        default:
+            Com_DPrintf(CON_CHANNEL_NETWORK, "Error DnsQuery: %lx (%ld)\n", ret, ret);
+            return 0;
+        }
+        return 0;
+    }
+
+    unsigned short port = 0;
+    unsigned short prevPriority = USHRT_MAX;
+    unsigned short prevWeight = 0;
+
+    PDNS_RECORD record = recordList;
+    while (record) {
+	    if (record->wType == DNS_TYPE_SRV) {
+            if (record->Data.SRV.wPriority < prevPriority) {
+                port = record->Data.SRV.wPort;
+                prevPriority = record->Data.SRV.wPriority;
+                prevWeight = 0;
+            } else if (record->Data.SRV.wPriority == prevPriority && record->Data.SRV.wWeight > prevWeight) {
+                port = record->Data.SRV.wPort;
+                prevWeight = record->Data.SRV.wWeight;
+            }
+	    }
+	    record = record->pNext;
+	}
+    if (recordList) {
+        DnsRecordListFree(recordList, DnsFreeRecordList);
+    }
+    Com_DPrintf(CON_CHANNEL_NETWORK, "Found SRV record for %s with port %u\n", domainName, port);
+    return port;
+}
 
 /*
 =============
@@ -706,6 +754,10 @@ int NET_StringToAdr( const char *s, netadr_t *a, netadrtype_t family )
 		a->port = BigShort((short) atoi(port));
 		return 1;
 	}
+    else if ((a->port = BigShort((short)NET_PortFromSRV(base))))
+    {
+        return 1;
+    }
 	else
 	{
 		a->port = BigShort(PORT_SERVER);

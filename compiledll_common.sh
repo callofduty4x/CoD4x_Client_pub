@@ -90,5 +90,5 @@ nasm -f win32 ../src/fsdword.asm --prefix _ -o fsdword.o
 cd "../"
 echo Linking...
 
-$CXX -shared $FLAGS -o "out/bin/${binfilename}.dll" bin/*.o -Llib -lsteam_integration -ludis86 -ltomcrypt -lmbedtls_win32 -ldiscord_rpc -static -lversion -lkernel32 -ladvapi32 -lole32 -loleaut32 -luuid -lwsock32 -lws2_32 -lwinmm -lshell32 -luser32 -lgdi32 -lcrypt32 -ld3dx9_34 -lpsapi -lmsvcr100 -Wl,--exclude-libs,msvcrt.a,-fPic,--stack,8388608
+$CXX -shared $FLAGS -o "out/bin/${binfilename}.dll" bin/*.o -Llib -lsteam_integration -ludis86 -ltomcrypt -lmbedtls_win32 -ldiscord_rpc -static -lversion -lkernel32 -ladvapi32 -lole32 -loleaut32 -luuid -lwsock32 -lws2_32 -ldnsapi -lwinmm -lshell32 -luser32 -lgdi32 -lcrypt32 -ld3dx9_34 -lpsapi -lmsvcr100 -Wl,--exclude-libs,msvcrt.a,-fPic,--stack,8388608
 
