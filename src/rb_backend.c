@@ -2,7 +2,7 @@
 #include "qcommon.h"
 #include "r_shared.h"
 
-#include <D3dx9core.h>
+#include <d3dx9core.h>
 #include <stdbool.h>
 
 

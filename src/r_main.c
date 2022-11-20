@@ -4,7 +4,7 @@
 #include "xassets/gfxworld.h"
 #include "xzone.h"
 
-#include <Shellapi.h>
+#include <shellapi.h>
 
 
 /* 1370 */
@@ -1058,7 +1058,6 @@ struct Font_s *__cdecl R_RegisterFont_FastFile(const char *fontName)
 {
   return DB_FindXAssetHeader(ASSET_TYPE_FONT, fontName).font;
 }
-
 
 void REGPARM(1) R_PickRenderer(D3DCAPS9 *caps)
 {

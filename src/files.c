@@ -536,7 +536,7 @@ void FS_BuildOSPathForThreadUni(const wchar_t *base, const char *game, const cha
         gamename[len -1] = L'\0';
   }
   
-  if( Com_sprintfUni(fs_path, sizeof(wchar_t) * MAX_OSPATH, L"%s/%s/%s", basename, gamename, qpathname) >= MAX_OSPATH )
+  if( Com_sprintfUni(fs_path, sizeof(wchar_t) * MAX_OSPATH, L"%ls\\%ls\\%ls", basename, gamename, qpathname) >= MAX_OSPATH )
   {
     if ( fs_thread )
     {
@@ -2573,7 +2573,7 @@ FILE* _fopen_savepathhelper(const char* filepath, const char* method)
 	{
 		Q_StrToWStr(_method, method, sizeof(_method));
 		Q_StrToWStr(_tfilepath, filepath +12, sizeof(_tfilepath));
-		Com_sprintfUni(_filepath, sizeof(_filepath), L"%s%s", fs_savepathDir, _tfilepath);
+		Com_sprintfUni(_filepath, sizeof(_filepath), L"%ls%ls", fs_savepathDir, _tfilepath);
 		return _wfopen(_filepath, _method);
 	}
 

@@ -1218,7 +1218,7 @@ typedef struct {
     qboolean	initServer;
 } extlevel_locals_t;
 
-extlevel_locals_t extlevel;
+//extlevel_locals_t extlevel;
 
 
 typedef struct {

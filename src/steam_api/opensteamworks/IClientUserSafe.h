@@ -20,7 +20,7 @@
 #pragma once
 #endif
 
-#include "..\SteamTypes.h"
+#include "../steamtypes.h"
 //#include "UserCommon.h"
 #include "ContentServerCommon.h"
 #include "ECurrencyCode.h"

@@ -23,7 +23,7 @@
 #define NULL nullptr
 #endif
 
-#include "../SteamTypes.h"
+#include "../steamtypes.h"
 #include "IImportStruct.h"
 //#include "UtilsCommon.h"
 

@@ -445,7 +445,7 @@ bool SteamAPI_GetSteamClientDLLPath(wchar_t *steamclientpath, size_t len)
 	}
 
 	SteamAPI_GetSteamClientDLLPath(steamclientpath, sizeof(steamclientpath) / sizeof(wchar_t));
-	Com_sprintfUni(overlayRendererDllPath, sizeof(overlayRendererDllPath), L"%s\\%s", steamclientpath, L"gameoverlayrenderer.dll");
+	Com_sprintfUni(overlayRendererDllPath, sizeof(overlayRendererDllPath), L"%ls\\%ls", steamclientpath, L"gameoverlayrenderer.dll");
     hSteamOverlayRenderer = LoadLibraryExW(overlayRendererDllPath, 0, 8);
 
     if ( !hSteamOverlayRenderer )
@@ -833,7 +833,7 @@ SteamAPI_Main::SteamAPI_Main(  const wchar_t* dllpath, AppId_t parentAppID, AppI
 			Com_Printf(CON_CHANNEL_SYSTEM, "[S_API FAIL] SteamAPI_Init() failed. Steam appears to be not installed\n");
 			return;
 		}
-		Com_sprintfUni(steamClientDllPath, sizeof(steamClientDllPath), L"%s\\%s", dllfilepath, L"steamclient.dll");
+		Com_sprintfUni(steamClientDllPath, sizeof(steamClientDllPath), L"%ls\\%ls", dllfilepath, L"steamclient.dll");
 	} 
 
 
@@ -1393,7 +1393,7 @@ extern "C" {
 
 		static struct threadargs_t args;
 
-		Com_sprintfUni(args.dllpath, sizeof(args.dllpath), L"%s", dllpath);
+		Com_sprintfUni(args.dllpath, sizeof(args.dllpath), L"%ls", dllpath);
 		Q_strncpyz(args.modName, modName ,sizeof(args.modName));
 		args.gameId = gameId;
 		args.parentAppID = parentAppID;
