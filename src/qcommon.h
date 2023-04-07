@@ -456,6 +456,7 @@ extern char UPDATE_VERSION[64];
 #define cl_paused getcvaradr(0x1435D48)
 #define com_frameTime *((int*)(com_frameTime_ADDR))
 #define com_timescaleValue *((float*)(0x1435D68))
+#define sv_paused getcvaradr(0x1476ED4)
 
 void Com_ClientDObjClearAllSkel();
 

@@ -33,7 +33,6 @@ void initd3dcheck();
 #define ragdollFirstInit_ADDR 0xD5EC530
 #define scr_initialized_ADDR 0xE31808
 #define cl_serverStatusList_ADDR 0xe11588
-#define KEVINOS
 
 // DHM - Nerve :: Have we heard from the auto-update server this session?
 #define autoupdateChecked *((qboolean*)(0x0c5f914))
@@ -117,6 +116,7 @@ cvar_t *cl_password;
 cvar_t *cl_updateservers;
 cvar_t *cl_cod4xsitedom;
 cvar_t *cl_filterlisturl;
+cvar_t *cl_timeNudge;
 
 typedef struct{
 	byte state;
@@ -1068,7 +1068,7 @@ void CL_InitOnceForAllClients(){
   cl_vehDriverViewHeightMax = Cvar_RegisterFloat("vehDriverViewHeightMax", 50.0, -80.0, 80.0, 1, "Max orbit altitude for driver's view");
 
   g_gametype = Cvar_RegisterString("g_gametype", "war", 0x24u, "The current campaign");
-
+  cl_timeNudge = Cvar_RegisterInt("cl_timeNudge", 0, -30, 30, 0, "allows more or less latency to be added in the interest of better smoothness or better responsiveness.");
 
 
   Cmd_AddCommand("cmd", CL_ForwardToServer_f);
@@ -5614,7 +5614,7 @@ int i;
 */
 
     sub_46C700( );
-    sub_45C440( );
+    CL_SetCGameTime( 0 );
 
     if ( clientUIActives.state >= 5 && clientUIActives.state != 9 )
 	{
@@ -9694,3 +9694,195 @@ bool CL_IsPlayback()
 {
 	return clc.demoplaying;
 }
+
+clientConnection_t * CL_GetLocalClientConnection(const int localClientNum)
+{
+	//assert(clientConnections);
+	assert(localClientNum == 0);
+
+    //return clientConnections;
+	return &clc;
+}
+
+connstate_t CL_GetLocalClientConnectionState(const int localClientNum)
+{
+    assert ( localClientNum  == 0 );
+
+    return clientUIActives.state;
+}
+
+clientActive_t * CL_GetLocalClientGlobals(const int localClientNum)
+{
+	assert(localClientNum == 0);
+
+    //return clients;
+	return &cl;
+}
+
+void CL_SetCGameTime(int localClientNum)
+{
+    clientActive_t *clGlobs; // [esp+0h] [ebp-10h]
+    connstate_t connstate; // [esp+4h] [ebp-Ch]
+    char demoReadResult; // [esp+Bh] [ebp-5h]
+    clientConnection_t *_clc; // [esp+Ch] [ebp-4h]
+
+    demoReadResult = 1;
+    connstate = CL_GetLocalClientConnectionState(localClientNum);
+    if ( connstate == CA_ACTIVE )
+    {
+        clGlobs = CL_GetLocalClientGlobals(localClientNum);
+        _clc = CL_GetLocalClientConnection(localClientNum);
+    }
+    else
+    {
+        if ( connstate != CA_PRIMED )
+        {
+            return;
+        }
+        clGlobs = CL_GetLocalClientGlobals(localClientNum);
+        _clc = CL_GetLocalClientConnection(localClientNum);
+        if ( _clc->demoplaying )
+        {
+            if ( !_clc->firstDemoFrameSkipped )
+            {
+                _clc->firstDemoFrameSkipped = 1;
+                return;
+            }
+            CL_ReadDemoMessage(localClientNum);
+        }
+		/*
+        if ( Demo_IsPlaying() && !Demo_IsCompleted() )
+        {
+            if ( !Demo_IsPlaybackInited() )
+            {
+                Demo_InitPlaybackData(localClientNum);
+                Com_ResetFrametime();
+                return;
+            }
+            Demo_ReadDemoMessage(localClientNum);
+        }
+		*/
+        if ( clGlobs->newSnapshots )
+        {
+            clGlobs->newSnapshots = 0;
+            CL_FirstSnapshot(localClientNum);
+        }
+        if ( CL_GetLocalClientConnectionState(localClientNum) != CA_ACTIVE )
+        {
+            return;
+        }
+    }
+    if ( !clGlobs->snap.valid )
+    {
+        Com_Error(ERR_DROP, "CL_SetCGameTime: !cl->snap.valid");
+    }
+    if ( !sv_paused->integer || !cl_paused->integer || !com_sv_running->boolean )
+    {
+        if ( clGlobs->snap.serverTime < clGlobs->oldFrameServerTime )
+        {
+            if ( Q_stricmp(cls.servername, "localhost") )
+            {
+                Com_Error(ERR_DROP, "cl->snap.serverTime < cl->oldFrameServerTime");
+            }
+            else
+            {
+                CL_FirstSnapshot(localClientNum);
+            }
+        }
+        clGlobs->oldFrameServerTime = clGlobs->snap.serverTime;
+        
+		/*
+		if ( Demo_IsPlaying() )
+        {
+            if ( Demo_IsPaused() || Demo_IsCompleted() )
+            {
+                if ( Demo_IsClipRecording() )
+                {
+                    Demo_WriteClipCommandsWhenPaused(localClientNum);
+                }
+                cls.realtime = clGlobs->serverTime - clGlobs->serverTimeDelta - 5;
+                return;
+            }
+            if ( (Demo_IsClipPlaying() || Demo_IsClipPreviewRunning()) && Demo_GetClipPausedState() )
+            {
+                Demo_ReadDemoMessage(localClientNum);
+                cls.realtime = clGlobs->serverTime - clGlobs->serverTimeDelta - 5;
+                return;
+            }
+        }
+		*/
+
+        if ( !_clc->demoplaying || !cl_freezeDemo->boolean )
+        {
+			// cl_timeNudge is a user adjustable cvar that allows more
+			// or less latency to be added in the interest of better
+			// smoothness or better responsiveness.
+
+            clGlobs->serverTime = clGlobs->serverTimeDelta + cls.realtime  - cl_timeNudge->integer;
+            if ( /*!Demo_IsPlaying() &&*/ clGlobs->serverTime < clGlobs->oldServerTime )
+            {
+                clGlobs->serverTime = clGlobs->oldServerTime;
+            }
+            clGlobs->oldServerTime = clGlobs->serverTime;
+            if ( clGlobs->serverTimeDelta + cls.realtime >= clGlobs->snap.serverTime - 5 )
+            {
+                clGlobs->extrapolatedSnapshot = 1;
+                if ( cl_showTimeDelta->boolean )
+                {
+                    Com_Printf(CON_CHANNEL_CLIENT, "Extrapolating snapshot!\n");
+                }
+            }
+        }
+
+        if ( clGlobs->newSnapshots )
+        {
+            CL_AdjustTimeDelta(localClientNum);
+        }
+        if ( _clc->demoplaying )
+        {
+            //if ( _clc->isTimeDemo )
+            if ( _clc->timedemo )
+            {
+                CL_UpdateTimeDemo(localClientNum);
+            }
+            else
+            {
+            //    CL_UpdateDemoPlaybackSpeed(localClientNum);
+            }
+            while ( clGlobs->serverTime >= clGlobs->snap.serverTime )
+            {
+                CL_ReadDemoMessage(localClientNum);
+                if ( CL_GetLocalClientConnectionState(localClientNum) != CA_ACTIVE )
+                {
+                    return;
+                }
+            }
+        }
+
+/*
+        do
+        {
+            if ( !Demo_IsPlaying() )
+            {
+                break;
+            }
+            if ( !demoReadResult )
+            {
+                break;
+            }
+            if ( Demo_IsCompleted() )
+            {
+                break;
+            }
+            if ( clGlobs->serverTime < clGlobs->snap.serverTime )
+            {
+                break;
+            }
+            demoReadResult = Demo_ReadDemoMessage(localClientNum);
+        }
+        while ( CL_GetLocalClientConnectionState(localClientNum) == CA_ACTIVE );
+*/
+    }
+
+}
+

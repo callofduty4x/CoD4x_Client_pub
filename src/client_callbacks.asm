@@ -44,3 +44,5 @@ bin_import Ragdoll_InitCvars, 0x5ba330
 bin_import R_Init, 0x46ccb0
 bin_import CG_RegisterCvars, 0x43ac60
 bin_import Ragdoll_InitCommands, 0x5bb350
+bin_import CL_UpdateTimeDemo, 0x45C350
+bin_import CL_AdjustTimeDelta, 0x45C0E0

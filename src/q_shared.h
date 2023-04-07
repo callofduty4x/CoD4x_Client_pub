@@ -2194,9 +2194,12 @@ typedef struct
 #define ASSERT_HALT() (abort())
 #endif
 
-
+#ifdef __cplusplus
+extern "C" qboolean Assert_MyHandler(const char *filename, int line, int type, const char *fmt, ...);
+#else
 //qboolean Assert_MyHandler(const char* exp, const char *filename, int line, const char *function, const char *fmt, ...);
 qboolean Assert_MyHandler(const char *filename, int line, int type, const char *fmt, ...);
+#endif
 
 #define assert ASSERT
 #define assertx XASSERT

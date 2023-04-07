@@ -16,6 +16,8 @@
 cvar_t* debug_show_viewpos;
 cvar_t* cg_zoom_sensitivity_ratio;
 
+float CG_EnityFlags(ScreenPlacement *scrPlace, float y);
+
 void __cdecl CG_DrawUpperRightDebugInfo()
 {
   rg.field_21D8 = 0;
@@ -32,7 +34,10 @@ void __cdecl CG_DrawUpperRightDebugInfo()
   {
     yoffset = CG_DrawSnapshotDebugInfo(yoffset);
   }
-
+  //if ( cg.snap != NULL)
+  {
+    yoffset = CG_EnityFlags(&scrPlaceFull, yoffset);
+  }  
 }
 
 qboolean CG_DeployAdditionalServerCommand()
@@ -973,6 +978,32 @@ float CG_DrawViewpos(ScreenPlacement *scrPlace, float y)
   y = CG_CornerDebugPrint(scrPlace, farRight, y, 0.0, s, "", colorWhite) + y;
 //  CG_LogViewpos(s);
 
+  return y;
+}
+
+
+float CG_EnityFlags(ScreenPlacement *scrPlace, float y)
+{
+  int i;
+  float farRight = (float)((float)(scrPlace->virtualViewableMax[0] - scrPlace->virtualViewableMin[0]) + cg_debugInfoCornerOffset->value) - CG_DrawViewposoffset;
+
+  char name[16];
+
+  y = CG_CornerDebugPrint(scrPlace, farRight, y, 0.0, "Playerinfo:", "", colorWhite) + y;
+
+
+  for(i = 0; i < 6; ++i)
+  {
+    centity_t* cent = &cgEntities[i];
+
+    if(cent->pose.eType == 0)
+    {
+      continue;
+    }
+    CG_GetClientName(cent->nextState.clientNum, name, sizeof(name));
+    const char* s = va("%s: %d", name, cent->currentState.eFlags & 0x20000);
+    y = CG_CornerDebugPrint(scrPlace, farRight, y, 0.0, s, "", colorWhite) + y;
+  }
   return y;
 }
 

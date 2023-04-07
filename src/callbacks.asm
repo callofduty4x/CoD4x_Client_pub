@@ -392,6 +392,8 @@ bin_import Load_Material, 0x047B9C0
 
 bin_import Cvar_Init, 0x56d2b0
 bin_import R_CheckDxCaps, 0x6349E0
+bin_import dCollideTransform, 0x5AEE10
+bin_import Phys_NearCallback, 0x5A5F20
 
 SECTION .text
 global Cbuf_AddText
@@ -1058,18 +1060,6 @@ sub_463E00:
 SECTION .rodata
 osub_463E00 dd 0x463E00
 
-SECTION .text
-global sub_45C440
-sub_45C440:
-
-	push esi
-	xor esi, esi
-	call dword [osub_45C440]
-	pop esi
-	ret
-
-SECTION .rodata
-osub_45C440 dd 0x45C440
 
 SECTION .text
 global sub_4ED610
@@ -2145,3 +2135,65 @@ Material_OriginalRemapTechniqueSet:
 
 SECTION .rodata
 oMaterial_OriginalRemapTechniqueSet dd 0x619710
+
+;int dCollide (dxGeom *o1, dxGeom *o2, int flags, dContactGeom *contact, int skip)
+SECTION .text
+global dCollide_Stub
+extern dCollide
+dCollide_Stub:
+	mov eax, esp
+	push esi
+;skip
+	push esi
+;contact
+	mov esi, [eax+8]
+	push esi
+;flags
+	mov esi, [eax+4]
+	push esi
+;o2
+	push ecx
+;o1
+	push edx
+	call dword [OdCollide]
+	add esp, 20
+	pop esi
+	ret
+
+SECTION .rodata
+OdCollide dd dCollide
+
+SECTION .text
+global ODE_CollideSimpleSpaceWithGeomNoAABBTest_Stub
+extern ODE_CollideSimpleSpaceWithGeomNoAABBTest
+ODE_CollideSimpleSpaceWithGeomNoAABBTest_Stub:
+	mov eax, esp
+	mov edx, [eax+8]
+	push edx
+	mov edx, [eax+4]
+	push edx
+	push edi
+	call dword [OODE_CollideSimpleSpaceWithGeomNoAABBTest]
+	add esp, 12
+	ret
+
+SECTION .rodata
+OODE_CollideSimpleSpaceWithGeomNoAABBTest dd ODE_CollideSimpleSpaceWithGeomNoAABBTest
+
+SECTION .text
+extern DynEntDebugSpaceBegin
+extern DynEntDebugSpaceEnd
+global DynEnt_SetPhysObjCollision_Stub
+DynEnt_SetPhysObjCollision_Stub:
+	int 3
+	push eax
+	call DynEntDebugSpaceBegin
+	pop eax
+	call dword [oDynEnt_SetPhysObjCollision]
+	push eax
+	call DynEntDebugSpaceEnd
+	pop eax
+	ret
+
+SECTION .rodata
+oDynEnt_SetPhysObjCollision dd 0x490240

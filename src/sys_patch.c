@@ -256,6 +256,8 @@ void __cdecl _Load_MaterialTechniqueSetAsset( );
 void R_PickRenderer(D3DCAPS9 *caps);
 void REGPARM(1) Dvar_SetVariant( );
 cvar_t* REGPARM(1) Cvar_SetFromStringByNameExternal(const char* varname, const char* valueString);
+void ODE_CollideSimpleSpaceWithGeomNoAABBTest_Stub();
+void DynEnt_SetPhysObjCollision_Stub();
 
 /*
 void Com_Error_DebugFunction()
@@ -718,6 +720,8 @@ double _CIsin();
 double _CIcos();
 double _CIacos();
 double _CItan();
+void dCollideTransform_Hook();
+void dCollide_Stub();
 
 qboolean __stdcall Sub_57B5C0_Patch(int a, int b, int c);
 
@@ -1185,6 +1189,12 @@ void Patch_Other(){
 */
 	SetCall(0x54F538, Cvar_SetFromStringByNameExternal);
 	
+	WriteSymbol(0x5A9582, dCollideTransform_Hook);
+	SetJump(0x5A95A0, dCollide_Stub);
+	SetJump(0x5AA100, ODE_CollideSimpleSpaceWithGeomNoAABBTest_Stub);
+	SetCall(0x48dceb, DynEnt_SetPhysObjCollision_Stub);
+	SetCall(0x48edbb, DynEnt_SetPhysObjCollision_Stub);
+
 }
 
 

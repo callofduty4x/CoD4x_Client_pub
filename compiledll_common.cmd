@@ -21,7 +21,7 @@ echo.
 echo Compiling...
 
 cd bin
-
+g++.exe -c %FLAGS% "../src/debug.cpp"
 gcc.exe -c %FLAGS_O3% -D NOUNCRYPT "../src/unzip/*.c"
 gcc.exe -c %FLAGS% "../src/r_init.c"
 gcc.exe -c %FLAGS% "../src/stringed_hooks.c"

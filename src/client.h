@@ -399,14 +399,15 @@ typedef struct clientActive_s
   int timeoutcount;
   clSnapshot_t snap;
 
-  int field_2F9C;
+  char alwaysFalse;
+  char pad3[3];
   int serverTime;
   int oldServerTime;
-  int field_2FA8;
+  int oldFrameServerTime;
   int serverTimeDelta;
-  int field_2FB0;
-  int field_2FB4;
-  int field_2FB8;
+  int oldSnapServerTime;
+  int extrapolatedSnapshot;
+  int newSnapshots;
 
   gameState_t gameState;
 
@@ -628,7 +629,7 @@ void sub_46C680();
 void sub_46C590( );
 void sub_4729C0();
 void sub_46C700( );
-void sub_45C440( );
+void CL_SetCGameTime(int localClientNum);
 void sub_463E00();
 void CL_ShutdownRef();
 void CL_Shutdown(int);
@@ -724,6 +725,8 @@ qboolean CL_IsConnected();
 void CL_RestartAndReconnect();
 void CL_ShowSystemCursor(int show);
 void CL_SetCursorPos(int x, int y);
+void CL_AdjustTimeDelta(int localClientNum);
+void CL_UpdateTimeDemo(int localClientNum);
 
 #define CS_BASICANTICHEATCFG 4860
 
