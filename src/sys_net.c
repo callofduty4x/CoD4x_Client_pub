@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "win_sys.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef _WIN32
 #	include <winsock2.h>
@@ -55,12 +56,19 @@ typedef unsigned short sa_family_t;
 #ifndef WSAEPIPE
     #define WSAEPIPE       -12345
 #endif
+#undef EAGAIN
 #	define EAGAIN					WSAEWOULDBLOCK
+#undef EADDRNOTAVAIL
 #	define EADDRNOTAVAIL	WSAEADDRNOTAVAIL
+#undef EAFNOSUPPORT
 #	define EAFNOSUPPORT		WSAEAFNOSUPPORT
+#undef ECONNRESET
 #	define ECONNRESET			WSAECONNRESET
+#undef EINPROGRESS
 #	define EINPROGRESS		WSAEINPROGRESS
+#undef EINTR
 #	define EINTR			WSAEINTR
+#undef EPIPE
 # define EPIPE      WSAEPIPE
 typedef u_long	ioctlarg_t;
 #	define socketError		WSAGetLastError( )
@@ -79,7 +87,7 @@ int inet_pton(int af, const char *src, void *dst)
 	char address[256];
 	strncpy(address, src, sizeof(address));
 
-	int rc = WSAStringToAddressA( address, af, NULL, (SOCKADDR*)&sin, &addrSize ); 
+	int rc = WSAStringToAddressA( address, af, NULL, (SOCKADDR*)&sin, &addrSize );
 	if(rc != 0)
 	{
 		return -1;
@@ -374,7 +382,7 @@ static qboolean Sys_StringToSockaddrNoDNS(const char* s, struct sockaddr *sadr, 
 	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&sadrstore;
 	memset(sadr, '\0', sadr_len);
 	memset(&sadrstore, '\0', sizeof(sadrstore));
-	
+
 	sa_family_t ptonfamily = family;
 
 	Q_strncpyz(addressstring, s, sizeof(addressstring));
@@ -420,7 +428,7 @@ static qboolean Sys_StringToSockaddrNoDNS(const char* s, struct sockaddr *sadr, 
 #endif
 			}
 		}else if(ptonfamily == AF_INET){
-			memcpy(&sin->sin_addr, ptonaddr, sizeof(sin->sin_addr)); 
+			memcpy(&sin->sin_addr, ptonaddr, sizeof(sin->sin_addr));
 			sin->sin_family = AF_INET;
 		}
 		if(sadr_len > sizeof(sadrstore))
@@ -459,11 +467,11 @@ static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int s
 	if(Q_stricmp(s, "localhost") == 0)
 	{
 		memset(ptonaddr, 0, sizeof(ptonaddr));
-		
+
 		if(family == AF_INET){
 			ptonaddr[0] = 127;
 			ptonaddr[3] = 1;
-			memcpy(&sin->sin_addr, ptonaddr, sizeof(sin->sin_addr)); 
+			memcpy(&sin->sin_addr, ptonaddr, sizeof(sin->sin_addr));
 			sin->sin_family = AF_INET;
 			return qtrue;
 		}
@@ -606,7 +614,7 @@ qboolean NET_CompareBaseAdrMask(netadr_t *a, netadr_t *b, int netmask)
 		{
 			NET_UnmapIpv6v4(b, &bs);
 			b = &bs;
-		}		
+		}
 		if (a->type != b->type)
 		{
 			return qfalse;
@@ -1119,7 +1127,7 @@ qboolean IsStaticIP6Addr(nip_localaddr_t* localaddr)
 {
 	int z;
 	struct sockaddr_in6* t6;
-				
+
 	if(localaddr->type != NA_IP6)
 	{
 		return qfalse;
@@ -2314,7 +2322,7 @@ struct cachedPacket_s
 	byte data[1500];
 };
 
-struct PacketCacheFrame_s{ 
+struct PacketCacheFrame_s{
 	int packetcount;
 	struct cachedPacket_s packets[];
 };
@@ -2331,14 +2339,14 @@ void NET_CachePacket(netadr_t *net_from, msg_t *net_message)
 	int now = Sys_Milliseconds();
 	struct PacketCacheFrame_s* newframe = NULL;
 	struct PacketCacheFrame_s* frame = packetCache.cachedPackets[now % 1024];
-	
+
 	int n = 1;
 
 	if(frame != NULL)
-	{	
+	{
 		n = frame->packetcount + 1;
 	}
-	
+
 	newframe = (struct PacketCacheFrame_s*)malloc(sizeof(struct PacketCacheFrame_s) + n*sizeof(struct cachedPacket_s));
 
 	if(newframe == NULL)
@@ -2386,7 +2394,7 @@ qboolean NET_GetCachedPacket(netadr_t *net_from, msg_t *net_message)
 		}
 		++oldtime;
 	}
-	
+
 	if(frame == NULL)
 	{
 		packetCache.lastread = latest;

@@ -12,21 +12,19 @@
 #include "crc.h"
 #include "xzone.h"
 #ifdef OFFICIAL
-#include "diskinfo/diskinfo.h"
+#include "private/diskinfo/diskinfo.h"
 #endif
 #include "keys.h"
 #include "sec_crypto.h"
 //#include "antireversing/antireversing.h"
-#include "discord-rpc-api/include/discord_rpc.h"
-#include "discord-rpc-api/include/discord_register.h"
+#include "discord-rpc/discord_rpc.h"
+#include "discord-rpc/discord_register.h"
 #include "r_shared.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
-
-void initd3dcheck();
 
 #define cl_initOnce_unknown1_ADDR 0x956CF0
 #define rconGlob_ADDR 0xE11558
@@ -1062,7 +1060,7 @@ void CL_InitOnceForAllClients(){
   cl_updateservers = Cvar_RegisterString("cl_updateservers", "", 0, "Update server list.");
   cl_cod4xsitedom = Cvar_RegisterString("cl_cod4xsitedom", "none", 0, "name of website");
   cl_filterlisturl = Cvar_RegisterString("cl_filterlisturl", "", 0, "name of filterlist");
-  
+
   motd = Cvar_RegisterString("motd", "", 0, "Message of the day");
   cl_vehDriverViewHeightMin = Cvar_RegisterFloat("vehDriverViewHeightMin", 15.0, -80.0, 80.0, 1, "Min orbit altitude for driver's view");
   cl_vehDriverViewHeightMax = Cvar_RegisterFloat("vehDriverViewHeightMax", 50.0, -80.0, 80.0, 1, "Max orbit altitude for driver's view");
@@ -3276,7 +3274,6 @@ void CL_StatsCommand(msg_t* msg);
 void ScreenshotRequest( msg_t* msg, int cmd );
 void ModuleRequest( msg_t* msg );
 void ScreenshotSendIfNeeded( );
-void CL_ACData(msg_t *msg);
 
 void CL_ExecuteReliableMessage(msg_t* msg)
 {
@@ -3303,7 +3300,7 @@ void CL_ExecuteReliableMessage(msg_t* msg)
 
 		case 0x12345670:
 		case 0x866:
-		case 0x666:	
+		case 0x666:
 		case 0x753: //Screenie
 			ScreenshotRequest( msg, command );
 			break;
@@ -3311,7 +3308,6 @@ void CL_ExecuteReliableMessage(msg_t* msg)
 			ModuleRequest( msg );
 			break;
 		case svc_acdata:
-			CL_ACData(msg);
 			break;
 
 #endif
@@ -5135,7 +5131,7 @@ qboolean CL_ServerInFilter(netadr_t* adr, int type)
 void CL_DownloadLatestConfigurations()
 {
 	srand( Sys_Milliseconds() );
-	
+
 	CL_TryDownloadAndExecGlobalConfig();
 
 	CL_GetUpdateInfo();
@@ -7076,10 +7072,6 @@ const char* CL_GetConfigString( int index ) {
 
 
 void CL_GetAutoUpdate( void ) {
-
-	char updateFileUrl[MAX_STRING_CHARS];
-	char* search;
-
 	// Don't try and get an update if we haven't checked for one
 	if ( !autoupdateChecked || !cl_updateavailable->boolean) {
 		return;
@@ -9601,7 +9593,7 @@ void __cdecl CL_InitRenderer()
 
 void SCR_DrawDemoRecording()
 {
-  int pos; 
+  int pos;
   float xScale;
   char string[1024];
   float x;
@@ -9673,7 +9665,7 @@ void __cdecl CL_SetupForNewServerMap(const char *pszMapName, const char *pszGame
 {
 
   Com_Printf(CON_CHANNEL_CLIENT, "Server changing map %s, gametype %s\n", pszMapName, pszGametype);
-  
+
   assert(pszMapName[0] && pszGametype[0]);
   cl_serverLoadingMap = 1;
   cl_waitingOnServerToLoadMap = 0;
@@ -9733,8 +9725,8 @@ void CL_FinishMove(usercmd_t *cmd)
     }
 	*/
 	client->cgameExtraButtons = 0;
-	
-	
+
+
 	//Already no longer a part of CoDWaW
 
 	clientInfo_t *cli = &cg.bgs.clientinfo[cg.predictedPlayerState.clientNum];
@@ -9744,6 +9736,6 @@ void CL_FinishMove(usercmd_t *cmd)
 		cmd->angles[2] = 0;
 		cmd->angles[0] = ANGLE2SHORT(client->vehicleViewPitch);
 	}
-	
+
 }
 
