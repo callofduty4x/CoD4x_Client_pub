@@ -8,18 +8,10 @@
 
 #include <atomic>
 #include <chrono>
-#ifdef LINUX_COMPILE
 #include <mutex>
-#elif
-#include "../../mingw.mutex.h"
-#endif
 
 #ifndef DISCORD_DISABLE_IO_THREAD
-#ifdef LINUX_COMPILE
 #include <thread>
-#elif
-#include "../../mingw.thread.h"
-#endif
 #endif
 
 #include <windows.h>
@@ -116,7 +108,7 @@ public:
         });
     }
 
-    void Notify() { 
+    void Notify() {
         //waitForIOActivity.notify_all();
         SetEvent(waitForIOActivity);
     }

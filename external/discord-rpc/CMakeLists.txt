@@ -22,7 +22,6 @@ target_include_directories(discord-rpc
 )
 
 target_compile_definitions(discord-rpc PRIVATE
-    LINUX_COMPILE=1
     STRICT_ANSI=1
 )
 
