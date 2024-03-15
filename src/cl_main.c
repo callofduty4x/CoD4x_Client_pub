@@ -11,12 +11,8 @@
 #include "cg_shared.h"
 #include "crc.h"
 #include "xzone.h"
-#ifdef OFFICIAL
-#include "private/diskinfo/diskinfo.h"
-#endif
 #include "keys.h"
 #include "sec_crypto.h"
-//#include "antireversing/antireversing.h"
 #include "discord-rpc/discord_rpc.h"
 #include "discord-rpc/discord_register.h"
 #include "r_shared.h"
@@ -7202,6 +7198,10 @@ void CL_ProcessSteamCommands(msg_t* msg)
 	}
 
 }
+
+#ifdef OFFICIAL
+    void GetPatchInfo();
+#endif
 
 void CL_ProcessPatchStatus()
 {

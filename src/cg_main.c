@@ -6,7 +6,7 @@
 #include "client.h"
 #include "snd_system.h"
 #ifdef OFFICIAL
-#include "private/sometricks.h"
+#include "client-auth/code_checks.h"
 #endif
 #include "ui_shared.h"
 #include "xzone.h"

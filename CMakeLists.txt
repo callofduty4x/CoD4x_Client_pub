@@ -83,10 +83,12 @@ add_library(cod4x SHARED
     src/mss32jumptable.asm
     src/fsdword.asm
 )
+
 if(OFFICIAL_BUILD)
-    add_subdirectory(src/private)
+    add_subdirectory(external/client-auth)
     target_compile_definitions(cod4x PRIVATE OFFICIAL=1)
 endif()
+
 target_include_directories(cod4x PRIVATE src)
 set_target_properties(cod4x PROPERTIES OUTPUT_NAME "cod4x_021")
 
