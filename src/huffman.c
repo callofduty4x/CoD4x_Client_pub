@@ -97,24 +97,7 @@ static void Huff_offsetTransmit( huff_t *huff, int ch, byte *fout, int *offset )
 }
 
 
-static void Huff_Init( huff_t *huff ) {
-
-	Com_Memset( huff, 0, sizeof( huff_t ));
-
-	// Initialize the tree & list with the NYT node
-	huff->tree = &( huff->nodeList[huff->blocNode++] );
-	huff->loc[NYT] = huff->tree;
-
-	huff->tree->symbol = NYT;
-
-	huff->tree->weight = 0;
-	huff->tree->parent = NULL;
-	huff->tree->left = NULL;
-	huff->tree->right = NULL;
-}
-
-
-static huff_t		msgHuff;
+static huff_t msgHuff;
 
 int MSG_ReadBitsCompress(const byte* input, int readsize, byte* outputBuf, int outputBufSize){
 
@@ -153,7 +136,7 @@ int MSG_WriteBitsCompress( char dummy, const byte *datasrc, byte *buffdest, int 
 }
 
 
-static void Huff_BuildFromData(huff_t* huff)
+static void Huff_InitTree(huff_t* huff)
 {
   huff->blocNode = 513;
   huff->nodeList[511].parent = &huff->nodeList[512];
@@ -670,13 +653,13 @@ static void Huff_BuildFromData(huff_t* huff)
   huff->loc[254] = &huff->nodeList[255];
   huff->nodeList[472].left = &huff->nodeList[256];
   huff->loc[255] = &huff->nodeList[256];
-  
-  
+
+
   huff->nodeList[257].left = huff->nodeList;
-  
+
   huff->loc[256] = huff->nodeList;
-  
-  
+
+
   huff->nodeList[258].left = &huff->nodeList[257];
   huff->nodeList[0].parent = &huff->nodeList[257];
   huff->nodeList[0].symbol = 256;
@@ -2469,6 +2452,21 @@ static void Huff_BuildFromData(huff_t* huff)
   huff->nodeList[512].symbol = 257;
 }
 
+static void Huff_Init( huff_t *huff ) {
+	Com_Memset( huff, 0, sizeof( huff_t ));
+
+	// Initialize the tree & list with the NYT node
+	huff->tree = &( huff->nodeList[huff->blocNode++] );
+	huff->loc[NYT] = huff->tree;
+
+	huff->tree->symbol = NYT;
+
+	huff->tree->weight = 0;
+	huff->tree->parent = NULL;
+	huff->tree->left = NULL;
+	huff->tree->right = NULL;
+	Huff_InitTree(&msgHuff);
+}
 
 void Huffman_InitMain() {
 
@@ -2479,5 +2477,4 @@ void Huffman_InitMain() {
 
 	huffInit = qtrue;
 	Huff_Init(&msgHuff);
-	Huff_BuildFromData(&msgHuff);
 }
