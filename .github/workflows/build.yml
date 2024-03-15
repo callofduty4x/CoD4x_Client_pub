@@ -1,0 +1,34 @@
+name: build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Install prerequisites
+      run: |
+        sudo apt-get install cmake g++-mingw-w64-i686-posix mingw-w64-i686-dev
+        sudo dpkg --add-architecture i386
+        sudo apt-get update
+        sudo apt-get install nasm:i386
+
+    - name: CMake Configure
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++
+
+    - name: Build
+      run: cmake --build build --parallel
+
