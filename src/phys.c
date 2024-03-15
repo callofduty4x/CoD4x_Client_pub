@@ -197,14 +197,14 @@ struct dxJoint_Vtable
   int typenum;
 };
 
-void removeObjectFromList (dObject_t *obj)                                     
-{                                                                                          
-  if (obj->next) obj->next->tome = obj->tome;                                              
-  if (obj->tome) *(obj->tome) = obj->next;                                                                
-  // safeguard                                                                             
-  obj->next = 0;                                                                           
+void removeObjectFromList (dObject_t *obj)
+{
+  if (obj->next) obj->next->tome = obj->tome;
+  if (obj->tome) *(obj->tome) = obj->next;
+  // safeguard
+  obj->next = 0;
   obj->tome = 0;
   //Not really part of this function
   --obj->___u0.world->nj;
-}                                                                                          
+}
 

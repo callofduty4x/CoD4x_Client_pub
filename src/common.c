@@ -5,6 +5,7 @@
 #include "win_sys.h"
 #include "ui_shared.h"
 #include "sec_common.h"
+#include "cl_input.h"
 
 #include <stdarg.h>
 #include <stdlib.h>

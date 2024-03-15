@@ -6,7 +6,7 @@
 #include "client.h"
 #include "snd_system.h"
 #ifdef OFFICIAL
-#include "sometricks.h"
+#include "private/sometricks.h"
 #endif
 #include "ui_shared.h"
 #include "xzone.h"
@@ -176,7 +176,7 @@ void __cdecl CG_RegisterItems()
         v5 = v4 - '0';
     }
 
- 
+
     if ( (1 << (i & 3)) & v5 )
     {
       //WeaponDef* weapdef = BG_GetWeaponDef(i);
@@ -309,7 +309,7 @@ void CG_DrawCursorHint(int localClientNum, rectDef_t *rect, Font_t *font, float 
   if ( !cg_cursorHints->integer )
     return;
   CG_UpdateCursorHints(cgameGlob);
-  v8 = 1.0;  
+  v8 = 1.0;
   color[3] *= CG_FadeAlpha(cgameGlob->time, cgameGlob->cursorHintTime, cgameGlob->cursorHintFade, 100);
 
   v9 = 0.0;
@@ -970,7 +970,7 @@ void CG_LogViewpos(const char* s)
   static int lastchanged = 0;
 
   char logstring[256];
-  
+
   if(fh == -1)
   {
     return;
@@ -1130,12 +1130,12 @@ void CG_DrawActive()
 {
 
   float FOVSensitivityScale = cg.zoomSensitivity;
-  
+
   if(cg.playerEntity.bPositionToADS == 0)
   {
     FOVSensitivityScale *= cg_zoom_sensitivity_ratio->floatval;
   }
-  
+
 
   if ( cg.shellshock.sensitivity != 0.0 )
   {
@@ -1228,7 +1228,7 @@ static float oldVehForwardYaw;
 static float oldClientViewYaw;
 
 void CG_VehUseInitialize()
-{  
+{
   clientActive_t *client = CL_GetLocalClientGlobals(0);
 
   int vehEntNum = cg.bgs.clientinfo[cg.predictedPlayerState.clientNum].attachedVehEntNum;
@@ -1270,7 +1270,7 @@ void CalcViewValuesVehicleDriver()
 
     float vehYawDelta = vehForwardYaw - oldVehForwardYaw;
     float clientYawDelta = client->viewangles[1] - oldClientViewYaw;
-    
+
 
     client->vehicleViewYaw += (vehYawDelta + clientYawDelta);
 /*
@@ -1288,7 +1288,7 @@ void CalcViewValuesVehicleDriver()
     oldClientViewYaw = client->viewangles[1];
     //client->vehicleViewYaw = cVehEnt->pose.angles[YAW] - 90.0f;
   }
-  
+
   v1 = fabs((normalizedPitch - floorf(normalizedPitch + 0.5)) * 360.0);
 
   lookAtPos[2] = (vehDriverViewHeightMax->floatval - v1) / vehDriverViewHeightMax->floatval * vehDriverViewFocusRange->floatval + lookAtPos[2];
@@ -1301,13 +1301,13 @@ void CalcViewValuesVehicleDriver()
   VectorAdd(newLookDir, lookAtPos, cg.refdef.vieworg);
 
   ThirdPersonViewTrace(&cg, lookAtPos, cg.refdef.vieworg, 0x811, cg.refdef.vieworg);
-  
+
   VectorSubtract(lookAtPos, cg.refdef.vieworg, newLookDir);
-  
+
   VectorNormalize(newLookDir);
   vectoangles(newLookDir, cg.refdefViewAngles);
   AnglesToAxis(cg.refdefViewAngles, cg.refdef.viewaxis);
-  
+
   CG_CalcFov();
 }
 
@@ -1419,7 +1419,7 @@ int CG_VehLocalClientVehicleSlot(int localClientNum)
   clientInfo_t *ci;
 
   ci = ClientInfoForLocalClient(localClientNum);
-  
+
   assert(ci);
   assert(ci->attachedVehEntNum != ENTITYNUM_NONE);
 
@@ -1435,7 +1435,7 @@ void CG_VehGunnerPOV(int localClientNum, float *resultOrigin, float *resultAngle
 
   assert(ci);
   assert(ci->attachedVehEntNum != ENTITYNUM_NONE);
-  
+
   GetTagMatrix(localClientNum, ci->attachedVehEntNum, scr_const.tag_gunner_pov, axis, resultOrigin);
   AxisToAngles(axis, resultAngles);
 }
@@ -1770,7 +1770,7 @@ void CG_CalcViewValues(int localClientNum)
     {
       AnglesToAxis(devSavedAngles, cgameGlob->refdef.viewaxis);
       VectorCopy(devSavedOrigin, cgameGlob->refdef.vieworg);
-      
+
     }
     else
     {

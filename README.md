@@ -1,18 +1,40 @@
-# CoD4x_Client_pub
-Client modifications of CoD4 X - this will not be the same as the official released files and you wont be able to join all servers with it.
-This client can at the moment join servers which have the latest version 19.x installed but running without the steam-integration.
-If you have additions which fit well and are seen as generally useful they might appear in the official release.
+# CoD4x Client
+<p align="center">
+  <img src="assets/github/banner.png?raw=true" />
+</p>
 
-You need Mingw in version:
-Thread model: win32 
-gcc version 8.1.0 (i686-win32-dwarf-rev0, Built by MinGW-W64 project)
+A [CoD4x Server](https://github.com/callofduty4x/CoD4x_Server)-compatible client is a modification of the Call of Duty 4 - Modern Warfare server.
 
-Using other version could result in linker errors.
+This client version isn't compatible with CoD4x servers that require client authentication, however, it is compatible with servers that have client authentication disabled (`sv_noauth 1`).
 
-Instructions to build client the first time:
+Modifications of this client **may** end up in the official release, so merge requests are very welcome.
 
+# Build:
 
-Run ./compiledll-release.cmd
+## Build prerequisites:
+ - [CMake](https://cmake.org/)
+ - [MinGW](http://www.mingw.org/)
+ - [NASM](http://www.nasm.us/)
 
+Make sure you've got the necessary binaries in system `$PATH` environment variable. [Click here to learn more.](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them)
 
-Note: You still need the client launcher (mss32.dll) from https://cod4x.me
+## Building on Windows:
+```shell
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++ -G "MinGW Makefiles"
+cmake --build build --parallel
+```
+
+## Cross-compiling on Linux:
+```shell
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++
+cmake --build build --parallel
+```
+
+---
+
+After a successful build, the build artifact is located in `build/bin/cod4x_021.dll`.
+
+## License:
+The following conditions apply: https://support.activision.com/license
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

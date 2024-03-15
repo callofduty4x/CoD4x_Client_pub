@@ -195,10 +195,10 @@ typedef struct{
   char punkbuster;
   char field_24;
   char mod;
-  __int16 minPing;
-  __int16 maxPing;
-  __int16 ping;
-  unsigned __int32 queryTime;
+  int16_t minPing;
+  int16_t maxPing;
+  int16_t ping;
+  uint32_t queryTime;
   char serveralive;
   char hostName[32];
   char mapName[32];

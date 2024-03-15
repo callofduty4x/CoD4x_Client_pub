@@ -367,7 +367,7 @@ bin_import FS_InitCvars, 0x55e390
 bin_import FS_AddCommands, 0x503c70
 bin_import FS_DisplayPath, 0x55d510
 bin_import FS_AddGameDirectory_real, 0x55dd80
-bin_import UI_MouseEvent, 0x549470 
+bin_import UI_MouseEvent, 0x549470
 ;bin_import DrawText2D, 0x613EA0
 bin_import sub_4ECF20, 0x4ecf20
 bin_import CG_ConfigStringModified, 0x44AF10

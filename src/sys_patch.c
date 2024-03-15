@@ -16,12 +16,6 @@
 
 int entrypoint();
 
-
-
-
-
-#ifndef OFFICIAL
-
 void WriteSymbol(DWORD addr, void* symbol)
 {
 	uint32_t* paddr = (uint32_t*)addr;
@@ -35,10 +29,6 @@ void WriteSymbolRel(DWORD addr, void* symbol)
 	uint32_t* paddr = (uint32_t*)addr;
 	*paddr = (uint32_t)width;
 }
-
-#endif
-
-
 
 void Patch_Memset(void * ptr, int value, size_t num)
 {
@@ -1233,22 +1223,8 @@ qboolean Patch_MainModule(void(patch_func)()){
 
 	// unprotect the text section
 	DWORD oldProtectText;
-
-
 	VirtualProtect((LPVOID)dwSectionBase, dwSectionSize, PAGE_READWRITE, &oldProtectText);
-
-#ifdef OFFICIAL
-
-	AC_StartDump();
-#endif
-
-		patch_func();
-
-#ifdef OFFICIAL
-
-	AC_FinalizeDump();
-#endif
-
+    patch_func();
 	VirtualProtect((LPVOID)dwSectionBase, dwSectionSize, PAGE_EXECUTE_READ, &oldProtectText);
 
 	return qtrue;

@@ -2,7 +2,7 @@
 #include "../qcommon.h"
 #include "../r_shared.h"
 #include "../gfxshared.h"
-#include "ft2build.h"
+//#include "ft2build.h"
 //#include FT_FREETYPE_H
 //#include "freetype/ftbitmap.h"
 //#include "freetype/ftbdf.h"
@@ -254,7 +254,7 @@ void Font_ShutdownUser() //unloading all user fonts and replacing with default v
 //
 //  switch(bmp->pixel_mode)
 //  {
-//    case FT_PIXEL_MODE_MONO:	
+//    case FT_PIXEL_MODE_MONO:
 //      bitsperpixel = 1;
 //      pixelsperbyte = 8;
 //      break;
@@ -304,7 +304,7 @@ void Font_ShutdownUser() //unloading all user fonts and replacing with default v
 //
 //      byte pixel = val >> bshift;
 //      int fillbit = pixel & 1;
-//     
+//
 //      pixel <<= (8 - bitsperpixel);
 //      if(fillbit)
 //      {
@@ -313,13 +313,13 @@ void Font_ShutdownUser() //unloading all user fonts and replacing with default v
 //
 //
 //      //8-Bit Alpha + 8-Bit intensity texture
-//			pixels[y * 2*tex_width + 2*x +0] = 0xff; //Turning Intensity to 100% 
+//			pixels[y * 2*tex_width + 2*x +0] = 0xff; //Turning Intensity to 100%
 //      pixels[y * 2*tex_width + 2*x +1] = pixel;
 //
 //		}
 //	}
 //  glyph->pixelWidth = bmp->width;
-//  glyph->pixelHeight = bmp->rows;  
+//  glyph->pixelHeight = bmp->rows;
 //  glyph->dx = (face->glyph->advance.x >> 6);
 //  glyph->y0 = -face->glyph->bitmap_top + (face->size->metrics.descender >> 6);
 //  //glyph->y0 = -face->glyph->bitmap_top - (char)(0.18f * (float)face->available_sizes->height);
@@ -553,7 +553,7 @@ Material* Material_Create2DWithTexture(const char* name, IDirect3DTexture9* text
 //    stbi_write_png(imgfile, x_resolution, height, 4, png_data, x_resolution * 4);
 //    free(png_data);
 //  }
-//  
+//
 //
 //  fonttexture->lpVtbl->UnlockRect(fonttexture, 1);
 //
@@ -602,7 +602,7 @@ void Font_InitTTF()
     if(fontassets.userfonts[i] != NULL)
     {
       fontassets.userfonts[i]->material->techniqueSet = DB_FindXAssetHeader(ASSET_TYPE_TECHNIQUE_SET, "2d").techniqueSet;
-    }    
+    }
   }
 
 
@@ -653,23 +653,23 @@ void __cdecl GetDecayingStringAlphaInfo(int decayTimeElapsed, int fxDecayDuratio
 
 static unsigned char gJitterData[] =
 {
-    0,   0,   1,   0,   0,   0,   0,   0,   0,   0, 
-    0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
-    0,   0,   0,   0,   0,   0,   0,   0,   2,   0, 
-    0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
-    1,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
-    0,   1,   0,   0,   0,   0,   0,   0,   0,   0, 
-    0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
-    0,   0,   0,   0,   0,   0,   1,   0,   0,   0, 
-    0,   1,   0,   0,   0,   0,   0,   0,   0,   0, 
-    0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
-    0,   0,   0,   0,   0,   0,   1,   0,   0,   0, 
-    0,   0,   0,   0,   0,   0,   0,   1,   0,   0, 
-    0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
-    0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
-    0,   1,   0,   0,   0,   0,   0,   0,   0,   0, 
-    0,   0,   0,   0,   0,   0,   0,   0,   0,   1, 
-    0,   0,   0,   0,   0,   0,   1,   0,   0,   0, 
+    0,   0,   1,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,   2,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    1,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,   1,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   1,   0,   0,   0,
+    0,   1,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   1,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   1,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,   1,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,   0,   1,
+    0,   0,   0,   0,   0,   0,   1,   0,   0,   0,
     0,   0,   0,   0,   0,   0
 };
 static const char MY_ALTCOLOR_TWO[4] = { 230u, 255u, 230u, 220u };
@@ -696,17 +696,17 @@ void __cdecl DrawText2D(const char *text, float x, float y, float w, struct Font
 {
   unsigned __int8 modcolor;
   int randseed;
-  signed int decaymil; 
+  signed int decaymil;
   float resizeOffsY;
-  int offIdx; 
-  float resizeOffsX; 
-  float ofs; 
-  GfxColor shiftColor; 
+  int offIdx;
+  float resizeOffsX;
+  float ofs;
+  GfxColor shiftColor;
   GfxColor targetColor;
   Glyph *glyphOriginal;
-  int tempSeed; 
+  int tempSeed;
   float iconWidth;
-  GfxColor lookupColor; 
+  GfxColor lookupColor;
   const char *altColorTwo;
   bool drawExtraFxChar;
   Glyph *glyph;
@@ -738,7 +738,7 @@ void __cdecl DrawText2D(const char *text, float x, float y, float w, struct Font
   bool drawRandomCharAtEnd;
   int randSeed;
   bool shiftColorOn;
-  float startX; 
+  float startX;
   int randomCharsLength;
   bool drawUnderscoreCharAtEnd;
   int decayTimeElapsed;
@@ -749,7 +749,7 @@ void __cdecl DrawText2D(const char *text, float x, float y, float w, struct Font
   float total_rect[4];
   float sizeIncrease;
   bool decaying;
-  float startY; 
+  float startY;
   int passCount;
   char fadeAlpha;
 
@@ -767,18 +767,18 @@ void __cdecl DrawText2D(const char *text, float x, float y, float w, struct Font
   int redactCount = 0;
   float maxY  = -3.4028235e38;
   float minY = 3.4028235e38;
-  float out_rect; 
-  float (*rect)[4]; 
-  unsigned int fadeColor; 
-  Material *mat; 
-  float u; 
-  char curChar; 
-  int h; 
-  int i; 
+  float out_rect;
+  float (*rect)[4];
+  unsigned int fadeColor;
+  Material *mat;
+  float u;
+  char curChar;
+  int h;
+  int i;
   #endif
-  
-  float xa; 
-  float ya; 
+
+  float xa;
+  float ya;
   static int lastFlashTime;
   static bool bFlashToggle;
 
@@ -939,7 +939,7 @@ void __cdecl DrawText2D(const char *text, float x, float y, float w, struct Font
         else
         //if ( letter != '^' || !curText || *curText == '^' || *curText != 'F' || r_glob.isMultiplayer ) //always Multiplayer
         {
-       
+
 #if 0
         //This needs redact material from BlackOps to work, without it this can not be used.
 
@@ -1180,7 +1180,7 @@ void __cdecl DrawText2D(const char *text, float x, float y, float w, struct Font
                       }
                     }
 #if 0
-    //This needs redact material from BlackOps to work, without it this can not be used.  
+    //This needs redact material from BlackOps to work, without it this can not be used.
                     if ( redactLeftOn || redactOn )
                     {
                       redactAlpha = (unsigned __int8)finalColor.array[3];
@@ -1292,7 +1292,7 @@ void __cdecl DrawText2D(const char *text, float x, float y, float w, struct Font
       }
     }
 #if 0
-    //This needs redact material from BlackOps to work, without it this can not be used.    
+    //This needs redact material from BlackOps to work, without it this can not be used.
     if ( renderFlags & 0x4000 )
     {
       fadeColor = 0;

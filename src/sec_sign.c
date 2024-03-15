@@ -2,7 +2,7 @@
 #include "qcommon.h"
 #include "sec_sign.h"
 #include "sec_crypto.h"
-#include "tomcrypt/math/tommath.h"
+#include "tommath.h"
 
 
 qboolean Sec_MakeRsaKey(int size,const rsa_key *key){
@@ -25,14 +25,14 @@ qboolean Sec_VerifyHash(const char *sig, size_t sigSize, const rsa_key *key, con
 
 
 qboolean Sec_MakeCertificate(rsa_key *key, const char *commonName, const char *companyName, int expires, const char *signature, int sigSize, sec_certificate_t *issuer,rsa_key *sigKey,sec_certificate_t *out){
-    
+
     hash_state md;
     char hash[257];
     size_t len;
-    
+
     const struct ltc_hash_descriptor *desc = &sha256_desc;
-    
-    
+
+
     memset(out,0,sizeof(sec_certificate_t));
     out->certificate.version = SEC_SIGN_VER;
     strcpy(out->certificate.commonName,commonName);
@@ -46,7 +46,7 @@ qboolean Sec_MakeCertificate(rsa_key *key, const char *commonName, const char *c
     out->certificate.pubKey.type = PK_PUBLIC;
     mp_copy(out->certificate.pubKey.N,key->N);
     mp_copy(out->certificate.pubKey.e,key->e);
-    
+
     len = sizeof(out->signature);
     if(issuer != NULL){
 	if(!Sec_SignHash(hash,sizeof(hash),sigKey,out->signature,&len)){
@@ -72,17 +72,17 @@ qboolean Sec_WriteCertificateToFile(sec_certificate_t *certificate, char *filena
     fputs("CoD4X Signature File. Visit us at www.cod4x.me!",fp);
     fputc(0,fp);
     cert = certificate;
-    do{    
+    do{
         len = 16 + strlen(cert->certificate.commonName) + strlen(cert->certificate.companyName) + cert->sigSize;
-        
+
         keysize = sizeof(buf);
-        
+
         if(rsa_export((unsigned char *)buf,&keysize,PK_PUBLIC,&(cert->certificate.pubKey)) != CRYPT_OK){
-		fclose(fp);	
+		fclose(fp);
 		return qfalse;
         }
         len += keysize;
-        
+
         fprintf(fp,"%d\n",len);
         fwrite(&cert->certificate,12,1,fp);
         fputc(0,fp);
@@ -92,11 +92,11 @@ qboolean Sec_WriteCertificateToFile(sec_certificate_t *certificate, char *filena
         fwrite(buf,keysize,1,fp);
         fprintf(fp,"%d\n",cert->sigSize);
         fwrite(cert->signature,cert->sigSize,1,fp);
-        
-    
+
+
         fputc(0,fp);
         fputc(0,fp);
-        
+
         fflush(fp);
         cert = cert->issuer;
     }while(cert != NULL);
@@ -105,7 +105,7 @@ qboolean Sec_WriteCertificateToFile(sec_certificate_t *certificate, char *filena
 }
 
 qboolean Sec_ReadCertificateFromFile(sec_certificate_t *cert, char *filename){
-    
+
     return qtrue;
 }
 
@@ -185,18 +185,18 @@ qboolean Sec_VerifyMemory(const char* expectedb64hash, void* memory, int lenmem,
 	cleartextlen = sizeof(cleartext) -1;
 
 	sta = rsa_decrypt_puplickey_nnj(ciphertext, ciphertextlen, cleartext, &cleartextlen, &decryptstat, &rsakey);
-	
+
 	rsa_free(&rsakey);
-	
+
 	if(sta != CRYPT_OK || cleartextlen < 0 || cleartextlen > sizeof(cleartext) -1){
 //		Com_PrintError(CON_CHANNEL_SYSTEM, "rsa_decrypt_puplickey_nnj failed with error code %d:%s\n", sta, Sec_CryptErrStr(sta));
 		return qfalse;
 	}
 
 	cleartext[cleartextlen] = '\0';
-	
+
 	sizeofhash = sizeof(hash);
-	
+
 	if(!Sec_HashMemory(SEC_HASH_SHA256, memory, lenmem, hash, &sizeofhash, qfalse)){
 //		Com_PrintError(CON_CHANNEL_SYSTEM, "Hashing has failed with errorcode %s\n", Sec_CryptErrStr(SecCryptErr));
 		return qfalse;
@@ -207,5 +207,5 @@ qboolean Sec_VerifyMemory(const char* expectedb64hash, void* memory, int lenmem,
 		return qfalse;
 	}
 	return qtrue;
-	
+
 }
