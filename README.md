@@ -3,7 +3,7 @@
   <img src="assets/github/banner.png?raw=true" />
 </p>
 
-A [CoD4x Server](https://github.com/callofduty4x/CoD4x_Server)-compatible client is a modification of the Call of Duty 4 - Modern Warfare server.
+A [CoD4x Server](https://github.com/callofduty4x/CoD4x_Server)-compatible client.
 
 This client version isn't compatible with CoD4x servers that require client authentication, however, it is compatible with servers that have client authentication disabled (`sv_noauth 1`).
 
@@ -16,7 +16,7 @@ Modifications of this client **may** end up in the official release, so merge re
  - [MinGW](http://www.mingw.org/)
  - [NASM](http://www.nasm.us/)
 
-Make sure you've got the necessary binaries in system `$PATH` environment variable. [Click here to learn more.](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them)
+Make sure you've got the necessary binaries in the system `$PATH` environment variable. [Click here to learn more.](https://superuser.com/questions/284342/what-are-path-and-other-environment-variables-and-how-can-i-set-or-use-them)
 
 ## Building on Windows:
 ```shell
