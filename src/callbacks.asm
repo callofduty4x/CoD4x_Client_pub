@@ -160,7 +160,7 @@ bin_import CL_WriteDemoArchive, 0x468800
 ;bin_import CL_ConnectionlessPacket, 0x46c0d0
 bin_import CL_ProcessPbPacket, 0x46c0d0
 ;bin_import CL_ConnectionlessPacket2, 0x46b5e0
-bin_import SEH_LocalizeTextMessage, 0x538d30
+;bin_import SEH_LocalizeTextMessage, 0x538d30
 ;bin_import UI_CloseAllMenusInternal, 0x54b060
 bin_import CL_InitOnceForAllClients_org, 0x46d4e0
 bin_import Com_Frame_o, 0x5002e0

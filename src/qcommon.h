@@ -794,12 +794,7 @@ void PbClientConnecting(int arg_1, char* string, int* size);
 void __cdecl PBCL_GlobalConstructor();
 void __cdecl PBSV_GlobalConstructor();
 
-char* SEH_LocalizeTextMessage(char*, char*, int);
-unsigned int SEH_DecodeLetter(byte firstChar, byte secondChar, int *usedCount);
 const char* SE_GetString(const char* findentry);
-int __cdecl SEH_GetCurrentLanguage();
-const char *SEH_StringEd_GetString(const char *findentry);
-
 
 void Scr_UpdateLoadScreen( );
 

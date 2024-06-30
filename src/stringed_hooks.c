@@ -1,6 +1,9 @@
 #include "qcommon.h"
-#include "ui_shared.h"
-#include "client.h"
+#include "stringed_public.h"
+#include "q_shared.h"
+
+#include <ctype.h>
+#include <string.h>
 
 
 #define BYTE1(x)   BYTEn(x,  1)         // byte 1 (counting from 0)
@@ -143,4 +146,163 @@ const char *SEH_StringEd_GetString(const char *findentry)
 		return SE_GetString(findentry);
   }
   return findentry;
+}
+
+#define MAX_TOKENBUF_SZ 1024
+
+int SEH_GetLocalizedTokenReference(char *token, const char *reference, const char *messageType, enum msgLocErrType_t errType)
+{
+    const char *translation;
+    char tmpbuf[1024];
+
+    translation = SEH_StringEd_GetString(reference);
+    if ( !translation )
+    {
+        Com_PrintWarning(CON_CHANNEL_SYSTEM, "WARNING: Could not translate part of %s: \"%s\"\n", messageType, reference);
+        Com_sprintf(tmpbuf, sizeof(tmpbuf), "%s", reference);
+        if ( errType == LOCMSG_NOERR )
+        {
+            return 0;
+        }
+        translation = tmpbuf;
+    }
+    Q_strncpyz(token, translation, MAX_TOKENBUF_SZ);
+    return 1;
+}
+
+
+#define MAX_TEMP_STRINGS 10
+
+const char* SEH_LocalizeTextMessage(const char *pszInputBuffer, const char *pszMessageType, enum msgLocErrType_t errType)
+{
+    char szInsertBuf[MAX_TOKENBUF_SZ];
+    char szTokenBuf[MAX_TOKENBUF_SZ];
+    int bLocOn;
+    int iTokenLen;
+    int iInsertLevel;
+    int iLen;
+    int bInsertEnabled;
+    int insertIndex;
+    const char *pszIn;
+    int bLocSkipped;
+    const char *pszTokenStart;
+    int i;
+    char *pszString;
+    int digit;
+
+    static int iCurrString;
+    static char szStrings[MAX_TEMP_STRINGS][MAX_TOKENBUF_SZ];
+
+    iCurrString = (iCurrString + 1) % MAX_TEMP_STRINGS;
+    memset(szStrings[iCurrString], 0, sizeof(szStrings[0]));
+    pszString = szStrings[iCurrString];
+    iLen = 0;
+    bLocOn = 1;
+    bInsertEnabled = 1;
+    iInsertLevel = 0;
+    insertIndex = 1;
+    bLocSkipped = 0;
+    pszTokenStart = pszInputBuffer;
+    pszIn = pszInputBuffer;
+    while ( *pszTokenStart )
+    {
+        if ( *pszIn && *pszIn != 20 && *pszIn != 21 && *pszIn != 22 )
+        {
+            ++pszIn;
+        }
+        else
+        {
+            if ( pszIn > pszTokenStart )
+            {
+                iTokenLen = pszIn - pszTokenStart;
+                Q_strncpyz(szTokenBuf, pszTokenStart, iTokenLen >= sizeof(szTokenBuf) ? sizeof(szTokenBuf) : iTokenLen + 1);
+                if ( bLocOn )
+                {
+                    if ( !SEH_GetLocalizedTokenReference(szTokenBuf, szTokenBuf, pszMessageType, errType) )
+                    {
+                        return 0;
+                    }
+                    iTokenLen = strlen(szTokenBuf);
+                }
+                if ( iTokenLen + iLen >= (signed)sizeof(szTokenBuf) )
+                {
+                    Com_Printf(CON_CHANNEL_SYSTEM, "%s too long when translated: \"%s\"\n", pszMessageType, pszInputBuffer);
+                    return 0;
+                }
+                for ( i = 0; i < iTokenLen - 2; ++i )
+                {
+                    if ( !strncmp(&szTokenBuf[i], "&&", 2u) && isdigit(szTokenBuf[i + 2]) )
+                    {
+                        if ( bInsertEnabled )
+                        {
+                            ++iInsertLevel;
+                        }
+                        else
+                        {
+                            szTokenBuf[i] = 22;
+                            bLocSkipped = 1;
+                        }
+                    }
+                }
+                if ( iInsertLevel <= 0 || iLen <= 0 )
+                {
+                    Q_strncpyz(&pszString[iLen], szTokenBuf, sizeof(szTokenBuf) - iLen);
+                }
+                else
+                {
+                    for ( i = 0; i < iLen - 2; ++i )
+                    {
+                        if ( !strncmp(&pszString[i], "&&", 2u) && isdigit(pszString[i + 2]) )
+                        {
+                            digit = pszString[i + 2] - '0';
+                            if ( !digit )
+                            {
+                                Com_Printf(CON_CHANNEL_SYSTEM, "%s cannot have &&0 as conversion format: \"%s\"\n", pszMessageType, pszInputBuffer);
+                            }
+                            if ( digit == insertIndex )
+                            {
+                                Q_strncpyz(szInsertBuf, &pszString[i + 3], sizeof(szInsertBuf));
+                                pszString[i] = 0;
+                                ++insertIndex;
+                                break;
+                            }
+                        }
+                    }
+                    Q_strncpyz(&pszString[i], szTokenBuf, sizeof(szTokenBuf) - i);
+                    Q_strncpyz(&pszString[iTokenLen + i], szInsertBuf, sizeof(szTokenBuf) - iTokenLen - i);
+                    iLen -= 3;
+                    --iInsertLevel;
+                }
+                iLen += iTokenLen;
+            }
+            bInsertEnabled = 1;
+            if ( *pszIn == 20 )
+            {
+                bLocOn = 1;
+                ++pszIn;
+            }
+            else if ( *pszIn == 21 )
+            {
+                bLocOn = 0;
+                ++pszIn;
+            }
+            if ( *pszIn == 22 )
+            {
+                bInsertEnabled = 0;
+                ++pszIn;
+            }
+            pszTokenStart = pszIn;
+        }
+    }
+    if ( bLocSkipped )
+    {
+        for ( i = 0; i < iLen; ++i )
+        {
+            if ( pszString[i] == 22 )
+            {
+                pszString[i] = '%';
+            }
+        }
+    }
+    return pszString;
 }

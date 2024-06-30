@@ -1,5 +1,6 @@
 
 #include "qcommon.h"
+#include "stringed_public.h"
 #include "unzip/unzip.h"
 #include "client.h"
 
@@ -28,7 +29,7 @@ typedef struct iwdPureReferences_s
 #define fs_numServerIwds *(int*)(0xD5EC4E8)
 #define fs_numServerReferencedIwds *(int*)(0xCB1988C)
 #define fs_numServerReferencedFFs *(int*)(0xCB1DCC4)
-		
+
 #define fs_serverIwdNames ((const char**)(0xCB1CCC0))
 #define fs_serverReferencedIwdNames ((const char**)(0xCB199B8))
 #define fs_serverReferencedFFNames ((const char**)(0xCB1BAC0))
@@ -251,7 +252,7 @@ static fileHandle_t FS_HandleForFileForThread(int FsThread)
     startIndex = 1;
 	size = 48;
   }
-  
+
   for (i = 0 ; size > i ; i++)
   {
     if ( fsh[i + startIndex].handleFiles.file.o == NULL )
@@ -259,7 +260,7 @@ static fileHandle_t FS_HandleForFileForThread(int FsThread)
 		return i + startIndex;
     }
   }
-  
+
   if ( !FsThread )
   {
 	for(i = 1; i < MAX_FILE_HANDLES; i++)
@@ -301,17 +302,17 @@ on files returned by FS_FOpenFile...
 
 qboolean REGPARM(1) FS_FCloseFile( fileHandle_t f ) {
 	char fmsg[1024];
-	
+
 	if ( f < 0 || f > MAX_FILE_HANDLES ) {
 		Com_Error( ERR_DROP, "FS_FCloseFile: out of range %i\n", f);
 	}
-	
+
 	if ( fs_debug->integer > 1 )
 	{
 		Com_sprintf(fmsg, sizeof(fmsg), "^4Close filehandle: %d File: %s\n", f, fsh[f].name);
 		Sys_Print(fmsg);
 	}
-	
+
 	if(fsh[f].zipFile)
 	{
 		unzCloseCurrentFile(fsh[f].handleFiles.file.z);
@@ -325,7 +326,7 @@ qboolean REGPARM(1) FS_FCloseFile( fileHandle_t f ) {
 		Com_Memset( &fsh[f], 0, sizeof( fsh[f] ) );
 		return qtrue;
 	}
-	
+
 	if (fsh[f].handleFiles.file.o) {
 		// we didn't find it as a pak, so close it as a unique file
 		fclose (fsh[f].handleFiles.file.o);
@@ -347,9 +348,9 @@ size of the file.
 */
 int FS_filelength( fileHandle_t f ) {
 	FILE*	h;
-	
+
 	FS_CheckFileSystemStarted();
-	
+
 	if ( fsh[f].zipFile )
 	{
 		return ((unz_s*)fsh[f].handleFiles.file.z)->cur_file_info.uncompressed_size;
@@ -523,7 +524,7 @@ void FS_BuildOSPathForThreadUni(const wchar_t *base, const char *game, const cha
   Q_strncpyzUni(basename, base, sizeof(basename));
   Q_StrToWStr(gamename, game, sizeof(gamename));
   Q_StrToWStr(qpathname, qpath, sizeof(qpathname));
-  
+
   len = wcslen(basename);
   if(len > 0 && (basename[len -1] == L'/' || basename[len -1] == L'\\'))
   {
@@ -535,7 +536,7 @@ void FS_BuildOSPathForThreadUni(const wchar_t *base, const char *game, const cha
   {
         gamename[len -1] = L'\0';
   }
-  
+
   if( Com_sprintfUni(fs_path, sizeof(wchar_t) * MAX_OSPATH, L"%ls\\%ls\\%ls", basename, gamename, qpathname) >= MAX_OSPATH )
   {
     if ( fs_thread )
@@ -554,7 +555,7 @@ void FS_AddSearchPath(const char* path, const char* dir)
 	searchpath_t *search;
 	searchpath_t *sp;
 	searchpath_t *prev;
-    
+
 	search = (searchpath_t *)Z_Malloc(sizeof(searchpath_t));
     search->dir = (directory_t *)Z_Malloc(sizeof(directory_t));
     Q_strncpyz(search->dir->path, path, sizeof(search->dir->path));
@@ -579,26 +580,26 @@ FS_WriteTestOSPath
 */
 
 qboolean FS_WriteTestOSPath( const char *osPath ) {
-	
+
 	FILE* fh = fopen( osPath, "wb" );
 	char testbuf[] = "MZ_test";
-	
+
 	if(fh == NULL)
 		return qfalse;
-	
+
 	fwrite(testbuf, 1, sizeof(testbuf), fh);
 	fclose( fh );
-	
+
 	fh = fopen( osPath, "rb" );
-	
+
 	if(fh == NULL)
 		return qfalse;
 	fclose( fh );
-	
+
 	remove( osPath );
-	
+
 	return qtrue;
-	
+
 }
 
 
@@ -634,7 +635,7 @@ void FS_SV_RemoveSavePath(char* path)
 	wchar_t ospath[MAX_OSPATH];
 
 	FS_BuildOSPathForThreadUni( FS_GetSavePath(), path, "", ospath, 0);
-	
+
 	FS_RemoveOSPathUni(ospath);
 }
 
@@ -667,22 +668,22 @@ qboolean FS_SV_RemoveDir(char* qpath)
 	wchar_t ospath[MAX_OSPATH];
 	wchar_t basepath[MAX_OSPATH];
 	qboolean del;
-	
+
 	del = qfalse;
-	
+
 	FS_BuildOSPathForThreadUni( FS_GetSavePath(), qpath, "", ospath, 0);
 	if(Sys_RemoveDirTreeUni(ospath))
 	{
 		del = qtrue;
 	}
-	
+
 	Q_StrToWStr(basepath, fs_homepath->string, sizeof(basepath));
 	FS_BuildOSPathForThreadUni( basepath, qpath, "", ospath, 0);
 	if(Sys_RemoveDirTreeUni(ospath))
 	{
 		del = qtrue;
 	}
-	
+
 	Q_StrToWStr(basepath, fs_basepath->string, sizeof(basepath));
 	FS_BuildOSPathForThreadUni( basepath, qpath, "", ospath, 0);
 	if(Sys_RemoveDirTreeUni(ospath))
@@ -702,12 +703,12 @@ FS_Remove
 */
 /*
 void FS_SV_Remove( const char *qPath ) {
-	
+
 	char	ospath1[MAX_OSPATH];
 	char	ospath2[MAX_OSPATH];
 	char	ospath3[MAX_OSPATH];
 	char	ospath4[MAX_OSPATH];
-	
+
 	FS_BuildOSPathForThread( fs_homepath->string, "", qPath, ospath1, 0);
 	FS_BuildOSPathForThread( fs_basepath->string, "", qPath, ospath2, 0);
 	FS_BuildOSPathForThread( fs_homepath->string, qPath, "", ospath1, 0);
@@ -719,8 +720,8 @@ void FS_SV_Remove( const char *qPath ) {
 	remove( ospath1 );
 	remove( ospath2 );
 	remove( ospath3 );
-	remove( ospath4 );	
-	
+	remove( ospath4 );
+
 }
 */
 
@@ -731,15 +732,15 @@ FS_FileExistsOSPath
 ===========
 */
 qboolean FS_FileExistsOSPath( const char *osPath ) {
-	
+
 	FILE* fh = fopen( osPath, "rb" );
-	
+
 	if(fh == NULL)
 		return qfalse;
-	
+
 	fclose( fh );
 	return qtrue;
-	
+
 }
 
 
@@ -749,7 +750,7 @@ qboolean FS_FileExists(const char *qpath)
 	char ospath[MAX_OSPATH];
 
 	FS_BuildOSPathForThread(fs_homepath->string, fs_gamedir, qpath, ospath, 0);
-	return FS_FileExistsOSPath( ospath ); 
+	return FS_FileExistsOSPath( ospath );
 }
 /*
 ===========
@@ -911,7 +912,7 @@ qboolean FS_CopyFileUni( wchar_t *fromOSPath, wchar_t *toOSPath )
 	}
 
 	suc = Sys_CopyFileUni(fromOSPath, toOSPath);
-	
+
 	Sys_LeaveCriticalSection(CRIT_FILESYSTEM);
 	return suc;
 }
@@ -927,14 +928,14 @@ qboolean FS_SV_CopyFromOSPathToSavePath( const char *fromOSPath, const char* to 
 {
 	wchar_t toOSPathUni[MAX_OSPATH];
 	wchar_t fromOSPathUni[MAX_OSPATH];
-	
+
 	Q_StrToWStr(fromOSPathUni, fromOSPath, sizeof(fromOSPathUni));
-	
+
 	FS_BuildOSPathForThreadUni( FS_GetSavePath(), to, "", toOSPathUni, 0);
-	
+
 	FS_ReplaceSeparatorsUni(fromOSPathUni);
 	FS_StripTrailingSeperatorUni(fromOSPathUni);
-	
+
 	return FS_CopyFileUni( fromOSPathUni, toOSPathUni );
 
 }
@@ -951,9 +952,9 @@ qboolean FS_SV_CopyFromBaseToSavePath( const char* base, const char *from, const
 
 	char fromOSPath[MAX_OSPATH];
 
-	
+
 	FS_BuildOSPathForThread( base, from, "", fromOSPath, 0);
-	
+
 	return FS_SV_CopyFromOSPathToSavePath(fromOSPath ,to);
 
 }
@@ -976,7 +977,7 @@ qboolean FS_CreatePath (char *OSPath) {
 	}
 
 	for (ofs = OSPath+1 ; *ofs ; ofs++) {
-		if (*ofs == PATH_SEP) {	
+		if (*ofs == PATH_SEP) {
 			// create the directory
 			*ofs = 0;
 			Sys_Mkdir (OSPath);
@@ -1007,9 +1008,9 @@ qboolean FS_CreatePathUni (wchar_t *OSPath) {
 	{
 		return qtrue;
 	}
-	
+
 	for (ofs = OSPath+1 ; *ofs ; ofs++) {
-		if (*ofs == PATH_SEPUNI) {	
+		if (*ofs == PATH_SEPUNI) {
 			// create the directory
 			*ofs = 0;
 			Sys_MkdirUni(OSPath);
@@ -1023,17 +1024,17 @@ qboolean FS_CreatePathUni (wchar_t *OSPath) {
 #define FS_filelengthOSPath FS_FileGetFileSize
 
 int FS_FileLengthOSPathByName( const char *osPath ) {
-	
+
 	FILE* fh = fopen( osPath, "rb" );
-	
+
 	if(fh == NULL)
 		return -1;
-	
+
 	int len = FS_FileGetFileSize(fh);
 
 	fclose( fh );
 	return len;
-	
+
 }
 
 /*
@@ -1046,7 +1047,7 @@ we search in that order, matching FS_SV_FOpenFileRead order
 int FS_FOpenFileReadOSPath( const char *filename, FILE **fp ) {
 	char ospath[MAX_OSPATH];
 	FILE* fh;
-	
+
 	Q_strncpyz( ospath, filename, sizeof( ospath ) );
 
 	fh = fopen( ospath, "rb" );
@@ -1071,7 +1072,7 @@ we search in that order, matching FS_SV_FOpenFileRead order
 int FS_FOpenFileReadOSPathUni( const wchar_t *filename, FILE **fp ) {
 	wchar_t ospath[MAX_OSPATH];
 	FILE* fh;
-	
+
 	Q_strncpyzUni( ospath, filename, sizeof( ospath ) );
 
 	fh = _wfopen( ospath, L"rb" );
@@ -1151,8 +1152,8 @@ int FS_ReadFileOSPath( const char *ospath, void **buffer ) {
 	byte*	buf;
 	int		len;
 	FILE*   h;
-	
-	
+
+
 	if ( !ospath || !ospath[0] ) {
 		Com_Error( ERR_FATAL, "FS_ReadFile with empty name\n" );
 	}
@@ -1167,7 +1168,7 @@ int FS_ReadFileOSPath( const char *ospath, void **buffer ) {
 		}
 		return -1;
 	}
-	
+
 	if ( !buffer ) {
 		FS_FCloseFileOSPath( h );
 		return len;
@@ -1197,8 +1198,8 @@ int FS_ReadFileOSPathUni( const wchar_t *ospath, void **buffer ) {
 	byte*	buf;
 	int		len;
 	FILE*   h;
-	
-	
+
+
 	if ( !ospath || !ospath[0] ) {
 		Com_Error( ERR_FATAL, "FS_ReadFileOSPathUni with empty name\n" );
 	}
@@ -1213,7 +1214,7 @@ int FS_ReadFileOSPathUni( const wchar_t *ospath, void **buffer ) {
 		}
 		return -1;
 	}
-	
+
 	if ( !buffer ) {
 		FS_FCloseFileOSPath( h );
 		return len;
@@ -1256,7 +1257,7 @@ int FS_SV_FOpenFileReadOSPath( const char *filename, fileHandle_t *fp ) {
 	fsh[f].zipFile = qfalse;
 	Q_strncpyz( fsh[f].name, filename, sizeof( fsh[f].name ) );
 	Q_strncpyz( ospath, filename, sizeof(ospath) );
-	
+
 	FS_ReplaceSeparators(ospath);
 
 	fsh[f].handleFiles.file.o = fopen( ospath, "rb" );
@@ -1309,7 +1310,7 @@ int FS_SV_FOpenFileRead( const char *filename, fileHandle_t *fp ) {
 		*fp = f;
 		return FS_filelength(f);
 	}
-	
+
 	//Search in fs_homepath
 	FS_BuildOSPathForThread( fs_homepath->string, filename, "", ospath, 0 );
 	if ( fs_debug->integer ) {
@@ -1331,8 +1332,8 @@ int FS_SV_FOpenFileRead( const char *filename, fileHandle_t *fp ) {
 		*fp = f;
 		return FS_filelength(f);
 	}
-	
-	
+
+
 	if ( fs_debug->integer ) {
 		Com_DPrintf(CON_CHANNEL_FILES, "FS_SV_FOpenFileRead failed: %s\n", filename );
 	}
@@ -1343,7 +1344,7 @@ int FS_SV_FOpenFileRead( const char *filename, fileHandle_t *fp ) {
 void __cdecl FS_ShutdownSearchPaths(struct searchpath_s *p)
 {
   struct searchpath_s *next;
-  
+
   while ( p )
   {
     next = p->next;
@@ -1407,7 +1408,7 @@ int FS_SV_ReadFile( const char *qpath, void **buffer ) {
 		}
 		return -1;
 	}
-	
+
 	if ( !buffer ) {
 		FS_FCloseFile( h);
 		return len;
@@ -1416,7 +1417,7 @@ int FS_SV_ReadFile( const char *qpath, void **buffer ) {
 	buf = Hunk_AllocateTempMemory(len+1);
 	*buffer = buf;
 	++fs_loadStack;
-	
+
 	FS_Read (buf, len, h);
 
 	// guarantee that it will have a trailing 0 for string operations
@@ -1434,7 +1435,7 @@ qboolean FS_NeedRestart(int requestChecksumFeed)
 	if ( !com_sv_running->boolean && (fs_gameDirVar->modified || requestChecksumFeed != fs_checksumFeed) )
 	{
 		return qtrue;
-	}	
+	}
 	return qfalse;
 }
 
@@ -1462,7 +1463,7 @@ int FS_ServerSetReferencedFiles(const char *sums, const char *names, int *sumsNu
 	}
 
 	Cmd_EndTokenizedString();
-	
+
 	if ( !names || !*names )
 	{
 	    if ( numSumTokens )
@@ -1471,20 +1472,20 @@ int FS_ServerSetReferencedFiles(const char *sums, const char *names, int *sumsNu
 		}
 		return numSumTokens;
 	}
-	
+
 	Cmd_TokenizeString( names );
     numNameTokens = Cmd_Argc();
-	
+
     if ( numNameTokens > 1024 )
 	{
 		numNameTokens = 1024;
-	}  
-    
+	}
+
 	if ( numSumTokens != numNameTokens )
     {
 		Com_Error(ERR_DROP, "file sum/name mismatch (count of sums and names mismatch)\nNames: %s\nSums: %s", names, sums);
     }
-	
+
     for ( j = 0; j < numNameTokens; ++j )
     {
 		stringList[j] = CopyString(Cmd_Argv(j));
@@ -1549,7 +1550,7 @@ void FS_ShutdownIwdPureCheckReferences()
 {
 
     iwdPureReferences_t *fipc, *freefipc;
-	
+
 	for(fipc = fs_iwdPureChecks; fipc; )
 	{
 		freefipc = fipc;
@@ -1649,7 +1650,7 @@ signed int FS_CompareFFs(char *neededFFs, int len, int dlstring)
 		{
 			Q_strcat(neededFFs, len, "/");
         	Q_strcat(neededFFs, len, ffName);
-		}        
+		}
 		Q_strcat(neededFFs, len, ".ff");
         if ( fileSize )
         {
@@ -1800,14 +1801,14 @@ fileHandle_t FS_FOpenFileWrite( const char *filename ) {
 /*
 ============
 FS_SV_WriteFileToSavePath
- 
+
 Filename are reletive to the quake search path
 ============
 */
 int FS_SV_WriteFileToSavePath( const char *qpath, const void *buffer, int size ) {
   fileHandle_t f;
   int len;
-  
+
   if ( !FS_Initialized() ) {
     Com_Error( ERR_FATAL, "Filesystem call made without initialization\n" );
   }
@@ -1825,7 +1826,7 @@ int FS_SV_WriteFileToSavePath( const char *qpath, const void *buffer, int size )
   len = FS_Write( buffer, size, f );
 
   FS_FCloseFile( f );
-  
+
   return len;
 }
 
@@ -1882,7 +1883,7 @@ int FS_Write( const void *buffer, int len, fileHandle_t h ) {
 	byte	*buf;
 	int	tries;
 	FILE	*f;
-	
+
 	if ( !FS_Initialized() ) {
 		Com_Error( ERR_FATAL, "Filesystem call made without initialization" );
 	}
@@ -1939,14 +1940,14 @@ qboolean FS_SV_DirExists(char* qpath)
 	wchar_t unipath[MAX_OSPATH];
 	wchar_t dir[MAX_OSPATH];
 	qboolean exists;
-	
+
 	FS_BuildOSPathForThreadUni(FS_GetSavePath(), qpath, "", dir, 0);
 	exists = Sys_DirectoryExistsUni( dir );
 	if(exists)
 	{
 		return qtrue;
 	}
-	
+
 	Q_StrToWStr(unipath, fs_homepath->string, sizeof(unipath));
 	FS_BuildOSPathForThreadUni(unipath, qpath, "", dir, 0);
 	exists = Sys_DirectoryExistsUni( dir );
@@ -1954,7 +1955,7 @@ qboolean FS_SV_DirExists(char* qpath)
 	{
 		return qtrue;
 	}
-	
+
 	Q_StrToWStr(unipath, fs_basepath->string, sizeof(unipath));
 	FS_BuildOSPathForThreadUni(unipath, qpath, "", dir, 0);
 	exists = Sys_DirectoryExistsUni( dir );
@@ -1962,7 +1963,7 @@ qboolean FS_SV_DirExists(char* qpath)
 	{
 		return qtrue;
 	}
-	
+
 	return qfalse;
 }
 
@@ -2009,20 +2010,20 @@ int FS_SV_ListDirectories(const char* dir, char** list, int limit)
 	wchar_t homepath[MAX_OSPATH];
 	wchar_t savepath[MAX_OSPATH];
 	wchar_t tmppath[MAX_OSPATH];
-	
+
 	wchar_t* basedir[] = { savepath, homepath, basepath, NULL};
-	
+
 	num = 0;
 	list[num] = NULL;
-	
+
 	FS_BuildOSPathForThreadUni(FS_GetSavePath(), dir, "", savepath, 0);
-	
+
 	Q_StrToWStr(tmppath, fs_basepath->string, sizeof(tmppath));
 	FS_BuildOSPathForThreadUni(tmppath, dir, "", basepath, 0);
-	
+
 	Q_StrToWStr(tmppath, fs_homepath->string, sizeof(tmppath));
 	FS_BuildOSPathForThreadUni(tmppath, dir, "", homepath, 0);
-	
+
 	for(z = 0; basedir[z]; ++z)
 	{
 
@@ -2031,7 +2032,7 @@ int FS_SV_ListDirectories(const char* dir, char** list, int limit)
 			for(i = 0; i < 1024 && num < (limit -1); ++i)
 			{
 				list[num] = NULL;
-				
+
 				if(names[i] == NULL)
 				{
 					break;
@@ -2042,16 +2043,16 @@ int FS_SV_ListDirectories(const char* dir, char** list, int limit)
 					free(names[i]);
 					continue;
 				}
-				
+
 				list[num] = names[i];
 				num++;
 
 			}
 		}
-	
-	
+
+
 	}
-	
+
 	return num;
 }
 
@@ -2151,7 +2152,7 @@ int FS_SkipDataInCurrentZipFile(unzFile file, unsigned int len)
 
 int __cdecl FS_Seek(fileHandle_t f, long offset, fsOrigin_t origin)
 {
-  int iZipPos; 
+  int iZipPos;
   unsigned int iZipOffset;
 
   FS_CheckFileSystemStarted();
@@ -2263,14 +2264,14 @@ void DB_BuildOSPath(const char *filename, int ff_dir, int pathlen, char *path)
 {
   char *find;
   char mapname[64];
-  
+
   switch(ff_dir)
   {
 	  case 1:
 	  		Com_sprintf(path, pathlen, "%s/%s/%s.ff", Sys_DefaultInstallPath(), fs_gameDirVar->string, filename);
 			break;
 	  case 2:
-	        
+
 			Q_strncpyz(mapname, filename, sizeof(mapname));
             find = strstr(mapname, "_load");
             if ( find )
@@ -2301,7 +2302,7 @@ qboolean DB_FileExistsLoadscreen(const char *fileName)
   char *find;
 
 	Q_strncpyz(mapname, fileName, sizeof(mapname));
-	
+
 	find = strstr(mapname, "_load");
   if ( find )
   {
@@ -2331,7 +2332,7 @@ void DB_AddUserMapDir(const char *usermapDir)
 	{
 		return;
 	}
-  
+
     if ( DB_FileExists(usermapDir, 2) )
     {
 		FS_AddUserMapDirIWD(va("usermaps/%s", usermapDir));
@@ -2369,16 +2370,16 @@ qboolean FS_PureServerSetLoadedIwds(const char *paksums, const char *paknames)
   int lpakSums[1024];
 
   rt = 0;
-  
+
   Cmd_TokenizeString(paksums);
-  
+
   numPakSums = Cmd_Argc();
-  
+
   if ( numPakSums > sizeof(lpakSums)/sizeof(lpakSums[0]))
   {
     numPakSums = sizeof(lpakSums)/sizeof(lpakSums[0]);
   }
-  
+
   for ( i = 0 ; i < numPakSums ; i++ ) {
 	lpakSums[i] = atoi( Cmd_Argv( i ) );
   }
@@ -2386,16 +2387,16 @@ qboolean FS_PureServerSetLoadedIwds(const char *paksums, const char *paknames)
 
   Cmd_TokenizeString(paknames);
   numPakNames = Cmd_Argc();
-  
+
   if ( numPakNames > sizeof(lpakNames)/sizeof(lpakNames[0]) )
   {
     numPakNames = sizeof(lpakNames)/sizeof(lpakNames[0]);
   }
-  
+
   for ( i = 0 ; i < numPakNames ; i++ ) {
 	lpakNames[i] = CopyString( Cmd_Argv( i ) );
   }
-  
+
   Cmd_EndTokenizedString();
 
   if ( numPakSums != numPakNames )
@@ -2403,10 +2404,10 @@ qboolean FS_PureServerSetLoadedIwds(const char *paksums, const char *paknames)
     Com_Error(ERR_FATAL, "iwd sum/name mismatch");
 	return rt;
   }
-  
+
 	if ( numPakSums )
 	{
-  
+
 		for(pureSums = fs_iwdPureChecks; pureSums; pureSums = pureSums->next)
 		{
 
@@ -2437,14 +2438,14 @@ qboolean FS_PureServerSetLoadedIwds(const char *paksums, const char *paknames)
 			  i = 0;
 			  continue;
 			}
-			
+
 			for ( l = 0; l < numPakNames; ++l )
 			{
 				SL_RemoveString(lpakNames[l]);
 				lpakNames[l] = NULL;
 			}
 			return 0;
-		  
+
 		  }
 		  ++i;
 		}
@@ -2587,7 +2588,7 @@ bool _FS_AddSingleIwdFileForGameDirectory(const char* file, const char* game)
 
 	Q_strncpyz(iwdfilebasename, file, sizeof(iwdfilebasename));
 	Q_strcat(iwdfilebasename, sizeof(iwdfilebasename), ".iwd");
-		
+
 	FS_BuildOSPathForThread(fs_homepath->string, iwdfilebasename, "", pakfile, 0);
 	if(FS_AddSingleIwdFileForGameDirectory(pakfile, iwdfilebasename, game) == true)
 	{
@@ -2604,7 +2605,7 @@ void FS_AddExtraGameIWDFiles( const char* game)
 	for(i = 0; i < fs_numServerReferencedIwds; ++i)
 	{
 		const char* file = fs_serverReferencedIwdNames[i];
-		
+
 		if(Q_stricmpn(game, file, strlen(game)) != 0)
 		{
 			continue; //not equal
@@ -2631,7 +2632,7 @@ void FS_Startup(const char *gameName)
 {
     Com_Printf(CON_CHANNEL_FILES,"----- FS_Startup -----\n");
 	FS_InitCvars();
-	
+
 	FS_SetupSavePath();
 
     if (fs_basepath->string[0])
@@ -2679,7 +2680,7 @@ void FS_Startup(const char *gameName)
         FS_AddGameDirectory(fs_homepath->string, gameName);
     }
 	FS_AddIwdFilesForGameDirectory_SafePath(gameName);
-    
+
 	/* BaseGame set, fs_game is "main" and BaseGame not equal to "main". WUT? */
     if (fs_basegame->string[0] && !Q_stricmp(gameName, BASEGAME) && Q_stricmp(fs_basegame->string, gameName))
     {
@@ -2706,7 +2707,7 @@ void FS_Startup(const char *gameName)
 				FS_AddGameDirectory(fs_homepath->string, fs_gameDirVar->string);
 		}else{
 			Q_strncpyz(fs_gamedir, fs_gameDirVar->string, 256);
-			
+
 			if (fs_basepath->string[0])
 				FS_AddSearchPath(fs_basepath->string, fs_gameDirVar->string);
 			if (fs_homepath->string[0] && Q_stricmp(fs_homepath->string, fs_basepath->string))
@@ -3023,7 +3024,7 @@ char __cdecl FS_SanitizeFilename(const char *filename, char *sanitizedName, int 
     {
       return 0;
     }
-    if ( filename[srcIndex] != '.' || (filename[srcIndex + 1] != 0 && 
+    if ( filename[srcIndex] != '.' || (filename[srcIndex + 1] != 0 &&
 	filename[srcIndex + 1] != '/' && filename[srcIndex + 1] != '\\' ))
     {
       if ( dstIndex + 1 >= sanitizedNameSize )
@@ -3457,10 +3458,10 @@ unsigned int __cdecl FS_FOpenFileReadForThread(const char *filename, fileHandle_
 int __cdecl FS_Read(void *buffer, int len, int h)
 {
   int tries;
-  unsigned int remaining; 
-  char *buf; 
-  FILE *f; 
-  int read; 
+  unsigned int remaining;
+  char *buf;
+  FILE *f;
+  int read;
 
   FS_CheckFileSystemStarted();
   if ( !h )
@@ -3526,11 +3527,11 @@ void __cdecl FS_DebugPakChecksums_f()
 //FS_ReferencedIwdPureChecksums()
 const char *__cdecl FS_ReferencedPakChecksums(char *info6, int maxsize, int server_id)
 {
-  int checksum; 
+  int checksum;
   struct searchpath_s *search;
   int numIwds;
 
-  FS_DebugPakChecksums_f();  
+  FS_DebugPakChecksums_f();
 
   info6[0] = 0;
   checksum = fs_checksumFeed;
@@ -3546,7 +3547,6 @@ const char *__cdecl FS_ReferencedPakChecksums(char *info6, int maxsize, int serv
   if(!Com_IsLegacyServer())
   {
     Q_strcat(info6, maxsize, va("L%i %i ", SEH_GetCurrentLanguage(), server_id));
-  
   }
 
   for ( search = fs_searchpaths; search; search = search->next )
@@ -3572,7 +3572,7 @@ const char *__cdecl FS_ReferencedPakChecksums(char *info6, int maxsize, int serv
   Q_strcat(info6, maxsize, va("%i ", numIwds ^ checksum));
 
   DB_WritePureInfoString(info6, maxsize, fs_checksumFeed);
-  
+
   return info6;
 }
 

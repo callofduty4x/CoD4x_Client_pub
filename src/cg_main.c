@@ -12,6 +12,7 @@
 #include "xzone.h"
 #include "bg_shared.h"
 #include "cg_local_mp.h"
+#include "stringed_public.h"
 
 #include <stdbool.h>
 
@@ -516,7 +517,7 @@ const char * CG_GetUseString(int localClientNum)
     {
       Q_strncpyz(translatedString, UI_SafeTranslateString("KEY_USE"), sizeof(translatedString));
     }
-    return UI_ReplaceConversionString(SEH_LocalizeTextMessage((char*)cs, "Hint String", 0), translatedString);
+    return UI_ReplaceConversionString(SEH_LocalizeTextMessage((char*)cs, "Hint String", LOCMSG_SAFE), translatedString);
 
 }
 
@@ -923,7 +924,7 @@ void CG_RelativeTeamColor(int clientNum, const char *prefix, float *color)
 qboolean __cdecl CG_DrawFollow(int localClientNum)
 {
 
-	char *locstring;
+	const char *locstring;
 	char clantag[64];
 	Font_t *font;
 	float scale;
@@ -942,7 +943,7 @@ qboolean __cdecl CG_DrawFollow(int localClientNum)
 	{
         Com_sprintf(string, sizeof(string), "?");
 	}
-	locstring = SEH_LocalizeTextMessage("CGAME_FOLLOWING\x15", "spectator follow string", 0);
+	locstring = SEH_LocalizeTextMessage("CGAME_FOLLOWING\x15", "spectator follow string", LOCMSG_SAFE);
     font = uiMem.font2;
 	scale = 0.33333334;
 	w = UI_TextWidth(locstring, 0, font, scale) * -0.5;
