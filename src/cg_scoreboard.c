@@ -3,6 +3,7 @@
 #include "ui_shared.h"
 #include "client.h"
 #include "cg_shared.h"
+#include "stringed_public.h"
 
 cvar_t* cg_ScoresPing_MaxBars;
 cvar_t* cg_ScoresPing_Interval;
@@ -707,7 +708,7 @@ static float CG_DrawScoreboard_ListBanner(int localClientNum, float *color, floa
 
     const char* iconString = Cvar_GetString(iconDvar);
     if (TEAM_RED <= team && team < TEAM_NUM_TEAMS)
-        Q_strncpyz(translated, SEH_LocalizeTextMessage((char *)teamstring, "scoreboard team name", 0), sizeof(translated));
+        Q_strncpyz(translated, SEH_LocalizeTextMessage((char *)teamstring, "scoreboard team name", LOCMSG_SAFE), sizeof(translated));
 
     float x = CG_GetScoreboardHStart(localClientNum) + 3.0 + 2.0 + 4.0;
     Material* icon = Material_RegisterHandle(iconString, 0);

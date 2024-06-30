@@ -1,13 +1,14 @@
 #include "qcommon.h"
 #include "ui_shared.h"
 #include "client.h"
+#include "stringed_public.h"
 
 #include <stdbool.h>
 
 void Scr_UpdateLoadScreen2( );
 
 void Scr_UpdateLoadScreen()
-{   
+{
 	if ( !com_useFastFiles->boolean )
       Scr_UpdateLoadScreen2();
 }
@@ -18,8 +19,8 @@ signed int GetKeyBindingLocalizedString(int localClientNum, char *search, char *
   signed int bindings;
   char bindingString[256];
   const char* translated;
-  const char* translated2;  
-  
+  const char* translated2;
+
   bindings = CL_GetKeyBinding(localClientNum, search, bindingString);
 
   if ( !bindings )
@@ -27,7 +28,7 @@ signed int GetKeyBindingLocalizedString(int localClientNum, char *search, char *
     Q_strncpyz(out, UI_SafeTranslateString("KEY_UNBOUND"), 256);
     return bindings;
   }
-  
+
   if ( a4 && bindings > 1 )
   {
     bindings = 1;

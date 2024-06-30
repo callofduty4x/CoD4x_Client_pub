@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include "../xassets/material.h"
 #include "../xzone.h"
+#include "../stringed_public.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"

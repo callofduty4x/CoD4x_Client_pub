@@ -4000,7 +4000,7 @@ void CL_AwaitingAuthPacket( netadr_t *from )
     if(NET_CompareBaseAdr(from, &clc.serverAddress))
 	{
 		Q_strncpyz(clc.serverMessage, "EXE_AWAITINGCDKEYAUTH", sizeof(clc.serverMessage));
-	//	SEH_LocalizeTextMessage("EXE_AWAITINGCDKEYAUTH", "need cd key message", 0);
+        // SEH_LocalizeTextMessage("EXE_AWAITINGCDKEYAUTH", "need cd key message", LOCMSG_SAFE);
 		Com_Printf(CON_CHANNEL_CLIENT, "%s\n", clc.serverMessage);
 		CL_RequestAuthorization( );
 	}
