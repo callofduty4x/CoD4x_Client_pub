@@ -1179,8 +1179,11 @@ void Patch_Other(){
 */
 	SetCall(0x54F538, Cvar_SetFromStringByNameExternal);
 	SetCall(0x463DEF, CL_FinishMove);
-	SetCall(0x452A70, CG_CalcViewValues);
-	SetCall(0x451E22, CG_CalcViewValues);
+
+    // Unused for now - breaks killcam entity link
+    // Unfinished work from afe7c8f9fc7db2c714b15e7ab412d6e63183eda9
+    //SetCall(0x452A70, CG_CalcViewValues);
+    //SetCall(0x451E22, CG_CalcViewValues);
 
 }
 
