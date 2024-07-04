@@ -1558,6 +1558,8 @@ void CalcViewValuesVehicle(int localClientNum)
   }
 }
 
+// Unused for now - breaks killcam entity link
+// Unfinished work from afe7c8f9fc7db2c714b15e7ab412d6e63183eda9
 void CG_CalcViewValues(int localClientNum)
 {
   //float maxmin;
