@@ -137,7 +137,7 @@ target_compile_options(cod4x PRIVATE
 set_source_files_properties(src/sys_net.c PROPERTIES COMPILE_FLAGS -O1) # FIXME: awaiting connection on `-O` higher than -O1
 set_source_files_properties(src/cl_ui.c PROPERTIES COMPILE_FLAGS -O0) # FIXME: glitching server refresh on `-O` higher than -O0
 
-target_link_options(cod4x PRIVATE -m32 -static -Wl,--exclude-libs,msvcrt.a,-fPic,--stack,8388608)
+target_link_options(cod4x PRIVATE -m32 -static -s -Wl,--exclude-libs,msvcrt.a,-fPic,--stack,8388608)
 
 target_compile_definitions(cod4x PRIVATE
     MAX_LOCAL_CLIENTS=1
