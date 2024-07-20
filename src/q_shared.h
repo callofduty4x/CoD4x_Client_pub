@@ -43,7 +43,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   #define FLATLINE_FOR_MASTER		GAMENAME_FOR_MASTER "dead"
   #define WINDOW_CLASS_NAME			"CoD4" //Do not change
   #define PRODUCT_VERSION 			"1.8"
-  #define UPDATE_VERSION_NUM		"21.1"
+  #define UPDATE_VERSION_NUM		"21.2"
   #define DEMO_PROTOCOL_VERSION		1
   #define STEAM_APPID				"7940"
   #define STEAM_GAMEID				"7940"
@@ -205,7 +205,7 @@ PROTOCOL
 #else
   	// vsnprintf is ISO/IEC 9899:1999
   	// abstracting this to make it portable
-  	int Q_vsnprintf(char *str, size_t size, const char *format, va_list ap);	
+  	int Q_vsnprintf(char *str, size_t size, const char *format, va_list ap);
 #endif
 
 #include "q_platform.h"
@@ -529,6 +529,9 @@ extern vec4_t	g_color_table[8];
 
 #define DEG2RAD( a ) ( ( (a) * M_PI ) / 180.0F )
 #define RAD2DEG( a ) ( ( (a) * 180.0f ) / M_PI )
+
+#define MIN(a, b) ((a) > (b) ? (b) : (a))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 struct cplane_s;
 

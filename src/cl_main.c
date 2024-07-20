@@ -8303,7 +8303,8 @@ void CL_ParseGamestateLegacy( msg_t *msg ) {
 	int newnum;
 	entityState_t nullstate;
 	int cmd;
-	char cstring[MAX_MSGLEN];
+	char* infoString;
+    int maxInfoStringLen;
 	const char* ccs;
 	int numcs, k;
 
@@ -8406,19 +8407,17 @@ void CL_ParseGamestateLegacy( msg_t *msg ) {
 						++ccsNum;
 					}
 
-					MSG_ReadString( msg, cstring, sizeof(cstring) );
-					cstringmemlen = strlen(cstring) + 1;
-
-					if ( cl.gameState.dataCount + cstringmemlen > MAX_GAMESTATE_CHARS )
-					{
-						Com_Error(ERR_DROP, "MAX_GAMESTATE_CHARS exceeded");
-						return;
-					}
+                    infoString = &cl.gameState.stringData[cl.gameState.dataCount];
+                    maxInfoStringLen = MIN(BIG_INFO_STRING, MAX_GAMESTATE_CHARS - cl.gameState.dataCount);
+                    MSG_ReadString(msg, infoString, maxInfoStringLen);
+					cstringmemlen = strlen(infoString) + 1;
+                    if (cstringmemlen >= BIG_INFO_STRING) {
+						Com_Error(ERR_DROP, "ParseGamestate: BIG_INFO_STRING exceeded");
+                        return;
+                    }
 
 					cl.gameState.stringOffsets[confIndex] = cl.gameState.dataCount;
-					memcpy(&cl.gameState.stringData[cl.gameState.dataCount], cstring, cstringmemlen);
 					cl.gameState.dataCount += cstringmemlen;
-
 				}
 
 				for(i = constantConfigStrings[ccsNum].index; i; ++ccsNum, i = constantConfigStrings[ccsNum].index)
@@ -8474,7 +8473,8 @@ void CL_ParseGamestateX( msg_t *msg ) {
 	int newnum;
 	entityState_t nullstate;
 	int cmd;
-	char cstring[MAX_MSGLEN];
+	char* infoString;
+    int maxInfoStringLen;
 	const char* ccs;
 	int numcs, k;
 	char name[33];
@@ -8586,11 +8586,6 @@ void CL_ParseGamestateX( msg_t *msg ) {
 						++ccsNum;
 					}
 
-					MSG_ReadString( msg, cstring, sizeof(cstring) );
-					cstringmemlen = strlen(cstring) + 1;
-
-
-
 					if(confIndex >= MAX_CONFIGSTRINGS)
 					{
 						j = confIndex - MAX_CONFIGSTRINGS;
@@ -8600,14 +8595,16 @@ void CL_ParseGamestateX( msg_t *msg ) {
 						newGs = &cl.gameState;
 					}
 
-					if ( newGs->dataCount + cstringmemlen > MAX_GAMESTATE_CHARS )
-					{
-						Com_Error(ERR_DROP, "MAX_GAMESTATE_CHARS exceeded");
-						return;
-					}
+                    infoString = &newGs->stringData[newGs->dataCount];
+                    maxInfoStringLen = MIN(BIG_INFO_STRING, MAX_GAMESTATE_CHARS - newGs->dataCount);
+                    MSG_ReadString(msg, infoString, maxInfoStringLen);
+					cstringmemlen = strlen(infoString) + 1;
+                    if (cstringmemlen >= BIG_INFO_STRING) {
+						Com_Error(ERR_DROP, "ParseGamestate: BIG_INFO_STRING exceeded");
+                        return;
+                    }
 
 					newGs->stringOffsets[j] = newGs->dataCount;
-					memcpy(&newGs->stringData[newGs->dataCount], cstring, cstringmemlen);
 					newGs->dataCount += cstringmemlen;
 				}
 
