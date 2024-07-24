@@ -35,3 +35,12 @@ jobs:
     - name: Build
       run: cmake --build build --parallel
 
+    - name: Publish release
+      if: ${{ env.publish_tag }}
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true
+        tag: ${{ env.publish_tag }}
+        artifacts: "build/bin/cod4x_*.dll"
+        token: ${{ secrets.GITHUB_TOKEN }}
+
