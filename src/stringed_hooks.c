@@ -158,7 +158,6 @@ int SEH_GetLocalizedTokenReference(char *token, const char *reference, const cha
     translation = SEH_StringEd_GetString(reference);
     if ( !translation )
     {
-        Com_PrintWarning(CON_CHANNEL_SYSTEM, "WARNING: Could not translate part of %s: \"%s\"\n", messageType, reference);
         Com_sprintf(tmpbuf, sizeof(tmpbuf), "%s", reference);
         if ( errType == LOCMSG_NOERR )
         {
