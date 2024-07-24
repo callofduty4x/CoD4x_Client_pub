@@ -2,11 +2,12 @@ name: build
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - '*'
   pull_request:
     branches:
-      - main
+      - master
+      - develop
 
 jobs:
   linux:
@@ -36,11 +37,11 @@ jobs:
       run: cmake --build build --parallel
 
     - name: Publish release
-      if: ${{ env.publish_tag }}
+      if: startsWith(github.ref, 'refs/tags/')
       uses: ncipollo/release-action@v1
       with:
         allowUpdates: true
-        tag: ${{ env.publish_tag }}
+        tag: ${{ github.ref_name }}
         artifacts: "build/bin/cod4x_*.dll"
         token: ${{ secrets.GITHUB_TOKEN }}
 
