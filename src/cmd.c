@@ -201,7 +201,7 @@ qboolean Cmd_IsWhiteSpaceChar(char c)
 {
 	if ( c == '\x14' || c == '\x15' || c == '\x16' || c == '\0' )
 		return 0;
-    
+
 	return (uint8_t)c <= (uint8_t)' ';
 }
 
@@ -364,23 +364,12 @@ void Cmd_TokenizeStringWithLimit(const char *line, unsigned int limit)
 
 void Cmd_EndTokenizedStringKernel(struct CmdArgsPrivate *argsPriv, struct CmdArgs *args)
 {
-  //AssertCmdArgsConsistency(args);
   if ( args->nesting != -1 )
   {
-/*    if ( args->nesting >= 8u
-      && !Assert_MyHandler(
-            __FILE__, __LINE__, 0,
-            "args->nesting doesn't index CMD_MAX_NESTING\n\t%i not in [0, %i)",
-            args->nesting,
-            8) )
-    {
-      __debugbreak();
-    }*/
     argsPriv->totalUsedArgvPool -= args->argc[args->nesting];
     argsPriv->totalUsedArgvPool -= args->argshift[args->nesting];
     argsPriv->totalUsedTextPool -= argsPriv->usedTextPool[args->nesting];
 	args->nesting--;
-    //AssertCmdArgsConsistency(args);
   }
 }
 
@@ -389,18 +378,6 @@ struct CmdArgs * Cmd_Args()
   struct CmdArgs *cmd_args; // [sp+0h] [bp-4h]@1
 
   cmd_args = &tokenStrings;
-/*
-  cmd_args = (CmdArgs *)Sys_GetValue(4);
-  if ( !cmd_args
-    && !(unsigned __int8)Assert_MyHandler(
-                           "c:\\projects_pc\\cod\\codsrc\\src\\bgame\\../qcommon/cmd.h",
-                           203,
-                           0,
-                           "%s",
-                           "cmd_args != NULL") )
-  {
-    __debugbreak();
-  }*/
   return cmd_args;
 }
 
@@ -410,18 +387,6 @@ struct CmdArgsPrivate* Cmd_ArgsPrivate()
   struct CmdArgsPrivate *cmd_argspriv; // [sp+0h] [bp-4h]@1
 
   cmd_argspriv = &tokenbuf;
-/*
-  cmd_args = (CmdArgs *)Sys_GetValue(4);
-  if ( !cmd_args
-    && !(unsigned __int8)Assert_MyHandler(
-                           "c:\\projects_pc\\cod\\codsrc\\src\\bgame\\../qcommon/cmd.h",
-                           203,
-                           0,
-                           "%s",
-                           "cmd_args != NULL") )
-  {
-    __debugbreak();
-  }*/
   return cmd_argspriv;
 }
 

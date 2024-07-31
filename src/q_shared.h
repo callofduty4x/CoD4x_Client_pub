@@ -2191,39 +2191,27 @@ typedef struct
   byte pad0[3];
 }vidConfig_t;
 
-
-
-
-
 #ifdef __cplusplus
 #define ASSERT_HALT() (std::abort())
 #else
 #define ASSERT_HALT() (abort())
 #endif
 
-
-//qboolean Assert_MyHandler(const char* exp, const char *filename, int line, const char *function, const char *fmt, ...);
-qboolean Assert_MyHandler(const char *filename, int line, int type, const char *fmt, ...);
-
 #define assert ASSERT
 #define assertx XASSERT
-//#define ASSERT_HANDLER(x, f, l, fu, ...) (Assert_MyHandler(x, f, l, fu, __VA_ARGS__))
-#define ASSERT_HANDLER(x, f, l, fu, ...) (Assert_MyHandler(f, l, 0, __VA_ARGS__))
+#define ASSERT_HANDLER(...)
 
 #ifdef NDEBUG
 #define XASSERT(x, ...)
 #define ASSERT(x)
 
 #else
-#define XASSERT(x, ...) (!(x) && ASSERT_HANDLER(#x, __FILE__, __LINE__, __func__, __VA_ARGS__) && (ASSERT_HALT(), 1))
-#define ASSERT(x) XASSERT(x, NULL)
+#define XASSERT(x, ...)
+#define ASSERT(x)
 
 #endif
 
 unsigned int __cdecl RandWithSeed(int *seed);
-
-
-
 
 typedef struct {
     byte *buffer;

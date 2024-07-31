@@ -800,7 +800,6 @@ void __cdecl Com_Init_Try_Block(char* commandLine){
 
 	CL_InitKeyCommands();
 	FS_InitFilesystem();
-	Sys_SetupCrashReporter();
 	Con_InitChannels();
 	LiveStorage_Init();
 

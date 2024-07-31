@@ -196,7 +196,6 @@ void Sys_RegisterDemoExt( );
 
 void sub_477210();
 void Sys_GetLastErrorAsString(char* errbuf, int len);
-void Sys_SetupCrashReporter();
 int Sys_WriteAnticheatFile(byte* data, int len);
 void Sys_LoadAnticheat();
 void Sys_UnloadAnticheat();
