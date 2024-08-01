@@ -4,7 +4,6 @@
 #include "server.h"
 #include "win_sys.h"
 #include "ui_shared.h"
-#include "sec_common.h"
 #include "cl_input.h"
 
 #include <stdarg.h>
@@ -782,7 +781,6 @@ void __cdecl Com_Init_Try_Block(char* commandLine){
 	Cmd_Init();
 	Com_StartupVariable(0);
 	Com_InitDvars();
-	Sec_Init();
 
 	CCS_InitConstantConfigStrings();
 
@@ -882,12 +880,8 @@ void __cdecl Com_Init_Try_Block(char* commandLine){
 		SND_Init();
 		//Sys_ShowConsole(0 , qfalse);
 	}
-
-	if(!Sys_IsTempInstall())
-	{
-		Sys_RegisterCoD4Protocol();
-		Sys_RegisterDemoExt( );
-	}
+    Sys_RegisterCoD4Protocol();
+    Sys_RegisterDemoExt( );
 
 	Play_Intro();
 

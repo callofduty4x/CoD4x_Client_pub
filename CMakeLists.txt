@@ -28,14 +28,7 @@ add_library(cod4x SHARED
     src/phys.c
     src/com_findxassets.c
     src/win_gqos.c
-    src/sec_common.c
-    src/sec_crypto.c
-    src/sec_init.c
-    src/sec_sign.c
-    src/sec_rsa_functions.c
     src/net_reliabletransport.c
-    src/ui/cod4xupdate_pop.menu.c
-    src/ui/cod4x_auconfirm.menu.c
     src/cl_console.c
     src/cl_keys.c
     src/r_main.c
@@ -80,7 +73,6 @@ add_library(cod4x SHARED
 
     src/callbacks.asm
     src/client_callbacks.asm
-    src/mss32jumptable.asm
     src/fsdword.asm
 )
 

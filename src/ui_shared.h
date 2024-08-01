@@ -120,7 +120,7 @@ typedef enum
   UIMENU_SCRIPT_POPUP = 0x6,
   UIMENU_UNK1 = 7,
   UIMENU_UNK2 = 8,
-  UIMENU_UNK3 = 9,  
+  UIMENU_UNK3 = 9,
   UIMENU_SCOREBOARD,
   UIMENU_SPLITSCREENGAMESETUP,
   UIMENU_SYSTEMLINKJOINGAME,
@@ -329,8 +329,6 @@ int UI_TextWidth(const char* text, int maxChars, Font_t *font, float scale);
 int UI_TextHeight(Font_t *font, float scale);
 int __cdecl sub_554400(UiContext_t *dc, menuDef_t *menu);
 void __cdecl sub_54C110(int localClientNum, menuDef_t *menu, const char *a3, int a4);
-void UI_OpenAutoUpdateConfirmMenu();
-void UI_OpenInstallConfirmMenu();
 void UI_DrawHandlePic(ScreenPlacement *place, float x, float y, float w, float h, int horzAlign, int vertAlign, float *color, Material *material);
 void UI_BinaryServerInsertion(int i);
 void UI_DrawTTFText(const ScreenPlacement *scrPlace, const char *text, int maxChars, Font_t *font, float ix, float iy, int horzAlign, int vertAlign, float scale, const float *color, int style);

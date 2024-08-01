@@ -13,8 +13,6 @@
 
 cvar_t	*ui_debug;
 
-void Sys_InstallCoD4X_f();
-
 uiMenuCommand_t UI_GetActiveMenu()
 {
 	return uiMem.uiInfo.currentMenuType;
@@ -578,12 +576,6 @@ void UI_RunMenuScript(int localClientNum, char **args, const char* actualScript)
     Menus_CloseAll(&uiMem.uiInfo.uiDC);
     return;
   }
-  if ( !Q_stricmp(parseStr, "installcod4x") )
-  {
-    Menus_CloseAll(&uiMem.uiInfo.uiDC);
-    Sys_InstallCoD4X_f();
-	return;
-  }
   Com_Printf(CON_CHANNEL_UI, "unknown UI script %s in script:\n%s\n", parseStr, actualScript);
 }
 
@@ -755,7 +747,6 @@ commandDef_t commandList[] =
 	{"statclearperknew", (commandDefHCast)0x54cee0},
 	{"statsetusingtable", (commandDefHCast)0x54c940},
 	{"statclearbitmask", (commandDefHCast)0x54d060},
-	{"getautoupdate", (commandDefHCast)CL_GetAutoUpdate}
 };
 
 
@@ -850,12 +841,7 @@ void UI_DrawBuildString( )
   ypos = uiMem.ui_buildLocation->vec2[1];
   xpos = uiMem.ui_buildLocation->vec2[0];
   ypos -= 5.0;
-#ifdef BETA_RELEASE
-  xpos -= 20.0;
-  Com_sprintf(buildString, sizeof(buildString), "%s Beta", UPDATE_VERSION);
-#else
   Com_sprintf(buildString, sizeof(buildString), "%s", UPDATE_VERSION);
-#endif
   UI_DrawText(&scrPlaceView[ctx], buildString, 64, font, xpos, ypos, 3, 0, fontscale, colorMdGrey, 0);
 
   ypos += UI_TextHeight(font, fontscale);
@@ -1150,12 +1136,6 @@ void UI_RegisterCvars()
   {
 	Cmd_AddCommand("printOpenMenuNames", UI_DumpOpenMenuNames_f);
   }
-  //On possible 1st run reset this variable to -1 from the default 0 setting
-  if(Sys_IsTempInstall())
-  {
-	Cvar_SetInt(uiMem.ui_browserMod, -1);
-  }
-
 }
 
 
@@ -1402,22 +1382,7 @@ void UI_CloseAllMenusInternal(int localclientnum)
 void UI_CloseAllMenus()
 {
   UI_CloseAllMenusInternal(0);
-
 }
-
-
-
-
-void UI_OpenAutoUpdateConfirmMenu()
-{
-	Menus_Open(&uiMem.uiInfo.uiDC, UI_AutoUpdateConfirmMenu( ));
-}
-
-void UI_OpenInstallConfirmMenu()
-{
-	Menus_Open(&uiMem.uiInfo.uiDC, UI_InstallMenu(Cmd_Argv(1)));
-}
-
 
 void UI_DrawText(const ScreenPlacement *scrPlace, const char *text, int maxChars, Font_t *font, float ix, float iy, int horzAlign, int vertAlign, float scale, const float *color, int style)
 {
@@ -2113,7 +2078,7 @@ void __cdecl UI_SetSystemCursorPos(float x, float y)
   xs = ScrPlace_HiResGetScale() * x * scrPlaceFull.scaleVirtualToFull[0];
 
   ys = ScrPlace_HiResGetScale() * y * scrPlaceFull.scaleVirtualToFull[1];
- 
+
   CL_SetCursorPos((signed int)floor(xs + 0.5), (signed int)floor(ys + 0.5));
 }
 

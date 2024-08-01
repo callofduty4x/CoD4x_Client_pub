@@ -73,32 +73,6 @@ void SetJump(DWORD addr, void* destination){
 	WriteSymbolRel((DWORD)baddr, destination);
 }
 
-
-
-qboolean Patch_isiw3mp()
-{
-
-	DWORD cmp1 = *((DWORD*)(0x6748ce));
-	DWORD cmp2 = *((DWORD*)(0x6748d2));
-
-	if(cmp1 == 0xf02c7de8 && cmp2 == 0xe44589ff)
-		return qtrue;
-
-	return qfalse;
-}
-
-qboolean Patch_isiw3sp()
-{
-	DWORD cmp1 = *((DWORD*)(0x410000));
-	DWORD cmp2 = *((DWORD*)(0x410004));
-	if(cmp1 == 0xbd2e1853 && cmp2 == 0x9972c157)
-	{
-		return qtrue;
-	}
-
-	return qfalse;
-}
-
 void Patch_WinMainEntryPoint(){
 
 	SetCall(0x6748ce, WinMain);

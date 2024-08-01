@@ -873,8 +873,6 @@ qboolean Sys_CopyFileUni(wchar_t* fromOSPath, wchar_t* toOSPath);
 
 void* __cdecl Z_Malloc(int bytes);
 void __cdecl Z_Free(void* ptr);
-void Sys_RunUpdater(  );
-void Sys_SetupUpdater(  );
 int __cdecl SL_GetStringOfSize(const char *string, int, unsigned int len);
 void __cdecl SL_RemoveRefToString(unsigned int index);
 int __cdecl SL_FindString(const char *string);
@@ -916,20 +914,9 @@ void R_InitSystems();
 void R_FatalError(const char*);
 void Con_DrawConsole();
 void Com_BuildVersionString(char* buf, int size);
-qboolean Sys_IsTempInstall();
 const char* __cdecl SEH_SafeTranslateString(const char *string);
 const char * __cdecl UI_ReplaceConversionString(const char *a1, const char *a2);
 
-
-#define cod4xpem "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwu8nEsLD4sTP+Py30Fnq\
-UOlgZZrGb7aIiQhn8iXAXXuhLC0pKOQ2drq3KWMbHeiNSAaxI2TGRirYCiZETnkX\
-WCt0NxvrGtbvbsDHBaVju/5X9CiyJBFr+YFhZ8RK/UH8KxMqIAlvN5f3H30rPqwB\
-QlI+scIXp5ZrFt97zaYw4czpWod4iZVm4O8fNJJAFq9qR2yxVyKaP7DZr3wZEt1+\
-WJrOmkWPYkNC/YC1qnY35ubDAS7vZPvPtmw4oeJKSsTFwR5ddKMiLvPzRW3KgpT1\
-B4zHBTO1xOKTYvEQqJqspz1ELUeSPemEYmZEZdakVLDKyzPZ5+a0WR4q3pDtmrZG\
-KwIDAQAB"
-
-qboolean Sec_VerifyMemory(const char* expectedb64hash, void* memory, int lenmem, const char *pemcert);
 void R_SetDirect3DCreate9Func(void* farproc);
 void Sys_CleanUpNvd3d9Wrap();
 

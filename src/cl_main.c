@@ -12,10 +12,11 @@
 #include "crc.h"
 #include "xzone.h"
 #include "keys.h"
-#include "sec_crypto.h"
 #include "discord-rpc/discord_rpc.h"
 #include "discord-rpc/discord_register.h"
 #include "r_shared.h"
+
+#include "tomcrypt/tomcrypt.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -50,7 +51,6 @@ byte *mutedClients = (byte*)0xe11518;
 int authRequestTime;
 static netadr_t rcondst;
 static int wwwDownloadInProgress;
-qboolean autoupdateDownloaded;
 qboolean xassetlimitchanged;
 
 cvar_t *cl_noprint;
@@ -94,10 +94,6 @@ cvar_t *cl_motdString;
 cvar_t *cl_ingame;
 cvar_t *cl_name;
 cvar_t *cl_nextdemo;
-cvar_t *cl_updateavailable;
-cvar_t *cl_updatefiles;
-cvar_t *cl_updateoldversion;
-cvar_t *cl_updateversion;
 cvar_t *motd;
 cvar_t *cl_vehDriverViewHeightMin;
 cvar_t *cl_vehDriverViewHeightMax;
@@ -108,7 +104,6 @@ cvar_t *g_gametype;
 cvar_t *cl_replacementDlList;
 cvar_t *sv_masterservers;
 cvar_t *cl_password;
-cvar_t *cl_updateservers;
 cvar_t *cl_cod4xsitedom;
 cvar_t *cl_filterlisturl;
 
@@ -265,10 +260,6 @@ void CL_CopyCvars()
 	*(cvar_t**)0x0C5F8F0 = cl_ingame;
 	*(cvar_t**)0x0C5F908 = cl_name;
 	*(cvar_t**)0x956D78 = cl_nextdemo;
-	*(cvar_t**)0x0C5F924 = cl_updateavailable;
-	*(cvar_t**)0x0C5F8BC = cl_updatefiles;
-	*(cvar_t**)0x0C5F928 = cl_updateoldversion;
-	*(cvar_t**)0xC5F920 = cl_updateversion;
 	*(cvar_t**)0x956D04 = motd;
 	*(cvar_t**)0x0CAE61F0 = cl_vehDriverViewHeightMin;
 	*(cvar_t**)0x0CB0CC84 = cl_vehDriverViewHeightMax;
@@ -1049,11 +1040,6 @@ void CL_InitOnceForAllClients(){
   Cvar_RegisterBool("hud_enable", 1, 1, "Enable the HUD display");
   Cvar_RegisterBool("cg_blood", 1, 1, "Show blood");
   cl_demoplaying = Cvar_RegisterBool("cl_demoplaying", qfalse, CVAR_ROM, "State of demo playback");
-  cl_updateavailable = Cvar_RegisterBool("cl_updateavailable", 0, CVAR_ROM, "Enable the HUD display");
-  cl_updatefiles = Cvar_RegisterString("cl_updatefiles", "", CVAR_ROM, "The file that is being updated");
-  cl_updateoldversion = Cvar_RegisterString("cl_updateoldversion", "", CVAR_ROM, "The version before update");
-  cl_updateversion = Cvar_RegisterString("cl_updateversion", "", CVAR_ROM, "The updated version");
-  cl_updateservers = Cvar_RegisterString("cl_updateservers", "", 0, "Update server list.");
   cl_cod4xsitedom = Cvar_RegisterString("cl_cod4xsitedom", "none", 0, "name of website");
   cl_filterlisturl = Cvar_RegisterString("cl_filterlisturl", "", 0, "name of filterlist");
 
@@ -1169,20 +1155,6 @@ Cmd_AddCommand("openmenu", CL_OpenMenuByName_f);
 
 
 }
-
-void CL_RunInstallMenu_f()
-{
-	Cmd_RemoveCommand("cod4xupdate");
-
-	if(Cmd_Argc() != 2)
-	{
-		return;
-	}
-
-	UI_OpenInstallConfirmMenu();
-
-}
-
 
 void CL_TryDownloadAndExecGlobalConfig()
 {
@@ -1301,27 +1273,6 @@ void CL_ExecutePostInstallCommands()
 	return;
   }
   FS_FCloseFile(fp);
-
-#ifndef BETA_RELEASE
-  if(Sys_IsTempInstall())
-  {
-	//Just parse the connect address out and load + open the menu
-	Cmd_TokenizeString(buf);
-	for(i = 0; i+1 < Cmd_Argc(); ++i)
-	{
-		if(!Q_stricmp(Cmd_Argv(i), "connect"))
-		{
-			break;
-		}
-	}
-	Cmd_AddCommand("cod4xupdate", CL_RunInstallMenu_f);
-	Com_sprintf(menuconnectcmd, sizeof(menuconnectcmd), "wait 10;cod4xupdate %s\n", Cmd_Argv(i+1));
-	Cbuf_AddText( menuconnectcmd );
-	Cmd_EndTokenizedString();
-	free(buf);
-	return;
-  }
-#endif
 
   Com_Printf(CON_CHANNEL_SYSTEM ,"execing post installation config\n");
   Cbuf_AddText(buf);
@@ -4013,14 +3964,6 @@ void CL_AwaitingAuthPacket( netadr_t *from )
 	Special string for version mismatch at cod4x18:
 	{ OOBErrorParser protocolmismatch cod4version protocol }
 */
-void CL_OpenAuConfirmMenu_f()
-{
-	Cmd_RemoveCommand("openauconfirmmenu");
-	Cvar_Set("cl_updatenote", "The server you attempted to join requires a newer version of CoD4X. Do you want to update your game now?");
-	UI_OpenAutoUpdateConfirmMenu();
-
-}
-
 qboolean CL_OOBErrorParser(char* string)
 {
 	char* start;
@@ -4053,37 +3996,17 @@ qboolean CL_OOBErrorParser(char* string)
 		return 0;
 	}
 
-	if(Cmd_Argc() == 4 && Q_stricmp(Cmd_Argv(1), "protocolmismatch") == 0 && cl_updateavailable && cl_updateavailable->boolean && cl_updateversion)
-	{
-		int requestedProtocol;
-		float updateVersion;
-		unsigned int updateProtocol;
-
-		requestedProtocol = atoi(Cmd_Argv(3));
-		updateVersion = atof(cl_updateversion->string);
-		updateProtocol = (unsigned int)(updateVersion + 0.000001);
-
-		if(requestedProtocol == updateProtocol)
-		{
-			CL_Disconnect( );
-			Cbuf_AddText("wait 5;openauconfirmmenu\n");
-			Cmd_AddCommand("openauconfirmmenu", CL_OpenAuConfirmMenu_f);
-			Cmd_EndTokenizedString();
-			return 1;
-		}
-
-	}
-#ifdef BETA_RELEASE
-	else if(Cmd_Argc() == 4 && Q_stricmp(Cmd_Argv(1), "protocolmismatch") == 0)
-	{
-		Com_Error(ERR_DROP, "You are running a beta release of CoD4X18 but attempting to connect to a non beta server.\nSorry this is not possible\n");
-	}
-#endif
-	else if(Cmd_Argc() >= 1 && Q_stricmp(Cmd_Argv(1), "steamonly"))
-	{
-		Com_PrintError(CON_CHANNEL_ERROR, "You need to have Steam running to join this server\n");
-		//ToDo Open a new menu asking to download and install Steam or launch it if installed
-	}
+    if(Cmd_Argc() >= 1)
+    {
+        if(Q_stricmp(Cmd_Argv(1), "protocolmismatch") == 0)
+        {
+            Com_PrintError(CON_CHANNEL_ERROR, "You need to update to a newer CoD4x version to join this server\n");
+        }
+        else if(Q_stricmp(Cmd_Argv(1), "steamonly"))
+        {
+            Com_PrintError(CON_CHANNEL_ERROR, "You need to have Steam running to join this server\n");
+        }
+    }
 	Cmd_EndTokenizedString();
 	return 0;
 }
@@ -4918,81 +4841,9 @@ int CL_ReceiveContentFromServerInBuffer(const char* url, byte* updateinfodata, i
 // DHM - Nerve
 void CL_GetUpdateInfo()
 {
-	int validServerNum = 0;
-	int i = 0;
-	char url[1024];
-	char updateHash[1024];
-	char updateFiles[1024];
-	char updateFilesCvar[1024];
-	char updateinfodata[32768];
-	float remoteVersion, localVersion;
-	char updateVersionStr[1024];
-	char infobuf[BIG_INFO_STRING];
-	char tokenbuffer[1024];
-	char *savept;
-
-	updateinfodata[0] = 0;
-
-
-	Com_DPrintf(CON_CHANNEL_SYSTEM, "Resolving AutoUpdate Server... \n");
-
-	// Find out how many update servers have valid DNS listings
-
-	Q_strncpyz(tokenbuffer, cl_updateservers->string, sizeof(tokenbuffer));
-
-	char* tokstart;
-
-	unsigned int numupdateserver;
-
-	for(tokstart = tokenbuffer, numupdateserver = 0; strtok_r(tokstart, " ", &savept); tokstart = NULL, ++numupdateserver);
-
-	for (i = 0, tokstart = tokenbuffer; i < numupdateserver; i++, tokstart = NULL )
-	{
-
-		Com_sprintf(url, sizeof(url), "%s?mode=0", strtok_r(tokstart, " ", &savept));
-
-		if(CL_ReceiveContentFromServerInBuffer(url, (byte*)updateinfodata, sizeof(updateinfodata)) > 0)
-		{
-			validServerNum++;
-			break;
-		}
-	}
-
-	if(!validServerNum)
-	{
-		Com_DPrintf(CON_CHANNEL_SYSTEM, "Couldn't resolve an AutoUpdate Server address.\n");
-		autoupdateChecked = qtrue;
-		return;
-	}
-	if(i == MAX_UPDATE_SERVERS)
-	{
-		Com_DPrintf(CON_CHANNEL_SYSTEM, "Couldn't get info from AutoUpdate Server.\n");
-		return;
-	}
-
-	Q_strncpyz(updateVersionStr, BigInfo_ValueForKey_tsInternal(updateinfodata, "version", infobuf), sizeof(updateVersionStr));
-	Q_strncpyz(updateHash, BigInfo_ValueForKey_tsInternal(updateinfodata, "hash", infobuf), sizeof(updateHash));
-	Q_strncpyz(updateFiles, BigInfo_ValueForKey_tsInternal(updateinfodata, "url", infobuf), sizeof(updateFiles));
-	Com_sprintf(updateFilesCvar, sizeof(updateFilesCvar), "%s %s", updateFiles, updateHash);
-	remoteVersion = atof(updateVersionStr);
-	localVersion = atof(UPDATE_VERSION);
-
-	Sys_EnterGlobalCriticalSection();
-
-	if(localVersion + 0.0001 < remoteVersion){
-		Cvar_SetBool( cl_updateavailable, 1);
-	}else{
-		Cvar_SetBool( cl_updateavailable, 0);
-	}
-
-	Cvar_SetString( cl_updatefiles, updateFilesCvar);
-	Cvar_SetString( cl_updateversion, updateVersionStr );
-	Cvar_SetString( cl_updateoldversion, UPDATE_VERSION );
-
 	Sys_LeaveGlobalCriticalSection();
 
 	autoupdateChecked = qtrue;
-
 }
 
 #define MAX_FILTER_SERVERS 4
@@ -5134,7 +4985,6 @@ void CL_DownloadLatestConfigurations()
 	CL_GetFilterList();
 
 	Cvar_AddFlags(cl_cod4xsitedom, CVAR_ROM);
-	Cvar_AddFlags(cl_updateservers, CVAR_ROM);
 	Cvar_AddFlags(cl_filterlisturl, CVAR_ROM);
 
 }
@@ -7026,16 +6876,6 @@ void CL_WWWDownloadStop()
 	filetransferobj = NULL;
 }
 
-
-void CL_AutoUpdateStartup()
-{
-	autoupdateDownloaded = qtrue;
-	Sys_SetupUpdater( "1" );
-	Cbuf_AddText("quit\n");
-	clientUIActives.state = CA_DISCONNECTED;
-}
-
-
 gameState_t extGameState;
 
 /*
@@ -7065,57 +6905,6 @@ const char* CL_GetConfigString( int index ) {
 	}
 	return extGameState.stringData + offset;
 }
-
-
-void CL_GetAutoUpdate( void ) {
-	// Don't try and get an update if we haven't checked for one
-	if ( !autoupdateChecked || !cl_updateavailable->boolean) {
-		return;
-	}
-
-	Com_DPrintf(CON_CHANNEL_SYSTEM, "Connecting to auto-update server...\n" );
-
-	SND_StopSounds(0); // NERVE - SMF
-
-	// clear any previous "server full" type messages
-	clc.serverMessage[0] = 0;
-
-	if ( com_sv_running->integer ) {
-		// if running a local server, kill it
-		SV_Shutdown( "Server quit\n" );
-	}
-
-	// make sure a local server is killed
-	SV_KillLocalServer( );
-	//Cvar_SetBool( sv_killserver, 1 );
-
-	cl_serverLoadingMap = 0;
-	g_waitingForServer = 0;
-	FS_DisablePureCheck( qtrue );
-
-	SV_Frame( 0 );
-
-	CL_Disconnect( );
-	Con_Close( 0 );
-
-	// Copy auto-update server address to Server connect address
-	clc.serverAddress.type = NA_BAD;
-
-	clientUIActives.state = CA_DISCONNECTED;
-	autoupdateStarted = qtrue;
-
-
-	UI_CloseAllMenusInternal(0);
-	Scr_UpdateLoadScreen();
-
-	CL_AutoUpdateStartup();
-
-}
-
-
-
-
-
 
 /*
 =======================================================================

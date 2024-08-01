@@ -25,12 +25,6 @@
 #define con_miniconlines getcvaradr(0x08F141C)
 extern cvar_t *cl_bypassMouseInput;
 extern cvar_t *cl_cod4xsitedom;
-#define AUTOUPDATEINSTALLER "cod4update.dl_"
-
-extern char autoupdateFilename[MAX_STRING_CHARS];
-extern qboolean autoupdateDownloaded;
-
-
 
 struct field_t
 {
@@ -647,7 +641,6 @@ int CL_WWWDownloadLoop( );
 void CL_WWWDownload();
 void CL_ParseSnapshot( msg_t *msg );
 void CL_ParseGamestate( int, msg_t *msg );
-void CL_GetAutoUpdate( void );
 void CL_PlayDemo( const char* arg, qboolean timedemo, qboolean longpath );
 void CL_ReadDemoMessage( );
 void CL_ReadDemoData( int );

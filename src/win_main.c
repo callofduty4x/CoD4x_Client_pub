@@ -22,6 +22,10 @@
 #define sys_processSemaphoreFile (char*)(0xCC15FE4)
 #define localization (*((localization_t*)(0xCC147D4)))
 
+// Called from launcher
+__declspec(dllexport) const char* QDECL GetCoD4xVersion(void) {
+    return UPDATE_VERSION_NUM;
+}
 
 DWORD *threadHandles = (DWORD *)0x14E89A8; //array of 12
 
@@ -295,407 +299,6 @@ void Sys_CreateMainWindowClass(){
 	}
 }
 
-char* mss32importnames[] = {
-	"AIL_debug_printf",
-	"AIL_sprintf",
-	"DLSClose",
-	"DLSCompactMemory",
-	"DLSGetInfo",
-	"DLSLoadFile",
-	"DLSLoadMemFile",
-	"DLSMSSOpen",
-	"DLSSetAttribute",
-	"DLSUnloadAll",
-	"DLSUnloadFile",
-	"RIB_alloc_provider_handle",
-	"RIB_enumerate_interface",
-	"RIB_error",
-	"RIB_find_file_provider",
-	"RIB_free_provider_handle",
-	"RIB_free_provider_library",
-	"RIB_load_provider_library",
-	"RIB_register_interface",
-	"RIB_request_interface",
-	"RIB_request_interface_entry",
-	"RIB_type_string",
-	"RIB_unregister_interface",
-	"_AIL_3D_distance_factor@4",
-	"_AIL_3D_doppler_factor@4",
-	"_AIL_3D_rolloff_factor@4",
-	"_AIL_DLS_close@8",
-	"_AIL_DLS_compact@4",
-	"_AIL_DLS_get_info@12",
-	"_AIL_DLS_load_file@12",
-	"_AIL_DLS_load_memory@12",
-	"_AIL_DLS_open@28",
-	"_AIL_DLS_sample_handle@4",
-	"_AIL_DLS_unload@8",
-	"_AIL_HWND@0",
-	"_AIL_MIDI_handle_reacquire@4",
-	"_AIL_MIDI_handle_release@4",
-	"_AIL_MIDI_to_XMI@20",
-	"_AIL_MMX_available@0",
-	"_AIL_WAV_file_write@20",
-	"_AIL_WAV_info@8",
-	"_AIL_XMIDI_master_volume@4",
-	"_AIL_active_sample_count@4",
-	"_AIL_active_sequence_count@4",
-	"_AIL_allocate_sample_handle@4",
-	"_AIL_allocate_sequence_handle@4",
-	"_AIL_auto_service_stream@8",
-	"_AIL_background@0",
-	"_AIL_background_CPU_percent@0",
-	"_AIL_branch_index@8",
-	"_AIL_calculate_3D_channel_levels@56",
-	"_AIL_channel_notes@8",
-	"_AIL_close_XMIDI_driver@4",
-	"_AIL_close_digital_driver@4",
-	"_AIL_close_filter@4",
-	"_AIL_close_input@4",
-	"_AIL_close_stream@4",
-	"_AIL_compress_ADPCM@12",
-	"_AIL_compress_ASI@20",
-	"_AIL_compress_DLS@20",
-	"_AIL_controller_value@12",
-	"_AIL_create_wave_synthesizer@16",
-	"_AIL_decompress_ADPCM@12",
-	"_AIL_decompress_ASI@24",
-	"_AIL_delay@4",
-	"_AIL_destroy_wave_synthesizer@4",
-	"_AIL_digital_CPU_percent@4",
-	"_AIL_digital_configuration@16",
-	"_AIL_digital_driver_processor@8",
-	"_AIL_digital_handle_reacquire@4",
-	"_AIL_digital_handle_release@4",
-	"_AIL_digital_latency@4",
-	"_AIL_digital_master_reverb@16",
-	"_AIL_digital_master_reverb_levels@12",
-	"_AIL_digital_master_volume_level@4",
-	"_AIL_digital_output_filter@4",
-	"_AIL_end_sample@4",
-	"_AIL_end_sequence@4",
-	"_AIL_enumerate_MP3_frames@4",
-	"_AIL_enumerate_filter_properties@12",
-	"_AIL_enumerate_filter_sample_properties@12",
-	"_AIL_enumerate_filters@12",
-	"_AIL_enumerate_output_filter_driver_properties@12",
-	"_AIL_enumerate_output_filter_sample_properties@12",
-	"_AIL_enumerate_sample_stage_properties@16",
-	"_AIL_extract_DLS@28",
-	"_AIL_file_error@0",
-	"_AIL_file_read@8",
-	"_AIL_file_size@4",
-	"_AIL_file_type@8",
-	"_AIL_file_type_named@12",
-	"_AIL_file_write@12",
-	"_AIL_filter_DLS_with_XMI@24",
-	"_AIL_filter_property@20",
-	"_AIL_find_DLS@24",
-	"_AIL_find_filter@8",
-	"_AIL_ftoa@4",
-	"_AIL_get_DirectSound_info@12",
-	"_AIL_get_input_info@4",
-	"_AIL_get_preference@4",
-	"_AIL_get_timer_highest_delay@0",
-	"_AIL_init_sample@12",
-	"_AIL_init_sequence@12",
-	"_AIL_inspect_MP3@12",
-	"_AIL_last_error@0",
-	"_AIL_list_DLS@20",
-	"_AIL_list_MIDI@20",
-	"_AIL_listener_3D_orientation@28",
-	"_AIL_listener_3D_position@16",
-	"_AIL_listener_3D_velocity@16",
-	"_AIL_listener_relative_receiver_array@8",
-	"_AIL_load_sample_attributes@8",
-	"_AIL_load_sample_buffer@16",
-	"_AIL_lock@0",
-	"_AIL_lock_channel@4",
-	"_AIL_lock_mutex@0",
-	"_AIL_map_sequence_channel@12",
-	"_AIL_mem_alloc_lock@4",
-	"_AIL_mem_free_lock@4",
-	"_AIL_mem_use_free@4",
-	"_AIL_mem_use_malloc@4",
-	"_AIL_merge_DLS_with_XMI@16",
-	"_AIL_midiOutClose@4",
-	"_AIL_midiOutOpen@12",
-	"_AIL_minimum_sample_buffer_size@12",
-	"_AIL_ms_count@0",
-	"_AIL_open_XMIDI_driver@4",
-	"_AIL_open_digital_driver@16",
-	"_AIL_open_filter@8",
-	"_AIL_open_input@4",
-	"_AIL_open_stream@12",
-	"_AIL_output_filter_driver_property@20",
-	"_AIL_pause_stream@8",
-	"_AIL_platform_property@20",
-	"_AIL_primary_digital_driver@4",
-	"_AIL_process_digital_audio@24",
-	"_AIL_quick_copy@4",
-	"_AIL_quick_halt@4",
-	"_AIL_quick_handles@12",
-	"_AIL_quick_load@4",
-	"_AIL_quick_load_and_play@12",
-	"_AIL_quick_load_mem@8",
-	"_AIL_quick_load_named_mem@12",
-	"_AIL_quick_ms_length@4",
-	"_AIL_quick_ms_position@4",
-	"_AIL_quick_play@8",
-	"_AIL_quick_set_low_pass_cut_off@8",
-	"_AIL_quick_set_ms_position@8",
-	"_AIL_quick_set_reverb_levels@12",
-	"_AIL_quick_set_speed@8",
-	"_AIL_quick_set_volume@12",
-	"_AIL_quick_shutdown@0",
-	"_AIL_quick_startup@20",
-	"_AIL_quick_status@4",
-	"_AIL_quick_type@4",
-	"_AIL_quick_unload@4",
-	"_AIL_redbook_close@4",
-	"_AIL_redbook_eject@4",
-	"_AIL_redbook_id@4",
-	"_AIL_redbook_open@4",
-	"_AIL_redbook_open_drive@4",
-	"_AIL_redbook_pause@4",
-	"_AIL_redbook_play@12",
-	"_AIL_redbook_position@4",
-	"_AIL_redbook_resume@4",
-	"_AIL_redbook_retract@4",
-	"_AIL_redbook_set_volume_level@8",
-	"_AIL_redbook_status@4",
-	"_AIL_redbook_stop@4",
-	"_AIL_redbook_track@4",
-	"_AIL_redbook_track_info@16",
-	"_AIL_redbook_tracks@4",
-	"_AIL_redbook_volume_level@4",
-	"_AIL_register_EOB_callback@8",
-	"_AIL_register_EOS_callback@8",
-	"_AIL_register_ICA_array@8",
-	"_AIL_register_SOB_callback@8",
-	"_AIL_register_beat_callback@8",
-	"_AIL_register_event_callback@8",
-	"_AIL_register_falloff_function_callback@8",
-	"_AIL_register_prefix_callback@8",
-	"_AIL_register_sequence_callback@8",
-	"_AIL_register_stream_callback@8",
-	"_AIL_register_timbre_callback@8",
-	"_AIL_register_timer@4",
-	"_AIL_register_trace_callback@8",
-	"_AIL_register_trigger_callback@8",
-	"_AIL_release_all_timers@0",
-	"_AIL_release_channel@8",
-	"_AIL_release_sample_handle@4",
-	"_AIL_release_sequence_handle@4",
-	"_AIL_release_timer_handle@4",
-	"_AIL_request_EOB_ASI_reset@12",
-	"_AIL_resume_sample@4",
-	"_AIL_resume_sequence@4",
-	"_AIL_room_type@4",
-	"_AIL_sample_3D_cone@16",
-	"_AIL_sample_3D_distances@16",
-	"_AIL_sample_3D_orientation@28",
-	"_AIL_sample_3D_position@16",
-	"_AIL_sample_3D_velocity@16",
-	"_AIL_sample_51_volume_levels@28",
-	"_AIL_sample_51_volume_pan@24",
-	"_AIL_sample_buffer_info@20",
-	"_AIL_sample_buffer_ready@4",
-	"_AIL_sample_channel_levels@8",
-	"_AIL_sample_exclusion@4",
-	"_AIL_sample_granularity@4",
-	"_AIL_sample_loop_block@12",
-	"_AIL_sample_loop_count@4",
-	"_AIL_sample_low_pass_cut_off@4",
-	"_AIL_sample_ms_position@12",
-	"_AIL_sample_obstruction@4",
-	"_AIL_sample_occlusion@4",
-	"_AIL_sample_playback_rate@4",
-	"_AIL_sample_position@4",
-	"_AIL_sample_processor@8",
-	"_AIL_sample_reverb_levels@12",
-	"_AIL_sample_stage_property@24",
-	"_AIL_sample_status@4",
-	"_AIL_sample_user_data@8",
-	"_AIL_sample_volume_levels@12",
-	"_AIL_sample_volume_pan@12",
-	"_AIL_save_sample_attributes@8",
-	"_AIL_send_channel_voice_message@20",
-	"_AIL_send_sysex_message@8",
-	"_AIL_sequence_loop_count@4",
-	"_AIL_sequence_ms_position@12",
-	"_AIL_sequence_position@12",
-	"_AIL_sequence_status@4",
-	"_AIL_sequence_tempo@4",
-	"_AIL_sequence_user_data@8",
-	"_AIL_sequence_volume@4",
-	"_AIL_serve@0",
-	"_AIL_service_stream@8",
-	"_AIL_set_3D_distance_factor@8",
-	"_AIL_set_3D_doppler_factor@8",
-	"_AIL_set_3D_rolloff_factor@8",
-	"_AIL_set_DirectSound_HWND@8",
-	"_AIL_set_XMIDI_master_volume@8",
-	"_AIL_set_digital_driver_processor@12",
-	"_AIL_set_digital_master_reverb@16",
-	"_AIL_set_digital_master_reverb_levels@12",
-	"_AIL_set_digital_master_volume_level@8",
-	"_AIL_set_error@4",
-	"_AIL_set_file_async_callbacks@20",
-	"_AIL_set_file_callbacks@16",
-	"_AIL_set_input_state@8",
-	"_AIL_set_listener_3D_orientation@28",
-	"_AIL_set_listener_3D_position@16",
-	"_AIL_set_listener_3D_velocity@20",
-	"_AIL_set_listener_3D_velocity_vector@16",
-	"_AIL_set_listener_relative_receiver_array@12",
-	"_AIL_set_named_sample_file@20",
-	"_AIL_set_preference@8",
-	"_AIL_set_redist_directory@4",
-	"_AIL_set_room_type@8",
-	"_AIL_set_sample_3D_cone@16",
-	"_AIL_set_sample_3D_distances@16",
-	"_AIL_set_sample_3D_orientation@28",
-	"_AIL_set_sample_3D_position@16",
-	"_AIL_set_sample_3D_velocity@20",
-	"_AIL_set_sample_3D_velocity_vector@16",
-	"_AIL_set_sample_51_volume_levels@28",
-	"_AIL_set_sample_51_volume_pan@24",
-	"_AIL_set_sample_address@12",
-	"_AIL_set_sample_adpcm_block_size@8",
-	"_AIL_set_sample_channel_levels@12",
-	"_AIL_set_sample_exclusion@8",
-	"_AIL_set_sample_file@12",
-	"_AIL_set_sample_info@8",
-	"_AIL_set_sample_loop_block@12",
-	"_AIL_set_sample_loop_count@8",
-	"_AIL_set_sample_low_pass_cut_off@8",
-	"_AIL_set_sample_ms_position@8",
-	"_AIL_set_sample_obstruction@8",
-	"_AIL_set_sample_occlusion@8",
-	"_AIL_set_sample_playback_rate@8",
-	"_AIL_set_sample_position@8",
-	"_AIL_set_sample_processor@12",
-	"_AIL_set_sample_reverb_levels@12",
-	"_AIL_set_sample_user_data@12",
-	"_AIL_set_sample_volume_levels@12",
-	"_AIL_set_sample_volume_pan@12",
-	"_AIL_set_sequence_loop_count@8",
-	"_AIL_set_sequence_ms_position@8",
-	"_AIL_set_sequence_tempo@12",
-	"_AIL_set_sequence_user_data@12",
-	"_AIL_set_sequence_volume@12",
-	"_AIL_set_speaker_configuration@16",
-	"_AIL_set_speaker_reverb_levels@16",
-	"_AIL_set_stream_loop_block@12",
-	"_AIL_set_stream_loop_count@8",
-	"_AIL_set_stream_ms_position@8",
-	"_AIL_set_stream_position@8",
-	"_AIL_set_stream_user_data@12",
-	"_AIL_set_timer_divisor@8",
-	"_AIL_set_timer_frequency@8",
-	"_AIL_set_timer_period@8",
-	"_AIL_set_timer_user@8",
-	"_AIL_shutdown@0",
-	"_AIL_size_processed_digital_audio@16",
-	"_AIL_speaker_configuration@20",
-	"_AIL_speaker_reverb_levels@16",
-	"_AIL_start_all_timers@0",
-	"_AIL_start_sample@4",
-	"_AIL_start_sequence@4",
-	"_AIL_start_stream@4",
-	"_AIL_start_timer@4",
-	"_AIL_startup@0",
-	"_AIL_stop_all_timers@0",
-	"_AIL_stop_sample@4",
-	"_AIL_stop_sequence@4",
-	"_AIL_stop_timer@4",
-	"_AIL_stream_info@20",
-	"_AIL_stream_loop_count@4",
-	"_AIL_stream_ms_position@12",
-	"_AIL_stream_position@4",
-	"_AIL_stream_sample_handle@4",
-	"_AIL_stream_status@4",
-	"_AIL_stream_user_data@8",
-	"_AIL_true_sequence_channel@8",
-	"_AIL_unlock@0",
-	"_AIL_unlock_mutex@0",
-	"_AIL_update_listener_3D_position@8",
-	"_AIL_update_sample_3D_position@8",
-	"_AIL_us_count@0",
-	"_DLSMSSGetCPU@4",
-	"_MIX_RIB_MAIN@8",
-	"_MSSDisableThreadLibraryCalls@4",
-	"_RIB_enumerate_providers@12",
-	"_RIB_find_file_dec_provider@20",
-	"_RIB_find_files_provider@20",
-	"_RIB_find_provider@12",
-	"_RIB_load_application_providers@4",
-	"_RIB_load_static_provider_library@8",
-	"_RIB_provider_system_data@8",
-	"_RIB_provider_user_data@8",
-	"_RIB_set_provider_system_data@12",
-	"_RIB_set_provider_user_data@12"
-};
-
-void* mss32importprocs[AIL_TOP_COUNT];
-static qboolean sys_tempinstall;
-
-void Sys_LoadModules(HINSTANCE hInstance){
-
-	HINSTANCE base;
-	FARPROC proc;
-	int i, copylen;
-	char moduledir[1024];
-	char mss32path[1024];
-	char miles32path[1024];
-	static qboolean loaded = qfalse;
-	char* find;
-
-	if(loaded == qtrue)
-		return;
-
-	copylen = GetModuleFileNameA(hInstance, moduledir, sizeof(moduledir));
-
-	if (copylen < 1 || strrchr(moduledir, '\\') == NULL)
-	{
-		Q_strncpyz(miles32path, "miles32.dll", sizeof(miles32path));
-		Q_strncpyz(mss32path, "mss32.dll", sizeof(mss32path));
-	} else {
-		find = strrchr(moduledir, '\\');
-		*find = '\0';
-		Com_sprintf(miles32path, sizeof(miles32path), "%s\\miles32.dll", moduledir);
-		Com_sprintf(mss32path, sizeof(mss32path), "%s\\mss32.dll", moduledir);
-	}
-
-
-	if (sys_tempinstall)
-		base = LoadLibraryA(mss32path);
-	else
-		base = LoadLibraryA(miles32path);
-
-	if(!base){
-		preInitError("Error loading module mss32.dll\n");
-	}
-	proc = GetProcAddress(base, "_AIL_set_DirectSound_HWND@8");
-
-	if(!proc)
-		preInitError("No entry point for procedure _AIL_set_DirectSound_HWND\n");
-	else{
-		mss.AIL_set_DirectSound_HWND_int = (void*)proc;
-	}
-
-	for(i = 0; i < AIL_TOP_COUNT; i++)
-	{
-		proc = GetProcAddress(base, mss32importnames[i]);
-		if(!proc)
-			preInitError(va("No entry point for procedure: %s\n", mss32importnames[i]));
-		else
-			mss32importprocs[i] = proc;
-	}
-}
-
-
 //================================================================
 
 static char exeFilename[ MAX_STRING_CHARS ] = { 0 };
@@ -937,7 +540,6 @@ const wchar_t* Sys_DllPath(wchar_t* path)
 
 char UPDATE_VERSION[64];
 char sys_restartCmdLine[4096];
-qboolean AutoupdateRequiresElevatedPermissions;
 void Sys_RestartProcessOnExit( );
 qboolean Sys_DetectNvidiaD3d9Wrap();
 
@@ -1015,8 +617,6 @@ __declspec( dllexport ) int CALLBACK WinMain( HINSTANCE hInstance, HINSTANCE hPr
 	MessageBoxA(NULL, "Attach debugger now", "Waiting for debugger", MB_OK);
 #endif
 
-
-
 	copylen = GetModuleFileNameA(hInstance, lpFilename, sizeof(lpFilename));
 	if(copylen >= (sizeof(lpFilename) -1))
 	{
@@ -1043,22 +643,10 @@ __declspec( dllexport ) int CALLBACK WinMain( HINSTANCE hInstance, HINSTANCE hPr
 
 	Sys_InitLocalization();
 
-	Sys_LoadModules(hInstance);
-
-	if(sys_tempinstall)
-	{
-		tchr = 't';
-	}else{
-		tchr = '\0';
-	}
-	Com_sprintf(UPDATE_VERSION, sizeof(UPDATE_VERSION), "%s%c", UPDATE_VERSION_NUM, tchr);
-
-  //MessageBoxA(NULL, "Wait for debugger", "Wait for debugger", MB_OK);
+	Com_sprintf(UPDATE_VERSION, sizeof(UPDATE_VERSION), "%s", UPDATE_VERSION_NUM);
 
 	if(!strstr(lpCmdLine, "allowdupe") && !strstr(lpCmdLine, "dedicated") && !strstr(lpCmdLine, "installupdatefiles") && !strstr(lpCmdLine, "ui_playerProfileAlreadyChosen"))
 	{
-		//GetApplicationLockFileName();
-
 		while(Sys_AlreadyRunning(qfalse))
 		{
 			choice = MessageBoxTimeoutA(NULL, "An copy of CoD4 is already running", "CoD4 is already running",
@@ -1252,16 +840,6 @@ int entrypoint()
 	exit(r);
 }
 
-
-
-void Sys_RunUpdater( );
-void Sys_MakeCoDXTempInstall();
-qboolean Patch_isiw3mp();
-qboolean Patch_isiw3sp();
-void Sys_RestartAndPatch();
-void Sys_RunInstallerOnDemand();
-
-
 BOOL WINAPI __declspec(dllexport) DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID pvReserved)
 {
 	wchar_t lpFilename[MAX_STRING_CHARS];
@@ -1273,7 +851,7 @@ BOOL WINAPI __declspec(dllexport) DllMain(HINSTANCE hInstance, DWORD dwReason, L
 	}
 	if(dwReason == DLL_PROCESS_ATTACH && *(int*)0x690429 != 0 /* Will bbe 1 due to writeprocessmemory() on temp install */)
 	{
-		copylen = GetModuleFileNameW(hInstance, lpFilename, sizeof(lpFilename) /2);
+		copylen = GetModuleFileNameW(hInstance, lpFilename, sizeof(lpFilename) / sizeof(wchar_t));
 		if(copylen >= (sizeof(lpFilename) -1))
 		{
 			Sys_SetDllFile( L"" );
@@ -1283,18 +861,11 @@ BOOL WINAPI __declspec(dllexport) DllMain(HINSTANCE hInstance, DWORD dwReason, L
 
 		if(Com_HunkInitialized() == qfalse)
 		{
-				/* Startup from temp install */
-				sys_tempinstall = qtrue;
-				Patch_MainModule(Patch_WinMainEntryPoint);
+            Patch_MainModule(Patch_WinMainEntryPoint);
 		}
 
 	}
 	return TRUE;
-}
-
-HMODULE Sys_DllHandle()
-{
-	return dllHandle;
 }
 
 void __cdecl Win_ShutdownLocalization()
@@ -1324,7 +895,6 @@ void Sys_Quit()
     sub_477210();
 	Sys_AlreadyRunning(qtrue);
     Sys_RestartProcessOnExit( );
-	Sys_RunInstallerOnDemand();
 	ExitProcess(0);
   //doexit(0, 0, 0);
 
@@ -1360,7 +930,6 @@ void Sys_RestartProcessOnExit()
 	void* HWND = NULL;
 	char displayMessageBuf[1024];
 	const char *exefile;
-	const char* method;
     SHELLEXECUTEINFO sei;
 	int pid;
 
@@ -1378,32 +947,9 @@ void Sys_RestartProcessOnExit()
 		return;
 	}
 
-
-	if(AutoupdateRequiresElevatedPermissions)
-	{
-		method = "runas";
-
-		//MessageBoxA(HWND, "Note: Installation of this update for Call of Duty 4 will require extended permissions" , "Call of Duty 4 - Autoupdate", MB_OK | MB_ICONEXCLAMATION);
-
-	}else{
-		method = "open";
-
-	}
-/*
-	if ( !ShellExecuteA(NULL, method, exefile, sys_restartCmdLine, NULL, SW_MAXIMIZE | SW_RESTORE) )
-	{
-		FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-						0, GetLastError(), 0x400, displayMessageBuf, sizeof(displayMessageBuf), 0);
-
-		MessageBoxA(HWND, va("ShellExec of commandline: %s %s has failed.\nError: %s\n" , exefile, sys_restartCmdLine, displayMessageBuf), "Call of Duty - Error", MB_OK | MB_ICONERROR);
-	}
-*/
-
-
-	// Launch itself as administrator.
 	memset(&sei, 0, sizeof(sei));
 	sei.cbSize = sizeof(sei);
-    sei.lpVerb = method;
+    sei.lpVerb = "open";
     sei.lpFile = exefile;
 	sei.lpParameters = sys_restartCmdLine;
     sei.hwnd = HWND;
@@ -1583,62 +1129,6 @@ wchar_t* Sys_GetAppDataDir(wchar_t *basepath, int size)
 
 	return basepath;
 }
-
-
-qboolean Sys_TestPermissions()
-{
-	char testpath[MAX_STRING_CHARS];
-	const char* from;
-	unsigned short rannum;
-
-	from = Sys_ExeFile( );
-
-	if(strlen(from) < 9)
-	{
-		Com_Error(ERR_DROP, "Autoupdate failed because of invalid HMODULE path. Manual installation is required\n");
-		return qtrue;
-	}
-	Com_RandomBytes((byte*)&rannum, sizeof(rannum));
-	Com_sprintf( testpath, sizeof(testpath), "%s.%u_test.exe", from, rannum);
-
-	/* Disable folder virtualization */
-
-    HANDLE Token;
-	DWORD disable;
-
-    if (OpenProcessToken(GetCurrentProcess(), MAXIMUM_ALLOWED, &Token)){
-        SetTokenInformation(Token, (TOKEN_INFORMATION_CLASS)24, &disable, sizeof(disable));
-		CloseHandle(Token);
-    }
-
-	if(FS_WriteTestOSPath( testpath ) == qfalse)
-	{
-		return qtrue;
-	}
-	return qfalse;
-
-}
-
-/* This function determins if we need elevated permissions, and sets the restart commandline arguments */
-void Sys_SetupUpdater( const char* updatefiles )
-{
-	char excmdline[4*MAX_STRING_CHARS];
-
-/*
-	//Postponed - only when mss32.dll needs to be updated, otherwise nope
-	if(Sys_TestPermissions())
-	{
-		AutoupdateRequiresElevatedPermissions = qtrue;
-	}
-*/
-
-	Com_sprintf(excmdline, sizeof(excmdline), "+nosplash +set installupdatefiles \"%s\"", updatefiles);
-//	MessageBoxA(NULL, excmdline, "Call of Duty Update", MB_OK | MB_ICONERROR);
-	Sys_SetRestartParams(excmdline);
-}
-
-/* This function determins if we need elevated permissions, and sets the restart commandline arguments */
-
 
 void Sys_RegisterCoD4Protocol( )
 {
@@ -1946,24 +1436,7 @@ int Sys_ListDirectories(const wchar_t* dir, char** list, int limit)
   return count;
 }
 
-qboolean Sys_IsTempInstall()
-{
-	return sys_tempinstall;
-}
-
 qboolean PatchEntrypoint(HANDLE hProcess, const char* dllfile);
-
-static qboolean run_installer = qfalse;
-
-void Sys_InstallCoD4X_f()
-{
-	if(!sys_tempinstall)
-	{
-		return;
-	}
-	run_installer = qtrue;
-	Cbuf_AddText("quit\n");
-}
 
 wchar_t* Sys_GetBinDir1k(wchar_t* bindir)
 {
@@ -1995,69 +1468,6 @@ wchar_t* Sys_GetBinDir1k(wchar_t* bindir)
     }
 	return NULL;
 
-}
-
-
-void Sys_RunInstallerOnDemand()
-{
-	const char* from;
-	wchar_t exefile[1024];
-	wchar_t params[MAX_STRING_CHARS];
-	wchar_t* shellcmd;
-	char bindir[MAX_STRING_CHARS];
-	wchar_t bindiruni[MAX_STRING_CHARS];
-	char dir[MAX_STRING_CHARS];
-	wchar_t displayMessageBuf[MAX_STRING_CHARS];
-	wchar_t errormsgbuf[2*MAX_STRING_CHARS];
-	char* cut;
-	/* For now included. Maybe it will update later too */
-	if(!sys_tempinstall || !run_installer)
-	{
-		return;
-	}
-
-	from = Sys_ExeFile();
-
-	if(strlen(from) < 9)
-	{
-		Com_Error(ERR_DROP, "Installer failed because of invalid HMODULE path. Manual installation is required\n");
-		return;
-	}
-
-	if(Sys_TestPermissions())
-	{
-		shellcmd = L"runas";
-		MessageBoxA(NULL, "Note: Installation of the Call of Duty 4 X update will require extended permissions" , "Call of Duty 4 X - Preinstaller", MB_OK | MB_ICONEXCLAMATION);
-	}else{
-		shellcmd = L"open";
-	}
-
-	FS_ShiftStr( AUTOUPDATE_DIR, AUTOUPDATE_DIR_SHIFT, dir );
-	FS_BuildOSPathForThreadUni( FS_GetSavePath(), dir, "cod4xupd.exe", exefile, 0);
-
-
-	Q_strncpyz(bindir, from, sizeof(bindir));
-	cut = strrchr(bindir, PATH_SEP);
-	if(cut != NULL)
-	{
-		*cut = '\0';
-	}else{
-		Com_Error(ERR_DROP, "Installer failed because of invalid HMODULE path. Manual installation is required\n");
-		return;
-	}
-
-	Q_StrToWStr(bindiruni, bindir, sizeof(bindiruni));
-
-	Com_sprintfUni(params, sizeof(params), L"+set installdir \"%ls\"", bindiruni);
-
-
-	if ( !ShellExecuteW(NULL, shellcmd, exefile, params, NULL, SW_RESTORE) )
-	{
-		FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-						0, GetLastError(), 0x400, displayMessageBuf, sizeof(displayMessageBuf)/2, 0);
-		Com_sprintfUni(errormsgbuf, sizeof(errormsgbuf), L"ShellExec of commandline: %ls %ls has failed.\nError: %ls\n" , exefile, params, displayMessageBuf);
-		MessageBoxW(NULL, errormsgbuf, L"Call of Duty X Preinstaller - Error", MB_OK | MB_ICONERROR);
-	}
 }
 
 /*
