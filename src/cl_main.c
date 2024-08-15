@@ -4841,8 +4841,6 @@ int CL_ReceiveContentFromServerInBuffer(const char* url, byte* updateinfodata, i
 // DHM - Nerve
 void CL_GetUpdateInfo()
 {
-	Sys_LeaveGlobalCriticalSection();
-
 	autoupdateChecked = qtrue;
 }
 

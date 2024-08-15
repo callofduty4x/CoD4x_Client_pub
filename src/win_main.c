@@ -299,6 +299,43 @@ void Sys_CreateMainWindowClass(){
 	}
 }
 
+void Sys_LoadModules(HINSTANCE hInstance){
+    HINSTANCE base;
+    FARPROC proc;
+    int i, copylen;
+    char moduledir[1024];
+    char mss32path[1024];
+    char miles32path[1024];
+    static qboolean loaded = qfalse;
+    char* find;
+
+    if(loaded == qtrue)
+        return;
+
+    copylen = GetModuleFileNameA(hInstance, moduledir, sizeof(moduledir));
+
+    if (copylen < 1 || strrchr(moduledir, '\\') == NULL)
+    {
+        Q_strncpyz(miles32path, "miles32.dll", sizeof(miles32path));
+    } else {
+        find = strrchr(moduledir, '\\');
+        *find = '\0';
+        Com_sprintf(miles32path, sizeof(miles32path), "%s\\miles32.dll", moduledir);
+    }
+
+
+    base = LoadLibraryA(miles32path);
+
+    if(!base){
+        preInitError("Error loading module mss32.dll\n");
+    }
+    proc = GetProcAddress(base, "_AIL_set_DirectSound_HWND@8");
+    if(!proc)
+        preInitError("No entry point for procedure _AIL_set_DirectSound_HWND\n");
+
+    mss.AIL_set_DirectSound_HWND_int = (void*)proc;
+}
+
 //================================================================
 
 static char exeFilename[ MAX_STRING_CHARS ] = { 0 };
@@ -642,6 +679,8 @@ __declspec( dllexport ) int CALLBACK WinMain( HINSTANCE hInstance, HINSTANCE hPr
 	Sys_FixUpThirdPartyModules();
 
 	Sys_InitLocalization();
+
+    Sys_LoadModules(hInstance);
 
 	Com_sprintf(UPDATE_VERSION, sizeof(UPDATE_VERSION), "%s", UPDATE_VERSION_NUM);
 
