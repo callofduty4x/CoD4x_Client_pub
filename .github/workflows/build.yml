@@ -37,7 +37,9 @@ jobs:
       run: |
         cmake --build build --parallel
         ln -s build/bin/cod4x_*.dll .
-        sha1sum cod4x_*.dll > hashes.txt
+        ln -s assets/cod4x/main/*.iwd .
+        ln -s assets/cod4x/zone/*.ff .
+        sha1sum cod4x_*.dll *.iwd *.ff > hashes.txt
 
     - name: Publish release
       if: startsWith(github.ref, 'refs/tags/')
@@ -45,6 +47,6 @@ jobs:
       with:
         allowUpdates: true
         tag: ${{ github.ref_name }}
-        artifacts: "build/bin/cod4x_*.dll,hashes.txt"
+        artifacts: "build/bin/cod4x_*.dll,assets/cod4x/main/*.iwd,assets/cod4x/zone/*.ff,hashes.txt"
         token: ${{ secrets.GITHUB_TOKEN }}
 
