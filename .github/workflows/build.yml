@@ -47,6 +47,6 @@ jobs:
       with:
         allowUpdates: true
         tag: ${{ github.ref_name }}
-        artifacts: "build/bin/cod4x_*.dll,assets/cod4x/main/*.iwd,assets/cod4x/zone/*.ff,hashes.txt"
+        artifacts: "build/bin/cod4x_*.dll,assets/cod4x/main/*.iwd,assets/cod4x/zone/*.ff,assets/cod4x/core,assets/cod4x/mss,hashes.txt"
         token: ${{ secrets.GITHUB_TOKEN }}
 
