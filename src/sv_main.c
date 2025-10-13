@@ -50,6 +50,7 @@ void SaveRegisteredItems()
 		sprintf(&itemstring[2*i], "%02x", bits[i]);
 	}
 	itemstring[2*i] = '\0';
+    itemstring[128] = '\0';
 
 //	Com_Printf("ItemString: %s\n", itemstring);
 
