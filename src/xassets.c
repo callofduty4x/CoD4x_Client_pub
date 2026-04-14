@@ -143,6 +143,10 @@ void DB_InitXAssetMem()
         DB_CustomAllocOnce( ASSET_TYPE_MENU );
         DB_CustomAllocOnce( ASSET_TYPE_WEAPON );
         DB_CustomAllocOnce( ASSET_TYPE_STRINGTABLE );
+        DB_CustomAllocOnce( ASSET_TYPE_XMODEL );
+        DB_CustomAllocOnce( ASSET_TYPE_MATERIAL );
+        DB_CustomAllocOnce( ASSET_TYPE_IMAGE );
+        DB_CustomAllocOnce( ASSET_TYPE_FX );
 }
 
 void DB_RelocateXAssetMem()
