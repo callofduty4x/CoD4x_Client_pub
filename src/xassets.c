@@ -242,10 +242,10 @@ void XAssetsInitStdCount()
         XAssetStdCount[ASSET_TYPE_XMODELPIECES] = 64;
         XAssetStdCount[ASSET_TYPE_PHYSPRESET] = 64;
         XAssetStdCount[ASSET_TYPE_XANIMPARTS] = 4096;
-        XAssetStdCount[ASSET_TYPE_XMODEL] = 1000;
-        XAssetStdCount[ASSET_TYPE_MATERIAL] = 2048;
+        XAssetStdCount[ASSET_TYPE_XMODEL] = 3000;
+        XAssetStdCount[ASSET_TYPE_MATERIAL] = 3048;
         XAssetStdCount[ASSET_TYPE_TECHNIQUE_SET] = 1024;
-        XAssetStdCount[ASSET_TYPE_IMAGE] = 2400;
+        XAssetStdCount[ASSET_TYPE_IMAGE] = 3400;
         XAssetStdCount[ASSET_TYPE_SOUND] = 16000;
         XAssetStdCount[ASSET_TYPE_SOUND_CURVE] = 64;
         XAssetStdCount[ASSET_TYPE_SOUND_LOADED] = 1200;
@@ -264,7 +264,7 @@ void XAssetsInitStdCount()
         XAssetStdCount[ASSET_TYPE_LOCALIZE_ENTRY] = 6144;
         XAssetStdCount[ASSET_TYPE_WEAPON] = ASSET_TYPE_WEAPON_COUNT + 24; //24 extra weapons to mute those... Knowing it does not work
         XAssetStdCount[ASSET_TYPE_SNDDRIVER_GLOBALS] = 1;
-        XAssetStdCount[ASSET_TYPE_FX] = 400;
+        XAssetStdCount[ASSET_TYPE_FX] = 1000;
         XAssetStdCount[ASSET_TYPE_IMPACT_FX] = 4;
         XAssetStdCount[ASSET_TYPE_AITYPE] = 0;
         XAssetStdCount[ASSET_TYPE_MPTYPE] = 0;
