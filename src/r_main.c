@@ -995,6 +995,10 @@ void REGPARM(1) R_StoreWindowSettings(GfxWindowParms_t *wndParms)
       {
         _vidConfig.aspectRatioWindow = 1.3333334;
       }
+      else if((signed int)rationselector < 5)
+      {
+        _vidConfig.aspectRatioWindow = 3.5555555;
+      }
       else if((signed int)rationselector < 7)
       {
         _vidConfig.aspectRatioWindow = 2.3333333;
@@ -1016,6 +1020,8 @@ void REGPARM(1) R_StoreWindowSettings(GfxWindowParms_t *wndParms)
       break;
     case 4:
       _vidConfig.aspectRatioWindow = 2.3333333;
+    case 5:
+      _vidConfig.aspectRatioWindow = 3.5555555;
       break;
   }
   assert ( r_wideScreen );

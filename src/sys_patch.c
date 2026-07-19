@@ -119,7 +119,7 @@ void Patch_R_SamplerValidate()
 	SetCall(0x44D56A, (void*)0x60b10b);
 }*/
 
-const char * s_aspectRatioNames[] = {"auto", "standard", "wide 16:10", "wide 16:9", "ultrawide 21:9", NULL};
+const char * s_aspectRatioNames[] = {"auto", "standard", "wide 16:10", "wide 16:9", "ultrawide 21:9", "ultrawide 32:9", NULL};
 
 __regparm1 float MSG_ReadOriginZFloat(msg_t *msg, float oldValue);
 void CG_HudGetClientName(char* name, int clientnum, int size);
