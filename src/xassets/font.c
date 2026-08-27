@@ -623,7 +623,23 @@ double __cdecl GetMonospaceWidth(struct Font_s *font, int renderFlags)
 }
 
 
-void __cdecl GetDecayingStringAlphaInfo(int decayTimeElapsed, int fxDecayDuration, char alpha, char *resultAlpha)
+static unsigned char ClampFxAlpha(float value)
+{
+  int rounded;
+
+  rounded = (int)floorf(value + 0.5f);
+  if ( rounded > 254 )
+  {
+    return 255;
+  }
+  if ( rounded > 0 )
+  {
+    return (unsigned char)rounded;
+  }
+  return 0;
+}
+
+void __cdecl GetDecayingStringAlphaInfo(int decayTimeElapsed, int fxDecayDuration, unsigned char alpha, unsigned char *resultAlpha)
 {
   float fade;
 
@@ -632,18 +648,9 @@ void __cdecl GetDecayingStringAlphaInfo(int decayTimeElapsed, int fxDecayDuratio
   {
     if ( decayTimeElapsed <= fxDecayDuration )
     {
-      fade = (float)((float)(unsigned __int8)alpha / 255.0) * (float)(1.0 - (float)((float)decayTimeElapsed / (float)fxDecayDuration));
+      fade = (float)((float)alpha / 255.0) * (float)(1.0 - (float)((float)decayTimeElapsed / (float)fxDecayDuration));
     }
-    *resultAlpha = 255 * fade;
-
-    if(*resultAlpha > 255)
-    {
-      *resultAlpha = 255;
-    }
-    if(*resultAlpha < 0)
-    {
-      *resultAlpha = 0;
-    }
+    *resultAlpha = ClampFxAlpha(255.0 * fade);
   }
   else
   {
@@ -688,6 +695,56 @@ unsigned int __cdecl R_FontGetRandomLetter(struct Font_s *font, int seed)
 unsigned int __cdecl R_FontGetRandomNumberCharacter(struct Font_s *font, int seed)
 {
   return MYRANDOMNUMCHARS[RandWithSeed(&seed) % 9u];
+}
+
+void __cdecl GetDecayingLetterInfo(int decayTimeElapsed, int *randSeed, int fxBirthTime, int fxDecayDuration, unsigned int *letter, unsigned char originalAlpha, bool *resultSkipDrawing, unsigned char *resultAlpha, bool *resultDrawExtraFxChar, struct Font_s *font)
+{
+  int decaymil;
+  int threshold;
+  int rand;
+  int tempSeed;
+  float fade;
+
+  *resultSkipDrawing = 0;
+  *resultDrawExtraFxChar = 0;
+
+  decaymil = (signed int)(float)(30.0 * ((float)fxDecayDuration / 1000.0));
+  if ( decaymil <= 0 )
+  {
+    *resultSkipDrawing = 1;
+    *resultAlpha = 0;
+    return;
+  }
+
+  rand = RandWithSeed(randSeed);
+  threshold = (fxDecayDuration / decaymil) * (rand % decaymil);
+
+  if ( decayTimeElapsed >= threshold )
+  {
+    *resultSkipDrawing = 1;
+    *resultAlpha = 255;
+    return;
+  }
+
+  if ( threshold > decayTimeElapsed + 60 )
+  {
+    *resultAlpha = 255;
+    return;
+  }
+
+  tempSeed = (int)*letter + fxBirthTime + decayTimeElapsed;
+  if ( RandWithSeed(&tempSeed) & 1 )
+  {
+    *letter = 'O';
+    *resultDrawExtraFxChar = 1;
+  }
+  else
+  {
+    *letter = R_FontGetRandomLetter(font, tempSeed);
+  }
+
+  fade = (1.0 - ((float)(decayTimeElapsed - threshold + 60) / 60.0)) * ((float)originalAlpha / 255.0) * 255.0;
+  *resultAlpha = ClampFxAlpha(fade);
 }
 
 
@@ -752,7 +809,7 @@ void __cdecl DrawText2D(const char *text, float x, float y, float w, struct Font
   bool decaying;
   float startY;
   int passCount;
-  char fadeAlpha;
+  unsigned char fadeAlpha;
 
 
   #if 0
@@ -1015,7 +1072,7 @@ void __cdecl DrawText2D(const char *text, float x, float y, float w, struct Font
                 if ( drawRandomCharAtEnd && maxLengthRemaining == 1 )
                 {
                   letter = R_FontGetRandomLetter(font, passRandSeed);
-                  fadeAlpha = -64;
+                  fadeAlpha = 0xC0;
                   if ( RandWithSeed(&passRandSeed) % 2 )
                   {
                     drawExtraFxChar = 1;
@@ -1025,14 +1082,14 @@ void __cdecl DrawText2D(const char *text, float x, float y, float w, struct Font
               }
               else
               {
-                fadeAlpha = -1;
+                fadeAlpha = 0xFF;
               }
             }
             else
             {
               randseed = RandWithSeed(&passRandSeed);
               letter = R_FontGetRandomNumberCharacter(font, randseed);
-              fadeAlpha = -64;
+              fadeAlpha = 0xC0;
             }
             if ( drawUnderscoreCharAtEnd && maxLengthRemaining == 1 )
             {
@@ -1065,9 +1122,13 @@ void __cdecl DrawText2D(const char *text, float x, float y, float w, struct Font
                     fadeAlpha = 255;
                     drawExtraFxChar = 0;
                   }
-                  else
+                  else if ( renderFlags & 0x800 )
                   {
                     GetDecayingStringAlphaInfo(decayTimeElapsed, fxDecayDuration, currentColor.array[3], &fadeAlpha);
+                  }
+                  else
+                  {
+                    GetDecayingLetterInfo(decayTimeElapsed, &passRandSeed, fxBirthTime, fxDecayDuration, &letter, currentColor.array[3], &skipDrawing, &fadeAlpha, &drawExtraFxChar, font);
                   }
                 }
                 if ( drawExtraFxChar )
