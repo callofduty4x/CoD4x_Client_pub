@@ -216,8 +216,6 @@ LONG WINAPI MainWndProc(
 	RECT r;
 	MONITORINFO monitor;
 
-	SetThreadExecutionState(2);
-
 	if ( uMsg == MSH_MOUSEWHEEL ) {
 		if ( ( ( int ) wParam ) > 0 ) {
 			Com_QueueEvent( g_wv.sysMsgTime, SE_KEY, 206 /*K_MWHEELUP*/, qtrue, 0, NULL );

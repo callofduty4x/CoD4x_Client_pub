@@ -1122,6 +1122,22 @@ void Com_Frame_Try_Block()
 		return;
 	}
 
+#ifdef _WIN32
+    /* (c) Snake :: Fix mouse lag - SetThreadExecutionState was called for every window
+       message, which at a 1000 Hz polling rate meant a syscall per WM_INPUT.
+       ES_CONTINUOUS makes the request stick, so once per run is enough. The state is
+       thread local and is dropped when the thread exits, so no shutdown call is needed. */
+    {
+        static qboolean displayRequested = qfalse;
+
+        if ( !displayRequested )
+        {
+            SetThreadExecutionState( ES_CONTINUOUS | ES_DISPLAY_REQUIRED );
+            displayRequested = qtrue;
+        }
+    }
+#endif
+
 	CL_RunOncePerClientFrame( msec );
 
 	Com_EventLoop( );

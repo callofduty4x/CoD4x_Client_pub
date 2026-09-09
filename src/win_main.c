@@ -39,8 +39,8 @@ void Sys_EventLoop(){
 	MSG msg;
 
 	// pump the message loop
-	while ( PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE ) ) {
-		if ( !GetMessage( &msg, NULL, 0, 0 ) ) {
+	while ( PeekMessage( &msg, g_wv.hWnd, 0, 0, PM_NOREMOVE ) ) {
+		if ( !GetMessage( &msg, g_wv.hWnd, 0, 0 ) ) {
 			Com_Quit_f();
 		}
 		// save the msg time, because wndprocs don't have access to the timestamp
