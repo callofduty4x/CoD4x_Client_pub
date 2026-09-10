@@ -2,9 +2,9 @@
 ===========================================================================
 
 Return to Castle Wolfenstein multiplayer GPL Source Code
-Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2010 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).  
+This file is part of the Return to Castle Wolfenstein multiplayer GPL Source Code (RTCW MP Source Code).
 
 RTCW MP Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -28,10 +28,6 @@ If you have questions concerning this license or the applicable additional terms
 
 // win_input.c -- win32 mouse and joystick code
 // 02/21/97 JCB Added extended DirectInput code to support external controllers.
-
-//#include "../client/client.h"
-//#include "win_local.h"
-//#include "dinput.h"
 
 #include "q_shared.h"
 #include "win_sys.h"
@@ -192,7 +188,7 @@ void IN_ActivateMouse( qboolean force ) {
 
 void IN_ShowSystemCursor(int show)
 {
-	
+
   int actualShow; // [esp+0h] [ebp-8h]
   int desiredShow; // [esp+4h] [ebp-4h]
 
@@ -218,17 +214,11 @@ Called when the window loses focus
 ===========
 */
 void IN_DeactivateMouse( void ) {
-
-
-	if ( !s_wmv.mouseInitialized ) {
-		return;
-	}
-	if ( !s_wmv.mouseActive ) {
+	if (!s_wmv.mouseInitialized || !s_wmv.mouseActive) {
 		return;
 	}
 	s_wmv.mouseActive = qfalse;
 	IN_DeactivateWin32Mouse();
-
 }
 
 
@@ -240,7 +230,7 @@ IN_MouseEvent
 void IN_MouseEvent( int mstate ) {
 	int button;
 	int diff;
-	
+
 	if ( !s_wmv.mouseInitialized ) {
 		return;
 	}
@@ -250,13 +240,13 @@ void IN_MouseEvent( int mstate ) {
 	if(!diff){
 		return;
 	}
-	
-// perform button actions
+
+    // perform button actions
 	for  ( button = 0 ; button < 5 ; button++ )
 	{
 		if(!(diff & ( 1 << button )))
 			continue;
-		
+
 		if(mstate & ( 1 << button )){
 			Com_QueueEvent( g_wv.sysMsgTime, SE_KEY, K_MOUSE1 + button, qtrue, 0, NULL );
 		}else{
@@ -283,11 +273,11 @@ void IN_StartupMouse()
 	if ( in_mouse->boolean )
 	{
 		//Call it so mouse pointer gets drawn properly even in RAW input mode
-		
+
 		IN_RecenterMouse();
         s_wmv.oldPos.x = window_center_x;
         s_wmv.oldPos.y = window_center_y;
-		
+
 		s_wmv.mouseInitialized = 1;
 
 	}
@@ -360,8 +350,8 @@ void __cdecl IN_Activate(qboolean active)
 
 void IN_ClampMouseMove(struct tagPOINT *curPos)
 {
-  bool isClamped; 
-  struct tagRECT rc; 
+  bool isClamped;
+  struct tagRECT rc;
 
   GetWindowRect(g_wv.hWnd, &rc);
   isClamped = false;
@@ -436,33 +426,28 @@ void IN_MouseMove()
 
 void __cdecl IN_Frame()
 {
-  if ( Cvar_GetBool("ClickToContinue") )
-  {
-    PostMessageA(g_wv.hWnd, 0x201u, 1u, 0);
-  }
-
-  if ( s_wmv.mouseInitialized )
-  {
-    if ( in_appactive )
-    {
-
-      IN_ActivateMouse(0);
-	  if(!raw_input->boolean)
-  	  {
-	    IN_MouseMove();
-	  }
-
-      /*
-	  if ( IN_IsForegroundWindow() )
-      {
-        IN_GamepadsMove();
-      }*/
+    if (Cvar_GetBool("ClickToContinue")) {
+        PostMessageA(g_wv.hWnd, WM_LBUTTONDOWN, 1u, 0);
     }
-    else
-    {
-      IN_DeactivateMouse();
+
+    if (!s_wmv.mouseInitialized) {
+        return;
     }
-  }
+
+    if (in_appactive) {
+        IN_ActivateMouse(0);
+        if (!raw_input->boolean) {
+            IN_MouseMove();
+        }
+
+        /*
+        if (IN_IsForegroundWindow())
+        {
+            IN_GamepadsMove();
+        }*/
+    } else {
+        IN_DeactivateMouse();
+    }
 }
 
 void IN_SetCursorPos(int x, int y)
@@ -481,7 +466,20 @@ void IN_SetCursorPos(int x, int y)
 #define HID_USAGE_PAGE_GENERIC 1
 #define HID_USAGE_GENERIC_MOUSE 2
 
-static RAWINPUT rawinput;
+// I hate you, Microsoft
+// https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getrawinputbuffer#remarks
+typedef struct __attribute__((aligned(8))) {
+    RAWINPUTHEADER header;
+    BYTE padding[8];
+
+    union {
+        RAWMOUSE mouse;
+        RAWKEYBOARD keyboard;
+        RAWHID hid;
+    } data;
+} RAWINPUT_WOW64;
+
+BOOL g_isWow64 = FALSE;
 
 void IN_RawMouseInit()
 {
@@ -500,55 +498,113 @@ void IN_RawMouseInit()
 		s_wmv.rawmouseinitialized = true;
 	}
 
-	memset(&rawinput, 0, sizeof(RAWINPUT));
+    IsWow64Process(GetCurrentProcess(), &g_isWow64);
+}
 
+static void IN_ProcessRawMouseEvent(const RAWMOUSE* event)
+{
+	int dx;
+	int dy;
+	struct tagPOINT curPos;
+
+	dx = event->lLastX;
+	dy = event->lLastY;
+    if (!dx && !dy) {
+        return;
+    }
+
+	if (r_fullscreen->boolean) {
+		curPos.x = s_wmv.oldPos.x + dx;
+		curPos.y = s_wmv.oldPos.y + dy;
+		IN_ClampMouseMove(&curPos);
+	} else {
+		GetCursorPos(&curPos);
+	}
+
+	s_wmv.oldPos = curPos;
+	ScreenToClient(g_wv.hWnd, &curPos);
+
+	g_wv.recenterMouse = CL_MouseEvent(curPos.x, curPos.y, dx, dy);
+	if (g_wv.recenterMouse) {
+        IN_RecenterMouse();
+
+        s_wmv.oldPos.x = window_center_x;
+        s_wmv.oldPos.y = window_center_y;
+	}
+}
+
+static void IN_RawInputDrainQueue(void)
+{
+    // Even if we're not on WOW64, use the WOW64 struct as it is bigger
+    static UINT bufferSize = 64 * sizeof(RAWINPUT_WOW64);
+    static void* buffer = NULL;
+
+    if (!buffer) {
+        buffer = malloc(bufferSize);
+        if (!buffer) {
+            return;
+        }
+    }
+
+    while (true) {
+        UINT size = bufferSize;
+        UINT count = GetRawInputBuffer((RAWINPUT*)buffer, &size, sizeof(RAWINPUTHEADER));
+
+        if (count == 0) {
+            break;
+        }
+
+        if (count == (UINT)-1) {
+            // buffer was too small, retry with a larger buffer
+            bufferSize = MAX(size, bufferSize * 2);
+            void* newBuffer = malloc(bufferSize);
+            if (!newBuffer) {
+                break;
+            }
+            // not using realloc because of a useless copy
+            free(buffer);
+            buffer = newBuffer;
+            continue;
+        }
+
+        // Fuck, Microsoft... I really don't like you.
+        if (g_isWow64) {
+            RAWINPUT_WOW64* raw = (RAWINPUT_WOW64*)buffer;
+            for (UINT i = 0; i < count; ++i) {
+                if (raw->header.dwType == RIM_TYPEMOUSE) {
+                    IN_ProcessRawMouseEvent(&raw->data.mouse);
+                }
+                raw = (RAWINPUT_WOW64*)NEXTRAWINPUTBLOCK(raw);
+            }
+        } else {
+            RAWINPUT* raw = (RAWINPUT*)buffer;
+            for (UINT i = 0; i < count; ++i) {
+                if (raw->header.dwType == RIM_TYPEMOUSE) {
+                    IN_ProcessRawMouseEvent(&raw->data.mouse);
+                }
+                raw = (RAWINPUT*)NEXTRAWINPUTBLOCK(raw);
+            }
+        }
+    }
 }
 
 void IN_RawEvent(LPARAM lParam)
 {
-	int dx;
-	struct tagPOINT curPos;
-	int dy;
-
-	if ( raw_input->boolean && IN_IsForegroundWindow() )
-	{
-
+    // Using the batched read pattern (https://learn.microsoft.com/en-us/windows/win32/inputdev/about-raw-input)
+    RAWINPUT rawinput;
+	if (raw_input->boolean && IN_IsForegroundWindow()) {
 		assert(s_wmv.mouseInitialized);
 		assert(r_fullscreen);
 
-		UINT size = sizeof(RAWINPUT);
-		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, &rawinput, &size, sizeof(RAWINPUTHEADER));
-		
-		if (rawinput.header.dwType != RIM_TYPEMOUSE) {
-			return;
-		}
+        UINT bufferSize = sizeof(RAWINPUT);
+        if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, &rawinput, &bufferSize, sizeof(RAWINPUTHEADER)) != (UINT)-1) {
+            if (rawinput.header.dwType == RIM_TYPEMOUSE) {
+                IN_ProcessRawMouseEvent(&rawinput.data.mouse);
+            }
+        }
 
-		dx = rawinput.data.mouse.lLastX;
-		dy = rawinput.data.mouse.lLastY;
-
-		if ( r_fullscreen->boolean )
-		{
-			curPos.x = s_wmv.oldPos.x + dx;
-			curPos.y = s_wmv.oldPos.y + dy;
-			IN_ClampMouseMove(&curPos);
-		}else{
-			GetCursorPos(&curPos);
-		}
-
-		s_wmv.oldPos = curPos;
-		ScreenToClient(g_wv.hWnd, &curPos);
-		g_wv.recenterMouse = CL_MouseEvent(curPos.x, curPos.y, dx, dy);
-		if ( g_wv.recenterMouse )
-		{
-			if ( dx || dy )
-			{
-				IN_RecenterMouse();
-				s_wmv.oldPos.x = window_center_x;
-				s_wmv.oldPos.y = window_center_y;
-			}
-		}
+        IN_RawInputDrainQueue();
 	}
-
 }
 
 bool IN_AppActive()
