@@ -129,6 +129,158 @@ void Menus_ShowByName(UiContext_t *dc, const char *windowName)
 	}
 }
 
+serverInfo_t* LAN_GetServerPtr(int source, uint32_t n)
+{
+    if (!source && n < 0x80)
+        return &cls.localServers[n];
+
+    if (source == 1 && (n & 0x80000000) == 0 && (int)n < cls.numglobalservers)
+        return &cls.globalServers[n];
+
+    if (source == 2 && n < 0x80)
+        return &cls.favoriteServers[n];
+
+    return NULL;
+}
+
+static void LAN_CleanHostname(const char* hostName, char* cleanHostName)
+{
+    while (*hostName) {
+        if (Q_isalpha(*hostName)) {
+            *cleanHostName++ = *hostName++;
+        } else {
+            ++hostName;
+        }
+    }
+
+    *cleanHostName = '\0';
+}
+
+static int LAN_CompareHostname(const char* hostName1, const char* hostName2)
+{
+    char cleanHostName1[32];
+    char cleanHostName2[32];
+    int res;
+
+    LAN_CleanHostname(hostName1, cleanHostName1);
+    LAN_CleanHostname(hostName2, cleanHostName2);
+    res = Q_stricmp(cleanHostName1, cleanHostName2);
+    if (res)
+        return res;
+    else
+        return Q_stricmp(hostName1, hostName2);
+}
+
+static const char* LAN_CleanMapname(const char* mapname) {
+    return strncmp(mapname, "mp_", 3) == 0 ? mapname + 3 : mapname;
+}
+
+enum {
+    SORTKEY_PASSWORD,
+    SORTKEY_HARDWARE,
+    SORTKEY_HOSTNAME,
+    SORTKEY_MAPNAME,
+    SORTKEY_PLAYERCOUNT,
+    SORTKEY_GAMETYPE,
+    SORTKEY_VOICE,
+    SORTKEY_PURE,
+    SORTKEY_MOD,
+    SORTKEY_PB,
+    SORTKEY_PING
+};
+
+static int LAN_CompareServers(int source, int sortKey, int sortDir, uint32_t s1, uint32_t s2)
+{
+    Com_Printf(CON_CHANNEL_DONT_FILTER, "SortKey: %d, direction %d\n", sortKey, sortDir);
+    serverInfo_t* server1 = LAN_GetServerPtr(source, s1);
+    serverInfo_t* server2 = LAN_GetServerPtr(source, s2);
+
+    if (!server1 || !server2)
+        return 0;
+
+    int res = 0;
+
+    switch (sortKey)
+    {
+    case SORTKEY_PASSWORD:
+        res = server1->pswrd - server2->pswrd;
+        break;
+
+    case SORTKEY_HARDWARE:
+        // This comparison should always give us 0 nowadays, so fallback to clients (bots included)
+        res = server1->hw - server2->hw;
+        if (res == 0)
+            res = server2->clients - server1->clients;
+        break;
+
+    case SORTKEY_HOSTNAME:
+        res = LAN_CompareHostname(server1->hostName, server2->hostName);
+        break;
+
+    case SORTKEY_MAPNAME:
+        res = Q_stricmp(LAN_CleanMapname(server1->mapName), LAN_CleanMapname(server2->mapName));
+        break;
+
+    case SORTKEY_PLAYERCOUNT:
+        res = server2->humanPlayers - server1->humanPlayers;
+        if (res == 0)
+            res = server2->clients - server1->clients;
+        break;
+
+    case SORTKEY_GAMETYPE:
+        res = Q_stricmp(server1->gameType, server2->gameType);
+        break;
+
+    case SORTKEY_VOICE:
+        res = server2->voice - server1->voice;
+        break;
+
+    case SORTKEY_PURE:
+        // This comparison should always give us 0 nowadays, so fallback to bot count
+        res = server2->pure - server1->pure;
+        if (res == 0)
+            res = (server2->clients - server2->humanPlayers) - (server1->clients - server1->humanPlayers);
+        break;
+
+    case SORTKEY_MOD:
+        res = server1->mod - server2->mod;
+        break;
+
+    case SORTKEY_PB:
+        res = server1->punkbuster - server2->punkbuster;
+        break;
+
+    case SORTKEY_PING:
+        res = server1->ping - server2->ping;
+        break;
+    }
+
+    if (res == 0)
+        res = server2->humanPlayers - server1->humanPlayers;
+    if (res == 0)
+        res = (server2->clients - server2->humanPlayers) - (server1->clients - server1->humanPlayers);
+    if (res == 0)
+        res = server2->clients - server1->clients;
+    if (res == 0)
+        res = server1->ping - server2->ping;
+    if (res == 0)
+        res = Q_stricmp(server1->gameType, server2->gameType);
+    if (res == 0)
+        res = LAN_CompareHostname(server1->hostName, server2->hostName);
+
+    return sortDir ? -res : res;
+}
+
+static int UI_ServersQsortCompare(const void* arg1, const void* arg2)
+{
+    return LAN_CompareServers(
+        uiMem.ui_netSource->integer,
+        uiMem.serverStatus.sortKey,
+        uiMem.serverStatus.sortDir,
+        *(const uint32_t*)arg1,
+        *(const uint32_t*)arg2);
+}
+
 void UI_RunMenuScript(int localClientNum, char **args, const char* actualScript)
 {
   signed int profileNum;

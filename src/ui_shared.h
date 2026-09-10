@@ -313,7 +313,6 @@ void UI_CloseAllMenusInternal(int localclientnum);
 void UI_BuildServerDisplayListByNetSource();
 void UI_BuildServerStatus(uiInfo_t*, int);
 void UI_FeederSelection(float, int);
-int UI_ServersQsortCompare(const void*, const void*);
 void UI_Update(const char *name);
 void UI_VerifyLanguage();
 qboolean UI_IsFullscreen(uiInfo_t* inf);

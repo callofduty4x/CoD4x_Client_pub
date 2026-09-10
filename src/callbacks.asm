@@ -190,7 +190,7 @@ bin_import Com_SortPlayerProfiles, 0x545070
 bin_import Com_GetPlayerProfile, 0x544f80
 bin_import Com_SelectPlayerProfile, 0x545020
 bin_import DB_SyncXAssets, 0x48a290
-bin_import UI_ServersQsortCompare, 0x544e90
+;bin_import UI_ServersQsortCompare, 0x544e90
 ;bin_import Key_ClearStates, 0x468500
 bin_import UI_VerifyLanguage, 0x5456b0
 bin_import Com_SetRecommended, 0x4fe7a0

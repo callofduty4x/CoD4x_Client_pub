@@ -155,7 +155,7 @@ void LAN_GetServerInfo( int source, int n, char *buf, int buflen ) {
 	bots = server->clients - server->humanPlayers;
 	if(server->humanPlayers >= 0 && server->humanPlayers < 127 && bots)
 	{
-		Com_sprintf(tmp, sizeof(tmp), "%d(%d)", server->humanPlayers, bots);
+		Com_sprintf(tmp, sizeof(tmp), "%d[%d]", server->humanPlayers, bots);
 	}else{
 		Com_sprintf(tmp, sizeof(tmp), "%d", server->clients);
 	}
