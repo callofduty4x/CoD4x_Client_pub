@@ -191,7 +191,6 @@ enum {
 
 static int LAN_CompareServers(int source, int sortKey, int sortDir, uint32_t s1, uint32_t s2)
 {
-    Com_Printf(CON_CHANNEL_DONT_FILTER, "SortKey: %d, direction %d\n", sortKey, sortDir);
     serverInfo_t* server1 = LAN_GetServerPtr(source, s1);
     serverInfo_t* server2 = LAN_GetServerPtr(source, s2);
 
