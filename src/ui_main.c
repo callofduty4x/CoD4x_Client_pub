@@ -131,14 +131,17 @@ void Menus_ShowByName(UiContext_t *dc, const char *windowName)
 
 serverInfo_t* LAN_GetServerPtr(int source, uint32_t n)
 {
-    if (!source && n < 0x80)
+    if (source == AS_LOCAL && n < 0x80)
         return &cls.localServers[n];
 
-    if (source == 1 && (n & 0x80000000) == 0 && (int)n < cls.numglobalservers)
+    if (source == AS_GLOBAL && (n & 0x80000000) == 0 && (int)n < cls.numglobalservers)
         return &cls.globalServers[n];
 
-    if (source == 2 && n < 0x80)
+    if (source == AS_FAVORITES && n < 0x80)
         return &cls.favoriteServers[n];
+
+    if (source == AS_MPLAYER && (n & 0x80000000) == 0 && (int)n < cls.nummplayerservers)
+        return &cls.mplayerServers[n];
 
     return NULL;
 }
