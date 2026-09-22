@@ -66,12 +66,8 @@ static void VID_AppActivate( BOOL fActive, BOOL minimize ) {
 	Key_ClearStates(0);  // FIXME!!!
 
 	// we don't want to act like we're active if we're minimized
-	if ( fActive && !g_wv.isMinimized ) {
-		g_wv.activeApp = qtrue;
-	} else
-	{
-		g_wv.activeApp = qfalse;
-	}
+	g_wv.activeApp = fActive && !g_wv.isMinimized ? qtrue : qfalse;
+	SetThreadExecutionState(g_wv.activeApp ? (ES_CONTINUOUS | ES_DISPLAY_REQUIRED) : ES_CONTINUOUS);
 
 	// minimize/restore mouse-capture on demand
 	IN_Activate(g_wv.activeApp);
