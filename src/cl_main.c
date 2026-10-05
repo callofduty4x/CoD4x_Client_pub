@@ -2040,6 +2040,7 @@ void CL_SetServerInfo( serverInfo_t *server, const char *info, int ping )
       server->hw = atoi(Info_ValueForKey(info, "hw"));
       server->dom = atoi(Info_ValueForKey(info, "dom"));
       server->voice = atoi(Info_ValueForKey(info, "voice"));
+	  server->mod = atoi(Info_ValueForKey(info, "mod"));
       server->punkbuster = atoi(Info_ValueForKey(info, "pb")) > 0;
 	  s = Info_ValueForKey(info, "g_humanplayers");
 	  if(s[0])

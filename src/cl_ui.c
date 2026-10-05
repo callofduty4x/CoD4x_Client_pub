@@ -176,6 +176,7 @@ void LAN_GetServerInfo( int source, int n, char *buf, int buflen ) {
 	FastInfo_SetValueForKey( info, "kc", tostring( server->kc));
 	FastInfo_SetValueForKey( info, "hc", tostring( server->hardcore));
 	FastInfo_SetValueForKey( info, "od", tostring( server->od));
+	FastInfo_SetValueForKey( info, "mod", tostring( server->mod));
 	if(server->game[0] && Q_stricmp(server->game, "main"))
 	{
 		FastInfo_SetValueForKey( info, "mod", "1");

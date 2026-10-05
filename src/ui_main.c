@@ -960,13 +960,7 @@ void UI_DrawBuildString( )
   float fontscale;
   float ypos;
   float xpos;
-  float advwidth;
-  float buildstringwidth;
   char buildString[128];
-  char advstring[256];
-  char notaffiliatedstring[256];
-  Com_sprintf(advstring, sizeof(advstring), "Visit the official CoD4X website: www.%s", UI_GetSiteDomain());
-  Com_sprintf(notaffiliatedstring, sizeof(notaffiliatedstring), "%s(Call of Duty 4 X) is not affiliated with Activision Publishing", UI_GetSiteDomain());
 
   if(uiMem.uiInfo.uiDC.openMenuCount > 2)
   {
@@ -995,20 +989,10 @@ void UI_DrawBuildString( )
   ypos = uiMem.ui_buildLocation->vec2[1];
   xpos = uiMem.ui_buildLocation->vec2[0];
   ypos -= 5.0;
-  Com_sprintf(buildString, sizeof(buildString), "%s", UPDATE_VERSION);
-  UI_DrawText(&scrPlaceView[ctx], buildString, 64, font, xpos, ypos, 3, 0, fontscale, colorMdGrey, 0);
+  xpos -= 50.0f;
 
-  ypos += UI_TextHeight(font, fontscale);
-
-  advwidth = (float)UI_TextWidth(advstring, 0, font, fontscale);
-  buildstringwidth = (float)UI_TextWidth(buildString, 0, font, fontscale);
-
-  UI_DrawText(&scrPlaceView[ctx], advstring, 80, font, xpos + buildstringwidth - advwidth, ypos, 3, 0, fontscale, colorLtGrey, 0);
-
-  ypos += UI_TextHeight(font, fontscale) - 5;
-
-  UI_DrawText(&scrPlaceView[ctx], notaffiliatedstring, 80, font, xpos + buildstringwidth - advwidth, ypos, 3, 0, fontscale * 0.75, colorLtGrey, 0);
-
+  Com_sprintf(buildString, sizeof(buildString), "%s CoD4X %s", PRODUCT_VERSION, UPDATE_VERSION);
+  UI_DrawText(&scrPlaceView[ctx], buildString, 64, font, xpos, ypos, 3, 0, fontscale, colorLtGrey, 0);
 }
 
 
